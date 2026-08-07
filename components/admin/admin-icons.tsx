@@ -1,0 +1,20 @@
+import type { SVGProps } from 'react';
+
+type P = SVGProps<SVGSVGElement>;
+const base = { width:18, height:18, viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.7, strokeLinecap:'round' as const, strokeLinejoin:'round' as const };
+export const HomeIcon=(p:P)=><svg {...base} {...p}><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></svg>;
+export const BookingIcon=(p:P)=><svg {...base} {...p}><path d="M6 3v3M18 3v3M4 8h16"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="m8 13 2 2 5-5"/></svg>;
+export const CalendarIcon=(p:P)=><svg {...base} {...p}><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>;
+export const FloorIcon=(p:P)=><svg {...base} {...p}><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>;
+export const UsersIcon=(p:P)=><svg {...base} {...p}><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5A4 4 0 0 1 20.5 18v2"/></svg>;
+export const SettingsIcon=(p:P)=><svg {...base} {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1-2.9 2.9-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21h-4v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1-2.9-2.9.1-.1A1.6 1.6 0 0 0 4.6 15a1.6 1.6 0 0 0-1.5-1H3v-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1 2.9-2.9.1.1A1.6 1.6 0 0 0 9 4.6a1.6 1.6 0 0 0 1-1.5V3h4v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1 2.9 2.9-.1.1a1.6 1.6 0 0 0-.3 1.8 1.6 1.6 0 0 0 1.5 1h.1v4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>;
+export const PlusIcon=(p:P)=><svg {...base} {...p}><path d="M12 5v14M5 12h14"/></svg>;
+export const SearchIcon=(p:P)=><svg {...base} {...p}><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>;
+export const MoreIcon=(p:P)=><svg {...base} {...p}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>;
+export const CloseIcon=(p:P)=><svg {...base} {...p}><path d="m6 6 12 12M18 6 6 18"/></svg>;
+export const ChevronRightIcon=(p:P)=><svg {...base} {...p}><path d="m9 18 6-6-6-6"/></svg>;
+export const PhoneIcon=(p:P)=><svg {...base} {...p}><path d="M8.4 4H5.8A1.8 1.8 0 0 0 4 5.8C4 13.6 10.4 20 18.2 20a1.8 1.8 0 0 0 1.8-1.8v-2.6l-4.2-1-1.1 2.1a13 13 0 0 1-7.4-7.4l2.1-1.1L8.4 4Z"/></svg>;
+export const MailIcon=(p:P)=><svg {...base} {...p}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>;
+export const UserIcon=(p:P)=><svg {...base} {...p}><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>;
+export const TableIcon=(p:P)=><svg {...base} {...p}><path d="M4 8h16M6 8v10M18 8v10M3 8l2-4h14l2 4"/></svg>;
+export const CheckIcon=(p:P)=><svg {...base} {...p}><path d="m5 12 4 4L19 6"/></svg>;

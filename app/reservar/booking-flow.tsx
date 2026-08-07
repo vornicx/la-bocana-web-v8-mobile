@@ -1,0 +1,233 @@
+'use client';
+
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+
+type Slot = {
+  serviceId: string;
+  serviceName: string;
+  startsAt: string;
+  endsAt: string;
+  durationMinutes: number;
+};
+
+type Hold = { holdId: string; expiresAt: string; startsAt: string; endsAt: string };
+
+type Confirmation = { confirmationCode: string; status: string; managementToken: string };
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const localDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+const tomorrow = () => { const d = new Date(); d.setDate(d.getDate() + 1); return localDate(d); };
+const formatTime = (value: string) => new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date(value));
+const formatDate = (value: string) => new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${value}T12:00:00`));
+
+export default function BookingFlow() {
+  const [step, setStep] = useState(1);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [date, setDate] = useState(tomorrow);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [hold, setHold] = useState<Hold | null>(null);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
+  const [remaining, setRemaining] = useState(0);
+  const sessionId = useMemo(() => typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`, []);
+
+  useEffect(() => {
+    if (!hold) return;
+    const update = () => setRemaining(Math.max(0, Math.floor((new Date(hold.expiresAt).getTime() - Date.now()) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [hold]);
+
+  useEffect(() => {
+    if (hold && new Date(hold.expiresAt).getTime() <= Date.now() && step === 4) {
+      setError('El bloqueo temporal ha caducado. Elige de nuevo una hora para comprobar disponibilidad.');
+      setHold(null);
+      setStep(3);
+    }
+  }, [remaining, hold, step]);
+
+  const partySize = adults + children;
+
+  async function loadSlots() {
+    setLoading(true); setError('');
+    try {
+      const response = await fetch(`/api/reservations/availability?date=${encodeURIComponent(date)}&adults=${adults}&children=${children}`, { cache: 'no-store' });
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || 'No se pudo consultar la disponibilidad.');
+      setSlots(json.slots ?? []);
+      setStep(3);
+    } catch (e) { setError((e as Error).message); }
+    finally { setLoading(false); }
+  }
+
+  async function chooseSlot(slot: Slot) {
+    setLoading(true); setError('');
+    try {
+      const response = await fetch('/api/reservations/hold', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ date, adults, children, serviceId: slot.serviceId, startsAt: slot.startsAt, sessionId }),
+      });
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || 'Esa hora ya no está disponible.');
+      setRemaining(Math.max(0, Math.floor((new Date(json.expiresAt).getTime() - Date.now()) / 1000)));
+      setHold(json); setStep(4);
+    } catch (e) {
+      const message = (e as Error).message;
+      await loadSlots();
+      setError(message);
+    } finally { setLoading(false); }
+  }
+
+  async function releaseCurrentHold() {
+    if (!hold) return;
+    try { await fetch('/api/reservations/hold', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ holdId: hold.holdId, sessionId }) }); } catch { /* expira solo si falla */ }
+    setHold(null);
+  }
+
+  async function confirm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!hold) return;
+    setLoading(true); setError('');
+    const form = new FormData(event.currentTarget);
+    try {
+      const response = await fetch('/api/reservations', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          holdId: hold.holdId,
+          firstName: form.get('firstName'), lastName: form.get('lastName'),
+          phone: form.get('phone'), email: form.get('email'),
+          allergies: form.get('allergies'), preferences: form.get('preferences'), notes: form.get('notes'),
+          privacyAccepted: form.get('privacyAccepted') === 'on', companyWebsite: form.get('companyWebsite'),
+        }),
+      });
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || 'No se pudo confirmar la reserva.');
+      setConfirmation(json); setStep(5);
+    } catch (e) { setError((e as Error).message); }
+    finally { setLoading(false); }
+  }
+
+  if (confirmation) {
+    return (
+      <div className="confirmation-card">
+        <div className="confirmation-mark">✓</div>
+        <span className="eyebrow dark">Reserva recibida</span>
+        <h2>Tu mesa está reservada.</h2>
+        <p className="confirmation-code">{confirmation.confirmationCode}</p>
+        <p>Guarda el código y utiliza el enlace privado para modificar o cancelar tu reserva.</p>
+        <a className="primary-button" href={`/reserva/${confirmation.managementToken}`}>Gestionar mi reserva</a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flow">
+      <div className="progress-row">
+        <span>Reserva</span><strong>{Math.min(step, 4)} de 4</strong>
+      </div>
+      <div className="progress-track"><i style={{ width: `${Math.min(step, 4) * 25}%` }} /></div>
+
+      {step === 1 && (
+        <section className="flow-step">
+          <span className="eyebrow dark">Tu mesa</span>
+          <h2>¿Cuántos seréis?</h2>
+          <p className="lead">Indícanos el número de adultos y niños.</p>
+          <Counter label="Adultos" value={adults} min={1} max={20} onChange={setAdults} />
+          <Counter label="Niños" value={children} min={0} max={12} onChange={setChildren} />
+          <button className="primary-button" onClick={() => setStep(2)}>Continuar · {partySize} {partySize === 1 ? 'persona' : 'personas'}</button>
+        </section>
+      )}
+
+      {step === 2 && (
+        <section className="flow-step">
+          <button className="back-button" onClick={() => setStep(1)}>← Volver</button>
+          <span className="eyebrow dark">Fecha</span>
+          <h2>¿Cuándo os esperamos?</h2>
+          <label className="field-label" htmlFor="date">Selecciona una fecha</label>
+          <input className="date-input" id="date" type="date" min={tomorrow()} value={date} onChange={(e) => setDate(e.target.value)} />
+          <div className="selection-summary"><span>{partySize} personas</span><span>·</span><span>{formatDate(date)}</span></div>
+          <button className="primary-button" disabled={loading} onClick={loadSlots}>{loading ? 'Consultando…' : 'Ver horarios'}</button>
+        </section>
+      )}
+
+      {step === 3 && (
+        <section className="flow-step">
+          <button className="back-button" onClick={() => setStep(2)}>← Cambiar fecha</button>
+          <span className="eyebrow dark">Horario</span>
+          <h2>{formatDate(date)}</h2>
+          <p className="lead">{partySize} personas · solo mostramos horas disponibles ahora mismo.</p>
+          {slots.length > 0 ? (
+            <div className="slot-groups">
+              {Object.entries(groupByService(slots)).map(([service, serviceSlots]) => (
+                <div key={service} className="slot-group">
+                  <h3>{service}</h3>
+                  <div className="slots">
+                    {serviceSlots.map((slot) => <button disabled={loading} key={slot.startsAt} onClick={() => chooseSlot(slot)}>{formatTime(slot.startsAt)}</button>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <h3>No quedan mesas online para esta fecha.</h3>
+              <p>Puedes cambiar el día o apuntarte a la lista de espera para recuperar una cancelación.</p>
+              <WaitlistForm date={date} adults={adults} children={children} />
+            </div>
+          )}
+        </section>
+      )}
+
+      {step === 4 && hold && (
+        <section className="flow-step">
+          <button className="back-button" onClick={async () => { await releaseCurrentHold(); setStep(3); }}>← Cambiar hora</button>
+          <span className="eyebrow dark">Tus datos</span>
+          <h2>Ya casi está.</h2>
+          <div className="hold-banner"><span>Mesa bloqueada temporalmente</span><strong>{Math.floor(remaining / 60)}:{pad(remaining % 60)}</strong></div>
+          <div className="booking-recap"><strong>{formatDate(date)}</strong><span>{formatTime(hold.startsAt)} · {partySize} personas</span></div>
+          <form onSubmit={confirm} className="details-form"><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+            <div className="form-grid two"><Field name="firstName" label="Nombre" autoComplete="given-name" /><Field name="lastName" label="Apellidos" autoComplete="family-name" /></div>
+            <div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" autoComplete="tel" /><Field name="email" label="Email" type="email" autoComplete="email" /></div>
+            <Field name="allergies" label="Alergias o intolerancias" required={false} />
+            <Field name="preferences" label="Preferencias (terraza, trona, carrito…)" required={false} />
+            <label className="textarea-label">Notas para el restaurante<textarea name="notes" rows={3} maxLength={1500} /></label>
+            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído y acepto la política de privacidad.</span></label>
+            <button className="primary-button" disabled={loading || remaining === 0} type="submit">{loading ? 'Confirmando…' : 'Confirmar reserva'}</button>
+          </form>
+        </section>
+      )}
+
+      {error && <div className="error-box" role="alert">{error}</div>}
+    </div>
+  );
+}
+
+function Counter({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (n: number) => void }) {
+  return <div className="counter"><span>{label}</span><div><button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>−</button><strong>{value}</strong><button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>+</button></div></div>;
+}
+
+function Field({ name, label, type = 'text', autoComplete, required = true }: { name: string; label: string; type?: string; autoComplete?: string; required?: boolean }) {
+  return <label className="input-label"><span>{label}</span><input name={name} type={type} autoComplete={autoComplete} required={required} maxLength={type === 'email' ? 254 : 120} /></label>;
+}
+
+function groupByService(slots: Slot[]) {
+  return slots.reduce<Record<string, Slot[]>>((groups, slot) => {
+    (groups[slot.serviceName] ??= []).push(slot); return groups;
+  }, {});
+}
+
+function WaitlistForm({ date, adults, children }: { date: string; adults: number; children: number }) {
+  const [sent, setSent] = useState(false); const [error, setError] = useState('');
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError('');
+    const form = new FormData(event.currentTarget);
+    const response = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ date, adults, children, firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), companyWebsite: form.get('companyWebsite') }) });
+    const json = await response.json();
+    if (!response.ok) { setError(json.error || 'No se pudo crear la solicitud.'); return; }
+    setSent(true);
+  }
+  if (sent) return <p className="waitlist-success">✓ Solicitud registrada en la lista de espera.</p>;
+  return <form className="waitlist-form" onSubmit={submit}><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" /><div className="form-grid two"><Field name="firstName" label="Nombre" /><Field name="lastName" label="Apellidos" /></div><div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" /><Field name="email" label="Email" type="email" /></div>{error && <div className="error-box">{error}</div>}<button className="secondary-button" type="submit">Entrar en lista de espera</button></form>;
+}
