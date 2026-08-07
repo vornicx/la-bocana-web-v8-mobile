@@ -1,15 +1,9 @@
-# La Bocana · V8 móvil
+# La Bocana · prototipo V7
 
-Web autónoma en un único `index.html`, con imágenes incrustadas.
+Versión autónoma de la web.
 
-## Revisiones móviles
+- `index.html`: versión para desplegar junto a la carpeta `assets`.
+- `assets/`: imágenes locales; no hay hotlinking.
+- También se entrega `la-bocana-standalone-v7.html`, que contiene las imágenes incrustadas y puede abrirse directamente como un único archivo.
 
-- Hero diseñado específicamente para móvil.
-- Un único CTA de reserva en el hero.
-- Eliminada la barra fija que duplicaba la reserva.
-- Tipografías y espaciados adaptados a 320–430 px.
-- Galería, historia, especialidades, reseñas y contacto reajustados.
-- Menú móvil y safe areas de iPhone contemplados.
-- Sin desbordamiento horizontal.
-
-Probado en 320×667, 390×844 y 430×932.
+Los enlaces externos se limitan a acciones reales como reservas, teléfono y mapa.
