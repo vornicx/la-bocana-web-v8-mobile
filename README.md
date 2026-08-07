@@ -1,6 +1,7 @@
-# La Bocana V9 — Desktop hero fix
+# La Bocana V12 — riqueza V7 + galería gastronómica V6
 
-Corrección del hero en escritorio para evitar que una imagen vertical expanda la altura del grid y empuje el contenido fuera del primer viewport.
+Base estructural y visual: V11/V7.
+Galería: se han recuperado las tres fotografías exactas usadas en una versión anterior de La Bocana, centradas en comida + mesa + Mediterráneo.
 
-- `index.html`: versión autónoma con imágenes embebidas.
-- Mantiene los ajustes responsive de móvil de V8.
+El HTML es autónomo y no depende de hotlinks para las imágenes visibles.
+Las fotografías externas usadas en el prototipo deben sustituirse por originales autorizados antes de producción comercial.
