@@ -16,7 +16,8 @@ type Confirmation = { confirmationCode: string; status: string; managementToken:
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const localDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-const tomorrow = () => { const d = new Date(); d.setDate(d.getDate() + 1); return localDate(d); };
+const tomorrow = () => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 1); return localDate(d); };
+const bookingHorizon = () => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 90); return localDate(d); };
 const formatTime = (value: string) => new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date(value));
 const formatDate = (value: string) => new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${value}T12:00:00`));
 
@@ -146,8 +147,7 @@ export default function BookingFlow() {
           <button className="back-button" onClick={() => setStep(1)}>← Volver</button>
           <span className="eyebrow dark">Fecha</span>
           <h2>¿Cuándo os esperamos?</h2>
-          <label className="field-label" htmlFor="date">Selecciona una fecha</label>
-          <input className="date-input" id="date" type="date" min={tomorrow()} value={date} onChange={(e) => setDate(e.target.value)} />
+          <BocanaCalendar value={date} min={tomorrow()} max={bookingHorizon()} onChange={setDate} />
           <div className="selection-summary"><span>{partySize} personas</span><span>·</span><span>{formatDate(date)}</span></div>
           <button className="primary-button" disabled={loading} onClick={loadSlots}>{loading ? 'Consultando…' : 'Ver horarios'}</button>
         </section>
@@ -202,6 +202,40 @@ export default function BookingFlow() {
       {error && <div className="error-box" role="alert">{error}</div>}
     </div>
   );
+}
+
+function BocanaCalendar({ value, min, max, onChange }: { value: string; min: string; max: string; onChange: (value: string) => void }) {
+  const initial = new Date(`${value}T12:00:00`);
+  const [cursor, setCursor] = useState(() => new Date(initial.getFullYear(), initial.getMonth(), 1, 12));
+  const minDate = new Date(`${min}T12:00:00`);
+  const maxDate = new Date(`${max}T12:00:00`);
+  const monthLabel = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(cursor);
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1, 12);
+  const last = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 12);
+  const leading = (first.getDay() + 6) % 7;
+  const cells: Array<Date | null> = Array.from({ length: leading }, () => null);
+  for (let day = 1; day <= last.getDate(); day += 1) cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), day, 12));
+  while (cells.length % 7 !== 0) cells.push(null);
+  const prevMonth = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1, 12);
+  const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1, 12);
+  const canPrev = prevMonth.getFullYear() > minDate.getFullYear() || (prevMonth.getFullYear() === minDate.getFullYear() && prevMonth.getMonth() >= minDate.getMonth());
+  const canNext = nextMonth.getFullYear() < maxDate.getFullYear() || (nextMonth.getFullYear() === maxDate.getFullYear() && nextMonth.getMonth() <= maxDate.getMonth());
+
+  return <div className="bocana-calendar" aria-label="Selecciona una fecha">
+    <div className="calendar-toolbar">
+      <div><span className="calendar-kicker">Selecciona un día</span><strong>{monthLabel}</strong></div>
+      <div className="calendar-arrows"><button type="button" aria-label="Mes anterior" disabled={!canPrev} onClick={() => setCursor(prevMonth)}>←</button><button type="button" aria-label="Mes siguiente" disabled={!canNext} onClick={() => setCursor(nextMonth)}>→</button></div>
+    </div>
+    <div className="calendar-weekdays">{['L','M','X','J','V','S','D'].map((day) => <span key={day}>{day}</span>)}</div>
+    <div className="calendar-days">{cells.map((day, index) => {
+      if (!day) return <span className="calendar-empty" key={`empty-${index}`} />;
+      const iso = localDate(day);
+      const disabled = day < minDate || day > maxDate;
+      const selected = iso === value;
+      return <button type="button" key={iso} disabled={disabled} className={selected ? 'selected' : ''} aria-pressed={selected} onClick={() => onChange(iso)}><span>{day.getDate()}</span>{selected && <i />}</button>;
+    })}</div>
+    <div className="calendar-foot"><span><i className="legend-dot" /> Día seleccionado</span><span>La hora se confirma en tiempo real</span></div>
+  </div>;
 }
 
 function Counter({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (n: number) => void }) {
