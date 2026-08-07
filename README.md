@@ -1,9 +1,6 @@
-# La Bocana · prototipo V7
+# La Bocana V9 — Desktop hero fix
 
-Versión autónoma de la web.
+Corrección del hero en escritorio para evitar que una imagen vertical expanda la altura del grid y empuje el contenido fuera del primer viewport.
 
-- `index.html`: versión para desplegar junto a la carpeta `assets`.
-- `assets/`: imágenes locales; no hay hotlinking.
-- También se entrega `la-bocana-standalone-v7.html`, que contiene las imágenes incrustadas y puede abrirse directamente como un único archivo.
-
-Los enlaces externos se limitan a acciones reales como reservas, teléfono y mapa.
+- `index.html`: versión autónoma con imágenes embebidas.
+- Mantiene los ajustes responsive de móvil de V8.
