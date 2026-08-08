@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ id }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    const status = (error as Error & { status?: number }).status ?? 400;
+    return NextResponse.json({ error: (error as Error).message }, { status });
   }
 }

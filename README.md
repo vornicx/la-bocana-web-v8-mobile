@@ -1,102 +1,65 @@
 # La Bocana × Archic
 
-Proyecto de sustitución completa para La Bocana: experiencia pública premium + sistema propio de reservas + área privada operativa.
+Web pública editorial, motor propio de reservas y área privada de operaciones para La Bocana, Puerto Banús.
 
-## Estado actual
+## Estado: v0.8
 
-### Fase 2 — motor de reservas
+La aplicación ya trabaja contra el proyecto real de Supabase y está preparada para una revisión de negocio. No utiliza datos simulados en las superficies operativas principales.
 
-Implementado y preparado para conectar a PostgreSQL/Supabase:
+Incluye:
 
-- Flujo cliente: personas → fecha → disponibilidad → hora → datos → confirmación.
-- Adultos y niños.
-- Servicios y reglas de apertura configurables.
-- Duraciones configurables por tamaño del grupo.
-- Motor de disponibilidad server-side.
-- Mesas individuales y combinaciones explícitas.
-- Aforo máximo por servicio.
-- Cierres generales, por área o por mesa.
-- Holds de 5 minutos.
-- Protección de concurrencia mediante transacciones + locking en PostgreSQL.
-- Confirmación atómica y asignación de mesas.
-- CRM base.
-- Modificación sin liberar la reserva anterior hasta asegurar el nuevo inventario.
-- Cancelación mediante enlace privado tokenizado.
-- Lista de espera.
-- Activity logs.
-- Rate limiting persistente.
-- RLS y acceso sensible únicamente server-side.
+- web pública responsive: inicio, cocina, historia, galería, carta, contacto y privacidad;
+- reserva en tiempo real con adultos/niños, calendario, disponibilidad, bloqueo temporal, confirmación, modificación, cancelación y lista de espera;
+- protección frente a dobles reservas mediante transacciones, advisory locks y asignación atómica de mesas;
+- acceso privado de equipo con roles;
+- dashboard, reservas, clientes, calendario, configuración y plano de sala conectados a Supabase;
+- creación manual, walk-ins, asignación/movimiento de mesas, bloqueos y cambios de estado;
+- RLS, RPC sensibles restringidas a servidor, rate limiting persistente y cabeceras HTTP de seguridad;
+- SEO técnico con metadatos, datos estructurados, `robots.txt`, sitemap y página 404 propia.
 
-### Fase 3 — área privada en desarrollo
+## Desarrollo
 
-Ya existe una base operativa responsive para:
+Requiere Node.js 20.9 o superior.
 
-- Dashboard.
-- Reservas y búsqueda/filtros.
-- Ficha completa de reserva.
-- Cambio de estado.
-- Notas, alergias y preferencias.
-- Creación manual de reservas.
-- Calendario.
-- Clientes / mini CRM.
-- Configuración inicial.
-- Plano visual de sala.
-- Cola de reservas sin mesa.
-- Asignación y movimiento entre mesas.
-- Combinaciones de mesas con validación de capacidad.
-- Restricción a combinaciones físicas permitidas.
-- Walk-ins desde el plano.
-- Bloqueo/reactivación temporal de mesas.
-- Completar visita y liberar mesa.
+```bash
+cp .env.example .env.local
+npm ci
+npm run dev
+```
 
-Los datos del admin y el plano son actualmente de **QA/desarrollo**. La interfaz está construida para poder sustituir esa capa por Supabase sin rediseñar el producto.
+Nunca expongas `SUPABASE_SECRET_KEY` en el navegador ni la incluyas en un ZIP. El proyecto solo la usa en módulos `server-only`.
 
-## Estructura principal
+## Verificación
 
-- `app/reservar` — experiencia pública de reserva.
-- `app/reserva/[token]` — gestión privada de una reserva.
-- `app/api/reservations/*` — endpoints server-side.
-- `app/admin/*` — área privada.
-- `components/admin` — componentes operativos del admin.
-- `lib/reservations` — servicio y validación.
-- `lib/admin` — tipos y datos de desarrollo del admin.
-- `lib/security` — huella de petición, tokens y rate limiting.
-- `supabase/migrations/0001_reservation_system.sql` — esquema y motor transaccional.
-- `supabase/seed.development.sql` — datos solo de QA/desarrollo.
+```bash
+npm run typecheck
+npm run build
+npm run test:http
+npm run test:concurrency
+npm audit --omit=dev
+```
 
-## Checkpoint pendiente: Supabase
+`test:http` arranca la web por sí solo y comprueba rutas públicas, acceso privado, 404, validación y cabeceras. `test:concurrency` arranca la web si hace falta, dispara intentos simultáneos contra Supabase, verifica que ninguna mesa se duplica y libera todos los bloqueos de prueba.
 
-Antes de considerar la Fase 2 cerrada o de llevar el admin a producción hay que:
+## Estructura
 
-1. Crear/conectar el proyecto Supabase.
-2. Ejecutar `supabase/migrations/0001_reservation_system.sql`.
-3. Ejecutar opcionalmente `supabase/seed.development.sql` para QA.
-4. Configurar `.env.local` desde `.env.example`.
-5. Ejecutar `supabase/tests/phase2_smoke.sql`.
-6. Validar concurrencia y prevención de dobles reservas.
-7. Sustituir las mutaciones locales del admin por operaciones server-side persistentes.
-8. Añadir permisos/roles y activity logs a cada mutación del admin.
+- `app/` — páginas y endpoints Next.js.
+- `components/` — navegación pública y componentes operativos.
+- `lib/reservations/` — servicio, contratos y validación de reservas.
+- `lib/admin/` — autenticación y lectura operativa real.
+- `lib/security/` — huella de petición, tokens y rate limiting.
+- `supabase/migrations/` — esquema, autenticación, RLS y operaciones de sala/reservas.
+- `scripts/` — smoke test HTTP y prueba de concurrencia.
+- `QUALITY_REPORT_V08.md` — auditoría, incidencias corregidas y checkpoint pendiente.
 
-## Antes de producción
+## Lo que debe validar La Bocana antes de producción
 
-No publicar con los datos de desarrollo. Hay que validar con La Bocana:
+- razón social, NIF y correo de privacidad;
+- plano, nombres, capacidades y combinaciones de mesas;
+- horarios, cierres, duración, aforos y antelación mínima;
+- carta y precios definitivos;
+- política exacta de cancelación/modificación;
+- remitente, plantillas y proveedor de email/SMS;
+- dominio final y una reserva real completa con el equipo.
 
-- plano y nombres de mesas;
-- capacidades mínimas/máximas;
-- combinaciones físicas permitidas;
-- áreas reales;
-- horarios por día y temporada;
-- duración por tamaño de grupo;
-- aforo operativo de comida/cena;
-- antelación mínima y horizonte;
-- tamaño máximo aceptado online;
-- cierres/eventos conocidos;
-- política exacta de cancelación/modificación.
-
-## Principio de producto
-
-La web pública debe ser emocional, fotográfica y editorial. El admin debe ser sobrio, rápido y extremadamente claro. La automatización puede sugerir y asignar, pero el equipo del restaurante conserva el control manual de la sala.
-
-
-## Supabase
-Consulta `SUPABASE_SETUP.md`. El URL/anon se usan como configuración pública con RLS; las operaciones críticas del motor requieren `SUPABASE_SECRET_KEY` exclusivamente en servidor.
+Consulta `SUPABASE_SETUP.md` para configuración técnica y `QUALITY_REPORT_V08.md` para el estado exacto de calidad.

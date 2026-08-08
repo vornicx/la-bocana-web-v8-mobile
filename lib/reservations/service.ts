@@ -5,7 +5,18 @@ import { hashToken } from '@/lib/security/request';
 import type { AvailabilityInput, AvailabilitySlot, CustomerDetails, HoldInput, HoldResult } from './types';
 
 function dbError(message: string, error?: { message?: string } | null) {
-  return new Error(error?.message ? `${message}: ${error.message}` : message);
+  console.error(`[La Bocana] ${message}`, error?.message ?? 'Error de base de datos sin detalle');
+  const publicError = new Error(`${message}. Inténtalo de nuevo en unos minutos.`);
+  (publicError as Error & { status?: number }).status = 503;
+  return publicError;
+}
+
+function expectedError(error: { message?: string } | null | undefined, codes: string[], message: string, status = 409) {
+  const detail = (error?.message ?? '').toUpperCase();
+  if (!codes.some((code) => detail.includes(code))) return null;
+  const publicError = new Error(message);
+  (publicError as Error & { status?: number }).status = status;
+  return publicError;
 }
 
 export async function getAvailability(input: AvailabilityInput): Promise<AvailabilitySlot[]> {
@@ -37,7 +48,7 @@ export async function createHold(input: HoldInput): Promise<HoldResult> {
     p_area_preference_id: input.areaPreferenceId ?? null,
     p_exclude_reservation_id: input.excludeReservationId ?? null,
   });
-  if (error) throw dbError('La hora acaba de dejar de estar disponible', error);
+  if (error) throw expectedError(error, ['CAPACITY_FULL', 'NO_TABLE_ALLOCATION', 'CLOSED', 'SERVICE_NOT_AVAILABLE'], 'Esa hora acaba de dejar de estar disponible. Elige otra opción.') ?? dbError('No se pudo bloquear la mesa', error);
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) throw new Error('No se pudo bloquear la mesa.');
   return {
@@ -77,7 +88,7 @@ export async function confirmReservation(holdId: string, customer: CustomerDetai
     p_confirmation_code: confirmationCode,
     p_source: 'website',
   });
-  if (error) throw dbError('No se pudo confirmar la reserva', error);
+  if (error) throw expectedError(error, ['HOLD_NOT_FOUND', 'HOLD_EXPIRED', 'TABLE_CONFLICT', 'CAPACITY_FULL'], 'El bloqueo temporal ha caducado o la mesa ya no está disponible. Elige de nuevo una hora.') ?? dbError('No se pudo confirmar la reserva', error);
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) throw new Error('No se pudo confirmar la reserva.');
   return {
@@ -105,7 +116,7 @@ export async function cancelManagedReservation(token: string, reason?: string) {
     p_management_token_hash: hashToken(token),
     p_reason: reason ?? null,
   });
-  if (error) throw dbError('No se pudo cancelar la reserva', error);
+  if (error) throw expectedError(error, ['RESERVATION_NOT_MODIFIABLE', 'RESERVATION_NOT_FOUND'], 'La reserva ya no admite esta cancelación.') ?? dbError('No se pudo cancelar la reserva', error);
   return data === true;
 }
 
@@ -136,7 +147,7 @@ export async function modifyManagedReservation(params: {
     p_management_token_hash: hashToken(params.token),
     p_hold_id: hold.holdId,
   });
-  if (error) throw dbError('No se pudo modificar la reserva; la reserva anterior sigue intacta', error);
+  if (error) throw expectedError(error, ['HOLD_EXPIRED', 'TABLE_CONFLICT', 'CAPACITY_FULL', 'RESERVATION_NOT_MODIFIABLE'], 'No se pudo aplicar el cambio porque la nueva mesa ya no está disponible. La reserva anterior sigue intacta.') ?? dbError('No se pudo modificar la reserva; la reserva anterior sigue intacta', error);
   return data === true;
 }
 

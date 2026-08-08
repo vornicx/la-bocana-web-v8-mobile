@@ -1,25 +1,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { PublicFooter } from '@/components/public-footer';
+import { PublicHeader } from '@/components/public-header';
 
 const highlights = [
-  { title: 'Pescados y mariscos', text: 'Producto fresco, preparaciones directas y el punto justo.', image: '/images/mesa-marisco-la-bocana.jpg' },
+  { title: 'Pescados y mariscos', text: 'Producto fresco, preparaciones directas y el punto justo.', image: '/images/pescado-la-bocana-real.jpeg' },
   { title: 'Arroces', text: 'Sabores reconocibles, fondo mediterráneo y mesa larga.', image: '/images/paella-la-bocana.jpg' },
-  { title: 'Cocina andaluza', text: 'Recetas de siempre, frituras y cocina con memoria.', image: '/images/gambas-la-bocana.jpg' },
+  { title: 'Cocina andaluza', text: 'Recetas de siempre, frituras y cocina con memoria.', image: '/images/croquetas-la-bocana-real.jpeg' },
 ];
 
 export default function HomePage() {
   return (
     <main className="public-site">
-      <header className="public-header">
-        <Link className="public-brand" href="/">LA BOCANA</Link>
-        <nav className="public-nav" aria-label="Principal">
-          <Link href="/cocina">Cocina</Link>
-          <Link href="/la-casa">La casa</Link>
-          <Link href="/galeria">Galería</Link>
-          <Link href="/carta">Carta</Link>
-        </nav>
-        <div className="public-actions"><a href="tel:+34952781410">+34 952 781 410</a><Link className="public-book" href="/reservar">Reservar</Link></div>
-      </header>
+      <PublicHeader />
 
       <section className="public-hero">
         <Image src="/images/photo-2.jpg" alt="Terraza de La Bocana frente al puerto" fill priority sizes="100vw" />
@@ -40,7 +33,7 @@ export default function HomePage() {
       </section>
 
       <section className="editorial-pair public-section">
-        <div className="editorial-image tall"><Image src="/images/photo-5.jpg" alt="Mesa preparada en la terraza de La Bocana" fill sizes="(max-width: 800px) 100vw, 50vw" /></div>
+        <div className="editorial-image tall"><Image src="/images/sobremesa-la-bocana-real.jpeg" alt="Sobremesa en la terraza de La Bocana frente al mar" fill sizes="(max-width: 800px) 100vw, 50vw" /></div>
         <div className="editorial-copy"><span>Vivir el puerto</span><h2>El puerto baja<br />el ritmo aquí.</h2><p>Una terraza abierta al agua, el movimiento de los barcos y esa luz de última hora que convierte una comida en una tarde entera.</p><Link href="/galeria">Ver la atmósfera →</Link></div>
       </section>
 
@@ -60,7 +53,7 @@ export default function HomePage() {
         <span>Tu mesa</span><h2>Junto al mar.</h2><p>Puerto Banús · Complejo Benabola · Bloque 1</p><div><Link className="reserve-main" href="/reservar">Reservar mesa</Link><Link className="reserve-secondary" href="/contacto">Cómo llegar</Link></div>
       </section>
 
-      <footer className="public-footer"><div className="public-brand">LA BOCANA</div><div>© La Bocana · Puerto Banús</div><div><Link href="/contacto">Contacto</Link> · <Link href="/admin">Área privada</Link></div></footer>
+      <PublicFooter />
     </main>
   );
 }

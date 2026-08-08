@@ -1,26 +1,32 @@
-# La Bocana × Archic — despliegue de prueba
+# Deploy La Bocana × Archic v0.6
 
-## Rutas incluidas
-- `/` — web pública premium
-- `/cocina`
-- `/la-casa`
-- `/galeria`
-- `/carta`
-- `/contacto`
-- `/reservar` — flujo de reservas con calendario propio
-- `/reserva/[token]` — gestión de reserva
-- `/admin` — área privada
-- `/admin/reservas`
-- `/admin/calendario`
-- `/admin/sala`
-- `/admin/clientes`
-- `/admin/configuracion`
+## Vercel
+
+Este ZIP está preparado con `package.json` en la raíz.
+
+- Framework: Next.js
+- Root Directory: `./`
+- Build Command: default (`next build`)
+- Output Directory: default
+
+Variables requeridas en Vercel:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` o `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+- `NEXT_PUBLIC_SITE_URL=https://labocana.vercel.app`
+- `RESERVATION_TIMEZONE=Europe/Madrid`
+
+El `.env` privado se incluye por petición del propietario para pruebas, pero el despliegue de Vercel debe usar Environment Variables.
 
 ## Supabase
-Las variables están incluidas en `.env` y `.env.local` para esta copia privada de prueba.
-En Vercel se recomienda mantener las mismas variables en Project Settings → Environment Variables.
 
-Para activar el motor PostgreSQL completo, ejecutar una vez `SUPABASE_BOOTSTRAP.sql` en Supabase SQL Editor.
-El código tiene un rate limit local temporal únicamente cuando PostgREST devuelve PGRST202 porque `consume_rate_limit` aún no existe. Producción debe usar la función PostgreSQL.
+El esquema remoto del proyecto `La bocana` ya está actualizado. No hace falta volver a ejecutar las migraciones para este despliegue.
 
-Si acabas de crear/reemplazar funciones y PostgREST no las detecta, el bootstrap termina con `NOTIFY pgrst, 'reload schema';`.
+## Primer acceso a /admin
+
+El admin ahora está protegido. Consulta `ADMIN_ACCESS.md`.
+
+## Sala v0.6
+
+`/admin/sala` usa datos reales de Supabase y las acciones persisten. Las mesas/horarios/capacidades actuales siguen siendo QA hasta validar la operativa física de La Bocana.

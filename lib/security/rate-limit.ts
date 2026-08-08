@@ -33,7 +33,12 @@ export async function enforceRateLimit(keyHash: string, action: string, limit: n
 
   let allowed: boolean;
   if (error) {
-    if (!isMissingRateLimitRpc(error)) throw new Error(`No se pudo validar el rate limit: ${error.message}`);
+    if (!isMissingRateLimitRpc(error)) {
+      console.error('[La Bocana] Fallo al validar el rate limit', error.message);
+      const serviceError = new Error('El servicio está temporalmente ocupado. Inténtalo de nuevo en unos minutos.');
+      (serviceError as Error & { status?: number }).status = 503;
+      throw serviceError;
+    }
     // Compatibilidad temporal para preview/Vercel mientras se aplica la migración SQL.
     // No sustituye al rate limit transaccional de PostgreSQL para producción multi-instancia.
     console.warn('[La Bocana] consume_rate_limit no existe en Supabase; usando fallback local temporal.');

@@ -1,23 +1,29 @@
 import Link from 'next/link';
-import { dashboardMetrics, reservations, waitlist, weekDays } from '@/lib/admin/mock-data';
 import { PlusIcon } from '@/components/admin/admin-icons';
 import { StatusPill } from '@/components/admin/status-pill';
+import { requireStaffSession } from '@/lib/admin/auth';
+import { dashboardReservationLabel, dateLabel, loadDashboardData, todayMadrid } from '@/lib/admin/overview-data';
 
-export default function AdminDashboard(){
- const upcoming=reservations.filter(r=>!['completed','cancelled','no_show'].includes(r.status)).slice(0,6);
- return <div className="admin-page">
-  <div className="admin-page-head"><div><span className="admin-kicker">Viernes, 14 de agosto</span><h1>Servicio de hoy</h1><p>Vista rápida de reservas, ocupación y sala.</p></div><button className="admin-primary"><PlusIcon/>Nueva reserva</button></div>
-  <div className="metric-grid">
-   <article className="admin-metric"><span>Comensales</span><strong>{dashboardMetrics.covers}</strong><small>{dashboardMetrics.coversDelta}</small></article>
-   <article className="admin-metric"><span>Reservas</span><strong>{dashboardMetrics.reservations}</strong><small>11 comida · 16 cena</small></article>
-   <article className="admin-metric"><span>Ocupación prevista</span><strong>{dashboardMetrics.occupancy}%</strong><div className="metric-track"><i style={{width:`${dashboardMetrics.occupancy}%`}}/></div></article>
-   <article className="admin-metric"><span>Lista de espera</span><strong>{dashboardMetrics.waitlist}</strong><small>2 candidatos compatibles</small></article>
-  </div>
-  <div className="dashboard-grid">
-   <section className="admin-panel span-2"><div className="panel-head"><div><span className="admin-kicker">Próximas</span><h2>Reservas</h2></div><Link href="/admin/reservas">Ver todas</Link></div><div className="compact-reservations">{upcoming.map(r=><div className="compact-row" key={r.id}><time>{r.time}</time><div className="compact-person"><strong>{r.customer}</strong><small>{r.partySize} pax · {r.table??'mesa pendiente'}{r.notes?` · ${r.notes}`:''}</small></div><StatusPill status={r.status}/></div>)}</div></section>
-   <section className="admin-panel"><div className="panel-head"><div><span className="admin-kicker">Semana</span><h2>Ocupación</h2></div><Link href="/admin/calendario">Calendario</Link></div><div className="week-strip">{weekDays.map(d=><div key={d.date} className={`${d.active?'active':''} ${d.closed?'closed':''}`}><span>{d.day}</span><strong>{d.date}</strong><small>{d.closed?'Cerrado':`${d.covers} pax`}</small></div>)}</div></section>
-   <section className="admin-panel"><div className="panel-head"><div><span className="admin-kicker">Demanda</span><h2>Lista de espera</h2></div><span className="count-badge">{waitlist.length}</span></div><div className="waitlist-list">{waitlist.slice(0,4).map(w=><div key={w.id}><time>{w.time}</time><div><strong>{w.name}</strong><small>{w.party} pax · {w.flexibility}</small></div></div>)}</div></section>
-   <section className="admin-panel span-2 service-balance"><div><span className="admin-kicker">Servicio</span><h2>Balance de capacidad</h2><p>La cena concentra la mayor presión entre 21:00 y 22:00. Dos reservas siguen sin mesa definitiva.</p></div><div className="capacity-bars"><div><span>Comida</span><strong>63%</strong><i><b style={{width:'63%'}}/></i></div><div><span>Cena</span><strong>82%</strong><i><b style={{width:'82%'}}/></i></div></div></section>
-  </div>
- </div>
+export const dynamic = 'force-dynamic';
+
+export default async function AdminDashboard() {
+  await requireStaffSession();
+  const data = await loadDashboardData(todayMadrid());
+  const fullDate = dateLabel(data.date, { weekday: 'long', day: 'numeric', month: 'long' });
+
+  return <div className="admin-page">
+    <div className="admin-page-head"><div><span className="admin-kicker">{fullDate}</span><h1>Servicio de hoy</h1><p>Reservas, ocupación y sala calculadas con datos reales.</p></div><Link href="/admin/reservas" className="admin-primary"><PlusIcon/>Gestionar reservas</Link></div>
+    <div className="metric-grid">
+      <article className="admin-metric"><span>Comensales previstos</span><strong>{data.metrics.covers}</strong><small>{data.metrics.unassigned ? `${data.metrics.unassigned} reservas sin mesa` : 'Todas las reservas tienen mesa'}</small></article>
+      <article className="admin-metric"><span>Reservas activas</span><strong>{data.metrics.reservations}</strong><small>Incluye pendientes, confirmadas y servicio</small></article>
+      <article className="admin-metric"><span>Ocupación prevista</span><strong>{data.metrics.occupancy}%</strong><div className="metric-track"><i style={{ width: `${data.metrics.occupancy}%` }}/></div></article>
+      <article className="admin-metric"><span>Lista de espera</span><strong>{data.metrics.waitlist}</strong><small>Solicitudes activas para hoy</small></article>
+    </div>
+    <div className="dashboard-grid">
+      <section className="admin-panel span-2"><div className="panel-head"><div><span className="admin-kicker">Próximas</span><h2>Reservas</h2></div><Link href="/admin/reservas">Ver todas</Link></div>{data.upcoming.length ? <div className="compact-reservations">{data.upcoming.map((reservation) => <div className="compact-row" key={reservation.id}><time>{reservation.time}</time><div className="compact-person"><strong>{reservation.customer}</strong><small>{dashboardReservationLabel(reservation)}{reservation.allergies ? ' · ⚑ alergia' : ''}</small></div><StatusPill status={reservation.status}/></div>)}</div> : <div className="admin-empty">No hay próximas reservas activas para hoy.</div>}</section>
+      <section className="admin-panel"><div className="panel-head"><div><span className="admin-kicker">Semana</span><h2>Ocupación</h2></div><Link href="/admin/calendario">Calendario</Link></div><div className="week-strip">{data.week.map((day) => <div key={day.date} className={`${day.active ? 'active' : ''} ${day.closed ? 'closed' : ''}`}><span>{dateLabel(day.date, { weekday: 'short' })}</span><strong>{dateLabel(day.date, { day: 'numeric' })}</strong><small>{day.closed ? 'Cerrado' : `${day.covers} pax`}</small></div>)}</div></section>
+      <section className="admin-panel"><div className="panel-head"><div><span className="admin-kicker">Demanda</span><h2>Lista de espera</h2></div><span className="count-badge">{data.waitlist.length}</span></div>{data.waitlist.length ? <div className="waitlist-list">{data.waitlist.slice(0, 4).map((item) => <div key={item.id}><time>{item.time}</time><div><strong>{item.name}</strong><small>{item.partySize} pax · {item.flexibility}</small></div></div>)}</div> : <div className="admin-empty compact-empty">Sin solicitudes activas para hoy.</div>}</section>
+      <section className="admin-panel span-2 service-balance"><div><span className="admin-kicker">Servicio</span><h2>Balance de capacidad</h2><p>Ocupación calculada sobre el aforo configurado en Supabase para cada servicio.</p></div><div className="capacity-bars">{data.services.map((service) => <div key={service.id}><span>{service.name}</span><strong>{service.occupancy}%</strong><i><b style={{ width: `${service.occupancy}%` }}/></i><small>{service.covers} de {service.capacity || '—'} pax</small></div>)}</div></section>
+    </div>
+  </div>;
 }

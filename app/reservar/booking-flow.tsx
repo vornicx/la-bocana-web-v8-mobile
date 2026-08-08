@@ -16,16 +16,14 @@ type Confirmation = { confirmationCode: string; status: string; managementToken:
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const localDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-const tomorrow = () => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 1); return localDate(d); };
-const bookingHorizon = () => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 90); return localDate(d); };
 const formatTime = (value: string) => new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date(value));
 const formatDate = (value: string) => new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${value}T12:00:00`));
 
-export default function BookingFlow() {
+export default function BookingFlow({ minDate, maxDate }: { minDate: string; maxDate: string }) {
   const [step, setStep] = useState(1);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
-  const [date, setDate] = useState(tomorrow);
+  const [date, setDate] = useState(minDate);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -147,7 +145,7 @@ export default function BookingFlow() {
           <button className="back-button" onClick={() => setStep(1)}>← Volver</button>
           <span className="eyebrow dark">Fecha</span>
           <h2>¿Cuándo os esperamos?</h2>
-          <BocanaCalendar value={date} min={tomorrow()} max={bookingHorizon()} onChange={setDate} />
+          <BocanaCalendar value={date} min={minDate} max={maxDate} onChange={setDate} />
           <div className="selection-summary"><span>{partySize} personas</span><span>·</span><span>{formatDate(date)}</span></div>
           <button className="primary-button" disabled={loading} onClick={loadSlots}>{loading ? 'Consultando…' : 'Ver horarios'}</button>
         </section>
@@ -193,7 +191,7 @@ export default function BookingFlow() {
             <Field name="allergies" label="Alergias o intolerancias" required={false} />
             <Field name="preferences" label="Preferencias (terraza, trona, carrito…)" required={false} />
             <label className="textarea-label">Notas para el restaurante<textarea name="notes" rows={3} maxLength={1500} /></label>
-            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído y acepto la política de privacidad.</span></label>
+            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído la <a href="/privacidad" target="_blank" rel="noreferrer">información sobre privacidad</a> y, si facilito alergias o intolerancias, consiento expresamente su tratamiento para atender mi reserva.</span></label>
             <button className="primary-button" disabled={loading || remaining === 0} type="submit">{loading ? 'Confirmando…' : 'Confirmar reserva'}</button>
           </form>
         </section>
