@@ -11,4 +11,4 @@ export const legalIdentity = {
   lastReview: '9 de agosto de 2026',
 };
 
-export const legalDataPending = !process.env.LEGAL_BUSINESS_NAME || !process.env.LEGAL_TAX_ID;
+export const legalDataPending = !process.env.LEGAL_BUSINESS_NAME || !process.env.LEGAL_TAX_ID || !process.env.LEGAL_CONTACT_EMAIL;
