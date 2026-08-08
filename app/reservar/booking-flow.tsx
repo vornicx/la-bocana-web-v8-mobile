@@ -30,6 +30,7 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
   const [hold, setHold] = useState<Hold | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [remaining, setRemaining] = useState(0);
+  const [allergies, setAllergies] = useState('');
   const sessionId = useMemo(() => typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`, []);
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
           firstName: form.get('firstName'), lastName: form.get('lastName'),
           phone: form.get('phone'), email: form.get('email'),
           allergies: form.get('allergies'), preferences: form.get('preferences'), notes: form.get('notes'),
-          privacyAccepted: form.get('privacyAccepted') === 'on', companyWebsite: form.get('companyWebsite'),
+          privacyAccepted: form.get('privacyAccepted') === 'on', healthDataConsent: form.get('healthDataConsent') === 'on', companyWebsite: form.get('companyWebsite'),
         }),
       });
       const json = await response.json();
@@ -188,10 +189,12 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
           <form onSubmit={confirm} className="details-form"><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             <div className="form-grid two"><Field name="firstName" label="Nombre" autoComplete="given-name" /><Field name="lastName" label="Apellidos" autoComplete="family-name" /></div>
             <div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" autoComplete="tel" /><Field name="email" label="Email" type="email" autoComplete="email" /></div>
-            <Field name="allergies" label="Alergias o intolerancias" required={false} />
+            <label className="input-label"><span>Alergias o intolerancias · opcional</span><input name="allergies" value={allergies} onChange={(event) => setAllergies(event.target.value)} maxLength={1000} /></label>
             <Field name="preferences" label="Preferencias (terraza, trona, carrito…)" required={false} />
             <label className="textarea-label">Notas para el restaurante<textarea name="notes" rows={3} maxLength={1500} /></label>
-            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído la <a href="/privacidad" target="_blank" rel="noreferrer">información sobre privacidad</a> y, si facilito alergias o intolerancias, consiento expresamente su tratamiento para atender mi reserva.</span></label>
+            <div className="privacy-first-layer"><strong>Información básica de privacidad</strong><p>La Bocana utilizará tus datos para gestionar la reserva y contactar por cuestiones operativas. La base es la solicitud y prestación del servicio. Puedes ejercer tus derechos según la <a href="/privacidad" target="_blank" rel="noreferrer">política de privacidad</a>.</p></div>
+            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído la información de privacidad y las <a href="/condiciones-reserva" target="_blank" rel="noreferrer">condiciones de reserva</a>.</span></label>
+            <label className={`check-row health-consent ${allergies.trim() ? '' : 'disabled'}`}><input type="checkbox" name="healthDataConsent" required={allergies.trim().length > 0} disabled={!allergies.trim()} /><span>Si he indicado alergias o intolerancias, consiento expresamente que se traten para preparar y atender mi reserva.</span></label>
             <button className="primary-button" disabled={loading || remaining === 0} type="submit">{loading ? 'Confirmando…' : 'Confirmar reserva'}</button>
           </form>
         </section>
@@ -255,11 +258,11 @@ function WaitlistForm({ date, adults, children }: { date: string; adults: number
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError('');
     const form = new FormData(event.currentTarget);
-    const response = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ date, adults, children, firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), companyWebsite: form.get('companyWebsite') }) });
+    const response = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ date, adults, children, firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), privacyAccepted: form.get('privacyAccepted') === 'on', companyWebsite: form.get('companyWebsite') }) });
     const json = await response.json();
     if (!response.ok) { setError(json.error || 'No se pudo crear la solicitud.'); return; }
     setSent(true);
   }
   if (sent) return <p className="waitlist-success">✓ Solicitud registrada en la lista de espera.</p>;
-  return <form className="waitlist-form" onSubmit={submit}><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" /><div className="form-grid two"><Field name="firstName" label="Nombre" /><Field name="lastName" label="Apellidos" /></div><div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" /><Field name="email" label="Email" type="email" /></div>{error && <div className="error-box">{error}</div>}<button className="secondary-button" type="submit">Entrar en lista de espera</button></form>;
+  return <form className="waitlist-form" onSubmit={submit}><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" /><div className="form-grid two"><Field name="firstName" label="Nombre" /><Field name="lastName" label="Apellidos" /></div><div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" /><Field name="email" label="Email" type="email" /></div><div className="privacy-first-layer compact"><strong>Privacidad</strong><p>Usaremos estos datos para gestionar la lista de espera y avisarte sobre esta solicitud. <a href="/privacidad" target="_blank" rel="noreferrer">Más información</a>.</p></div><label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído la información sobre privacidad.</span></label>{error && <div className="error-box">{error}</div>}<button className="secondary-button" type="submit">Entrar en lista de espera</button></form>;
 }

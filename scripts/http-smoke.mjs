@@ -42,6 +42,9 @@ try {
     ['/contacto', 'Nos vemos junto al mar.'],
     ['/reservar', '¿Cuántos seréis?'],
     ['/privacidad', 'Privacidad, con claridad.'],
+    ['/cookies', 'Solo lo necesario.'],
+    ['/aviso-legal', 'Transparencia desde el principio.'],
+    ['/condiciones-reserva', 'Tu mesa, con claridad.'],
     ['/admin-login', 'Acceso de equipo'],
     ['/robots.txt', 'Disallow: /admin/'],
     ['/sitemap.xml', '/reservar'],
@@ -59,12 +62,20 @@ try {
   const invalidAvailability = await fetch(`${baseUrl}/api/reservations/availability?date=no&adults=0&children=0`);
   assert.equal(invalidAvailability.status, 400, `La validación de disponibilidad devolvió HTTP ${invalidAvailability.status}`);
 
+  const waitlistWithoutPrivacy = await fetch(`${baseUrl}/api/waitlist`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({}) });
+  assert.equal(waitlistWithoutPrivacy.status, 400, `La lista de espera sin privacidad devolvió HTTP ${waitlistWithoutPrivacy.status}`);
+  assert((await waitlistWithoutPrivacy.json()).error.includes('privacidad'), 'La lista de espera no exige información de privacidad.');
+
+  const allergiesWithoutConsent = await fetch(`${baseUrl}/api/reservations`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ privacyAccepted: true, allergies: 'Frutos secos', healthDataConsent: false }) });
+  assert.equal(allergiesWithoutConsent.status, 400, `Las alergias sin consentimiento devolvieron HTTP ${allergiesWithoutConsent.status}`);
+  assert((await allergiesWithoutConsent.json()).error.includes('consentimiento explícito'), 'La API no exige consentimiento explícito para datos de salud.');
+
   const security = await fetch(baseUrl);
   assert.equal(security.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(security.headers.get('x-frame-options'), 'DENY');
   assert(security.headers.get('content-security-policy')?.includes("frame-ancestors 'none'"));
 
-  console.log(JSON.stringify({ result: 'HTTP_SMOKE_OK', publicRoutes: 8, systemRoutes: 3, adminGuard: true, custom404: true, validation: true, securityHeaders: true }));
+  console.log(JSON.stringify({ result: 'HTTP_SMOKE_OK', publicRoutes: 11, systemRoutes: 3, adminGuard: true, custom404: true, privacyValidation: true, healthDataConsent: true, validation: true, securityHeaders: true }));
 } finally {
   server.kill('SIGTERM');
   await new Promise((resolve) => {

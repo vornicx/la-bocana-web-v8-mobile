@@ -9,6 +9,7 @@ export async function POST(request: Request) {
     await enforceRateLimit(requestFingerprint(request), 'waitlist', 6, 300);
     const body = await request.json();
     if (body.companyWebsite) throw new Error('Solicitud rechazada.');
+    if (body.privacyAccepted !== true) throw new Error('Debes confirmar que has leído la información de privacidad.');
     const id = await joinWaitlist({
       date: asDate(body.date),
       serviceId: body.serviceId || null,

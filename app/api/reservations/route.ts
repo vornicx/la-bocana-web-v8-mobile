@@ -10,12 +10,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     if (body.companyWebsite) throw new Error('Solicitud rechazada.');
     if (body.privacyAccepted !== true) throw new Error('Debes aceptar la política de privacidad.');
+    const allergies = asString(body.allergies ?? '', 1000, 'Las alergias', false);
+    if (allergies && body.healthDataConsent !== true) throw new Error('Necesitamos tu consentimiento explícito para tratar alergias o intolerancias.');
     const result = await confirmReservation(asUuid(body.holdId, 'El bloqueo'), {
       firstName: asString(body.firstName, 80, 'El nombre'),
       lastName: asString(body.lastName, 120, 'Los apellidos'),
       email: asEmail(body.email),
       phone: asPhone(body.phone),
-      allergies: asString(body.allergies ?? '', 1000, 'Las alergias', false),
+      allergies,
       preferences: asString(body.preferences ?? '', 1000, 'Las preferencias', false),
       notes: asString(body.notes ?? '', 1500, 'Las notas', false),
       privacyAccepted: true,

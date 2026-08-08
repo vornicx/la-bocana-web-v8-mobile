@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { CookieNotice } from '@/components/cookie-notice';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     siteName: 'La Bocana',
     title: 'La Bocana | Puerto Banús',
     description: 'Cocina mediterránea, pescado fresco y arroces frente al mar en Puerto Banús, Marbella.',
-    images: [{ url: '/images/photo-2.jpg', alt: 'La Bocana frente al Mediterráneo' }],
+    images: [{ url: '/images/photo-1.jpg', alt: 'La Bocana frente al Mediterráneo' }],
   },
   robots: { index: true, follow: true },
 };
@@ -28,5 +29,5 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     servesCuisine: ['Mediterránea', 'Andaluza', 'Pescados y mariscos', 'Arroces'],
     address: { '@type': 'PostalAddress', streetAddress: 'Complejo Benabola, Bloque 1', addressLocality: 'Marbella', addressRegion: 'Málaga', addressCountry: 'ES' },
   };
-  return <html lang="es"><body>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurant).replace(/</g, '\\u003c') }} /></body></html>;
+  return <html lang="es"><body>{children}<CookieNotice /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurant).replace(/</g, '\\u003c') }} /></body></html>;
 }
