@@ -41,8 +41,8 @@ export function CookieNotice() {
         <button type="button" onClick={close} aria-label="Cerrar información sobre cookies">Cerrar</button>
       </div>
       <div className="cookie-notice-copy">
-        <h2 id={titleId}>Privacidad sin letra pequeña.</h2>
-        <p>Esta web utiliza únicamente cookies técnicas necesarias para las reservas, el acceso privado y recordar que has leído este aviso. No utilizamos cookies publicitarias ni de analítica.</p>
+        <h2 id={titleId}>Solo lo necesario.</h2>
+        <p>Usamos cookies técnicas para las reservas, el acceso privado y recordar este aviso. Sin analítica, publicidad ni seguimiento.</p>
       </div>
       <div className="cookie-categories" id={detailsId} hidden={!details}>
           <div><span>Siempre activas</span><strong>Cookies técnicas</strong><p>Permiten mantener la sesión del área privada, proteger el servicio y recordar este aviso.</p></div>

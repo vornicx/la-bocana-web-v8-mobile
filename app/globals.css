@@ -235,3 +235,5 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 
 @media(prefers-reduced-motion:reduce){.hero-video-control{background:rgba(5,23,43,.72)}}
+.cookie-categories[hidden]{display:none}
+@media(max-width:560px){.cookie-notice{padding:16px}.cookie-notice-head{padding-bottom:8px}.cookie-notice-copy{gap:8px;padding:14px 0}.cookie-notice-copy h2{font-size:28px}.cookie-notice-copy p{font-size:11px;line-height:1.55}.cookie-notice-actions>a{min-height:26px;margin-top:2px}}
