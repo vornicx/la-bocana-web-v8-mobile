@@ -225,7 +225,7 @@ function BocanaCalendar({ value, min, max, onChange }: { value: string; min: str
   return <div className="bocana-calendar" aria-label="Selecciona una fecha">
     <div className="calendar-toolbar">
       <div><span className="calendar-kicker">Selecciona un día</span><strong>{monthLabel}</strong></div>
-      <div className="calendar-arrows"><button type="button" aria-label="Mes anterior" disabled={!canPrev} onClick={() => setCursor(prevMonth)}>←</button><button type="button" aria-label="Mes siguiente" disabled={!canNext} onClick={() => setCursor(nextMonth)}>→</button></div>
+      <div className="calendar-arrows"><button type="button" aria-label="Mes anterior" disabled={!canPrev} onClick={() => setCursor(prevMonth)}><span className="calendar-chevron previous" aria-hidden="true" /></button><button type="button" aria-label="Mes siguiente" disabled={!canNext} onClick={() => setCursor(nextMonth)}><span className="calendar-chevron next" aria-hidden="true" /></button></div>
     </div>
     <div className="calendar-weekdays">{['L','M','X','J','V','S','D'].map((day) => <span key={day}>{day}</span>)}</div>
     <div className="calendar-days">{cells.map((day, index) => {

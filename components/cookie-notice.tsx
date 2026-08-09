@@ -58,5 +58,5 @@ export function CookieNotice() {
 }
 
 export function CookieSettingsButton() {
-  return <button className="footer-cookie-button" type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}>Cookies</button>;
+  return <button className="footer-cookie-button" type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}>Preferencias de privacidad</button>;
 }

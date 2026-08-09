@@ -4,7 +4,7 @@ export const SITE_NAME = 'La Bocana';
 export const SITE_TITLE = 'La Bocana | Puerto Banús';
 export const SITE_DESCRIPTION = 'Cocina mediterránea, pescado fresco y arroces frente al mar en Puerto Banús, Marbella.';
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://labocana.vercel.app').replace(/\/$/, '');
-export const DEFAULT_SOCIAL_IMAGE = '/images/photo-1.jpg';
+export const DEFAULT_SOCIAL_IMAGE = '/images/pescado-mediterraneo-la-bocana.jpeg';
 
 type PublicMetadataOptions = {
   title?: string;

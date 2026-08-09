@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <PublicPage eyebrow="Información legal" title="Privacidad, con claridad." intro="Cómo utilizamos los datos necesarios para gestionar una reserva y atenderte antes, durante y después de tu visita." image="/images/photo-6.jpg">
+    <PublicPage eyebrow="Información legal" title="Privacidad, con claridad." intro="Cómo utilizamos los datos necesarios para gestionar una reserva y atenderte antes, durante y después de tu visita." image="/images/sobremesa-la-bocana-real.jpeg">
       <article className="legal-copy">
         {legalDataPending && <aside className="legal-review"><strong>Validación obligatoria antes de producción</strong><span>La razón social, el NIF, los datos registrales y el correo legal deben ser confirmados por el titular. No se han dado por válidos basándose únicamente en directorios no oficiales.</span></aside>}
         <aside className="legal-status"><strong>Resumen de primera capa</strong><span>Responsable: {legalIdentity.tradeName}. Finalidad: gestionar reservas, lista de espera y atención asociada. Base: medidas precontractuales, prestación del servicio, obligaciones legales y consentimiento explícito para alergias. Derechos: acceso, rectificación, supresión y demás derechos descritos abajo.</span></aside>

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import BookingFlow from './booking-flow';
 import { createPublicMetadata } from '@/lib/site';
 
-export const metadata = createPublicMetadata({ title: 'Reservar mesa', description: 'Reserva tu mesa en La Bocana con disponibilidad confirmada en tiempo real.', path: '/reservar', image: '/images/mesa-frente-al-mar.jpg' });
+export const metadata = createPublicMetadata({ title: 'Reservar mesa', description: 'Reserva tu mesa en La Bocana con disponibilidad confirmada en tiempo real.', path: '/reservar', image: '/images/pescado-mediterraneo-la-bocana.jpeg' });
 
 function madridDate() {
   const parts = new Intl.DateTimeFormat('en', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -21,7 +21,7 @@ export default function ReservationPage() {
   return (
     <main className="booking-page" id="main-content">
       <section className="booking-visual">
-        <Image src="/images/mesa-frente-al-mar.jpg" alt="" fill priority sizes="(max-width: 900px) 100vw, 44vw" />
+        <Image src="/images/pescado-mediterraneo-la-bocana.jpeg" alt="" fill priority sizes="(max-width: 900px) 100vw, 44vw" />
         <div className="visual-shade" />
         <div className="visual-copy">
           <span className="eyebrow">Puerto Banús · Marbella</span>
