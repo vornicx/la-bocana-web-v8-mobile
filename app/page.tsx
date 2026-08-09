@@ -37,8 +37,10 @@ export default function HomePage() {
       <PublicHeader />
       <main id="main-content">
       <section className="public-hero">
-        <Image className="public-hero-image desktop-hero-image" src="/images/mesa-marisco-la-bocana.jpg" alt="Mesa mediterránea de La Bocana frente al mar" fill priority sizes="100vw" />
-        <Image className="public-hero-image mobile-hero-image" src="/images/sobremesa-la-bocana-real.jpeg" alt="Sobremesa en La Bocana frente al Mediterráneo" fill priority sizes="100vw" />
+        <picture className="public-hero-media">
+          <source media="(max-width: 900px)" srcSet="/images/sobremesa-la-bocana-real.jpeg" />
+          <img className="public-hero-image" src="/images/mesa-frente-al-mar.jpg" alt="Mesa preparada en La Bocana frente al Mediterráneo" fetchPriority="high" />
+        </picture>
         <div className="public-hero-shade" />
         <div className="public-hero-copy">
           <span>Restaurante · Puerto Banús</span>
