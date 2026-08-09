@@ -4,13 +4,13 @@ import { legalIdentity } from '@/lib/legal';
 import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  ...createPublicMetadata({ title: 'Condiciones de reserva', description: 'Funcionamiento, modificación y cancelación de las reservas online de La Bocana.', path: '/condiciones-reserva' }),
+  ...createPublicMetadata({ title: 'Condiciones de reserva', description: 'Funcionamiento, modificación y cancelación de las reservas online de La Bocana.', path: '/condiciones-reserva', alternatePath: '/en/booking-terms' }),
   robots: { index: false, follow: true },
 };
 
 export default function BookingTermsPage() {
   return (
-    <PublicPage eyebrow="Reservas online" title="Tu mesa, con claridad." intro="Qué ocurre desde que eliges una hora hasta que recibes la confirmación de tu reserva." image="/images/pescado-mediterraneo-la-bocana.jpeg">
+    <PublicPage eyebrow="Reservas online" title="Tu mesa, con claridad." intro="Qué ocurre desde que eliges una hora hasta que recibes la confirmación de tu reserva." image="/images/gallery-official/mesa-vista.webp" mobileImage="/images/curated/mesa-vista-mobile.webp" imageAlt="Mesa preparada frente al Mediterráneo en La Bocana">
       <article className="legal-copy">
         <section><span>01</span><h2>Solicitud y confirmación</h2><p>La disponibilidad se comprueba en tiempo real. Elegir una hora crea un bloqueo temporal, pero la reserva solo queda confirmada cuando el sistema muestra un código de confirmación. Si el bloqueo caduca, deberá elegirse de nuevo una hora.</p></section>
         <section><span>02</span><h2>Datos correctos</h2><p>La persona que reserva debe facilitar datos de contacto correctos y un número real de comensales. El restaurante puede contactar únicamente para cuestiones operativas relacionadas con la reserva.</p></section>

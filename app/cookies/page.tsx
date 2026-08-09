@@ -4,13 +4,13 @@ import { legalIdentity } from '@/lib/legal';
 import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  ...createPublicMetadata({ title: 'Política de cookies', description: 'Cookies y tecnologías técnicas utilizadas por el sitio web de La Bocana.', path: '/cookies' }),
+  ...createPublicMetadata({ title: 'Política de cookies', description: 'Cookies y tecnologías técnicas utilizadas por el sitio web de La Bocana.', path: '/cookies', alternatePath: '/en/cookies' }),
   robots: { index: false, follow: true },
 };
 
 export default function CookiesPage() {
   return (
-    <PublicPage eyebrow="Privacidad digital" title="Solo lo necesario." intro="Una explicación directa de qué se guarda en tu dispositivo, por qué y durante cuánto tiempo." image="/images/sobremesa-la-bocana-real.jpeg">
+    <PublicPage eyebrow="Privacidad digital" title="Solo lo necesario." intro="Una explicación directa de qué se guarda en tu dispositivo, por qué y durante cuánto tiempo." image="/images/gallery-official/mesa-atardecer.webp" mobileImage="/images/curated/mesa-atardecer-mobile.webp" imageAlt="Mesa preparada en La Bocana al atardecer">
       <article className="legal-copy">
         <aside className="legal-status"><strong>Sin seguimiento comercial</strong><span>Actualmente no utilizamos Google Analytics, Meta Pixel, publicidad comportamental ni herramientas equivalentes. Si esto cambia, se bloquearán hasta obtener una elección válida.</span></aside>
         <section><span>01</span><h2>Qué es una cookie</h2><p>Una cookie es un pequeño archivo que el navegador conserva para recordar información necesaria entre visitas o solicitudes. Tecnologías similares pueden cumplir funciones equivalentes. Las cookies estrictamente técnicas pueden utilizarse sin consentimiento cuando son imprescindibles para prestar el servicio solicitado.</p></section>

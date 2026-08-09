@@ -1,11 +1,12 @@
-import Image from 'next/image';
 import { PublicPage } from '@/components/public-page';
 import { createPublicMetadata } from '@/lib/site';
+import { GalleryExperience } from '@/components/gallery-experience';
 
 export const metadata = createPublicMetadata({
   title: 'Galería',
   description: 'La terraza, la cocina, el servicio y las vistas al Mediterráneo de La Bocana en Puerto Banús.',
   path: '/galeria',
+  alternatePath: '/en/gallery',
   image: '/images/gallery-official/faro.webp',
 });
 
@@ -33,25 +34,15 @@ export default function GaleriaPage() {
       title="Una mesa abierta al mar."
       intro="La terraza, el servicio, el producto y esa luz que hace reconocible a La Bocana."
       image="/images/gallery-official/faro.webp"
+      mobileImage="/images/curated/faro-mobile.webp"
+      imageAlt="Barca de La Bocana frente al faro de Puerto Banús"
     >
       <div className="gallery-curation-head">
         <span>Puerto Banús · Marbella</span>
         <h2>El restaurante, tal como se vive.</h2>
         <p>Una selección de imágenes reales de la casa: desde la primera mesa preparada hasta la última sobremesa frente al Mediterráneo.</p>
       </div>
-      <div className="gallery-curation">
-        {images.map((image, index) => (
-          <figure className={image.shape} key={image.src}>
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
-            />
-            <figcaption>{String(index + 1).padStart(2, '0')} · La Bocana</figcaption>
-          </figure>
-        ))}
-      </div>
+      <GalleryExperience images={images} />
       <p className="gallery-source-note">Selección de la galería oficial y del material fotográfico de La Bocana. <a href="https://www.restaurantelabocana.es/galeria/" target="_blank" rel="noreferrer">Ver galería original</a>.</p>
     </PublicPage>
   );

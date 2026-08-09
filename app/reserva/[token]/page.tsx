@@ -18,10 +18,12 @@ function addDays(isoDate: string, days: number) {
   return date.toISOString().slice(0, 10);
 }
 
-export default async function ManageReservationPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function ManageReservationPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ lang?: string }> }) {
   const { token } = await params;
+  const { lang } = await searchParams;
+  const locale = lang === 'en' ? 'en' : 'es';
   const reservation = await getManagedReservation(token);
   if (!reservation) notFound();
   const minDate = madridDate();
-  return <ManageReservation token={token} initial={reservation} minDate={minDate} maxDate={addDays(minDate, 90)} />;
+  return <ManageReservation token={token} initial={reservation} minDate={minDate} maxDate={addDays(minDate, 90)} locale={locale} />;
 }

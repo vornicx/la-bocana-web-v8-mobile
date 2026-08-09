@@ -4,13 +4,13 @@ import { legalDataPending, legalIdentity } from '@/lib/legal';
 import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  ...createPublicMetadata({ title: 'Aviso legal', description: 'Identificación, titularidad y condiciones de uso del sitio web de La Bocana.', path: '/aviso-legal' }),
+  ...createPublicMetadata({ title: 'Aviso legal', description: 'Identificación, titularidad y condiciones de uso del sitio web de La Bocana.', path: '/aviso-legal', alternatePath: '/en/legal' }),
   robots: { index: false, follow: true },
 };
 
 export default function LegalNoticePage() {
   return (
-    <PublicPage eyebrow="Información legal" title="Transparencia desde el principio." intro="Quién está detrás de esta web, qué reglas rigen su uso y cómo contactar con el restaurante." image="/images/pescado-mediterraneo-la-bocana.jpeg">
+    <PublicPage eyebrow="Información legal" title="Transparencia desde el principio." intro="Quién está detrás de esta web, qué reglas rigen su uso y cómo contactar con el restaurante." image="/images/gallery-official/exterior.webp" mobileImage="/images/curated/exterior-mobile.webp" imageAlt="Exterior de La Bocana en Puerto Banús">
       <article className="legal-copy">
         {legalDataPending && <aside className="legal-review"><strong>Validación obligatoria antes de producción</strong><span>La razón social, el NIF, los datos registrales y el correo legal no aparecen juntos en una fuente pública suficientemente fiable. Deben ser confirmados por el titular antes del lanzamiento comercial. El diseño y el resto del contenido legal ya están preparados.</span></aside>}
         <section><span>01</span><h2>Titular del sitio</h2><div><p><strong>Nombre comercial:</strong> {legalIdentity.tradeName}<br/><strong>Razón social:</strong> {legalIdentity.legalName}<br/><strong>NIF/CIF:</strong> {legalIdentity.taxId}<br/><strong>Registro:</strong> {legalIdentity.registry}</p><p><strong>Domicilio:</strong> {legalIdentity.address}<br/><strong>Teléfono:</strong> <a href={legalIdentity.phoneHref}>{legalIdentity.phoneDisplay}</a><br/><strong>Correo:</strong> <a href={`mailto:${legalIdentity.email}`}>{legalIdentity.email}</a></p></div></section>

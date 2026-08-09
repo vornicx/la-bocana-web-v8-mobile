@@ -1,6 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { BocanaCalendar, formatBocanaDate } from '@/components/bocana-calendar';
+import type { PublicLocale } from '@/lib/i18n';
 
 type Slot = {
   serviceId: string;
@@ -15,11 +17,20 @@ type Hold = { holdId: string; expiresAt: string; startsAt: string; endsAt: strin
 type Confirmation = { confirmationCode: string; status: string; managementToken: string };
 
 const pad = (n: number) => String(n).padStart(2, '0');
-const localDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-const formatTime = (value: string) => new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date(value));
-const formatDate = (value: string) => new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${value}T12:00:00`));
+const formatTime = (value: string, locale: PublicLocale) => new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date(value));
 
-export default function BookingFlow({ minDate, maxDate }: { minDate: string; maxDate: string }) {
+const bookingCopy = {
+  es: {
+    expired: 'El bloqueo temporal ha caducado. Elige de nuevo una hora para comprobar disponibilidad.', availabilityError: 'No se pudo consultar la disponibilidad.', slotError: 'Esa hora ya no está disponible.', confirmError: 'No se pudo confirmar la reserva.', received: 'Reserva recibida', reserved: 'Tu mesa está reservada.', confirmationHelp: 'Guarda el código y utiliza el enlace privado para modificar o cancelar tu reserva.', manage: 'Gestionar mi reserva', booking: 'Reserva', of: 'de', progress: 'Progreso de la reserva', yourTable: 'Tu mesa', partyTitle: '¿Cuántos seréis?', partyLead: 'Indícanos el número de adultos y niños.', adults: 'Adultos', children: 'Niños', continue: 'Continuar', person: 'persona', people: 'personas', back: 'Volver', date: 'Fecha', dateTitle: '¿Cuándo os esperamos?', checking: 'Consultando…', schedules: 'Ver horarios', changeDate: 'Cambiar fecha', schedule: 'Horario', availableNow: 'solo mostramos horas disponibles ahora mismo.', noTables: 'No quedan mesas online para esta fecha.', noTablesText: 'Puedes cambiar el día o apuntarte a la lista de espera para recuperar una cancelación.', changeTime: 'Cambiar hora', details: 'Tus datos', almost: 'Ya casi está.', held: 'Mesa bloqueada temporalmente', firstName: 'Nombre', lastName: 'Apellidos', phone: 'Teléfono', email: 'Email', allergies: 'Alergias o intolerancias · opcional', preferences: 'Preferencias (terraza, trona, carrito…)', notes: 'Notas para el restaurante', privacyTitle: 'Información básica de privacidad', privacyText: 'La Bocana utilizará tus datos para gestionar la reserva y contactar por cuestiones operativas. La base es la solicitud y prestación del servicio. Puedes ejercer tus derechos según la', privacyPolicy: 'política de privacidad', privacyAccept: 'He leído la información de privacidad y las', bookingTerms: 'condiciones de reserva', health: 'Si he indicado alergias o intolerancias, consiento expresamente que se traten para preparar y atender mi reserva.', confirming: 'Confirmando…', confirm: 'Confirmar reserva', waitError: 'No se pudo crear la solicitud.', waitSuccess: 'Solicitud registrada en la lista de espera.', privacy: 'Privacidad', waitPrivacy: 'Usaremos estos datos para gestionar la lista de espera y avisarte sobre esta solicitud.', more: 'Más información', privacyRead: 'He leído la información sobre privacidad.', waitButton: 'Entrar en lista de espera', newTab: ', se abre en una pestaña nueva', reduce: 'Reducir', increase: 'Aumentar',
+  },
+  en: {
+    expired: 'Your temporary hold has expired. Choose a time again to check availability.', availabilityError: 'Availability could not be checked.', slotError: 'That time is no longer available.', confirmError: 'The booking could not be confirmed.', received: 'Booking received', reserved: 'Your table is booked.', confirmationHelp: 'Keep this code and use your private link to amend or cancel the booking.', manage: 'Manage my booking', booking: 'Booking', of: 'of', progress: 'Booking progress', yourTable: 'Your table', partyTitle: 'How many guests?', partyLead: 'Tell us the number of adults and children.', adults: 'Adults', children: 'Children', continue: 'Continue', person: 'guest', people: 'guests', back: 'Back', date: 'Date', dateTitle: 'When shall we expect you?', checking: 'Checking…', schedules: 'View times', changeDate: 'Change date', schedule: 'Time', availableNow: 'we only show times currently available.', noTables: 'There are no online tables left for this date.', noTablesText: 'Choose another day or join the waiting list in case of a cancellation.', changeTime: 'Change time', details: 'Your details', almost: 'Almost there.', held: 'Table temporarily held', firstName: 'First name', lastName: 'Last name', phone: 'Telephone', email: 'Email', allergies: 'Allergies or intolerances · optional', preferences: 'Preferences (terrace, high chair, pushchair…)', notes: 'Notes for the restaurant', privacyTitle: 'Essential privacy information', privacyText: 'La Bocana will use your data to manage the booking and contact you about operational matters. The legal basis is your request and delivery of the service. You can exercise your rights under our', privacyPolicy: 'privacy policy', privacyAccept: 'I have read the privacy information and the', bookingTerms: 'booking terms', health: 'If I have entered allergies or intolerances, I expressly consent to their use in preparing and attending to my booking.', confirming: 'Confirming…', confirm: 'Confirm booking', waitError: 'The request could not be created.', waitSuccess: 'Your waiting-list request has been registered.', privacy: 'Privacy', waitPrivacy: 'We will use these details to manage the waiting list and contact you about this request.', more: 'More information', privacyRead: 'I have read the privacy information.', waitButton: 'Join waiting list', newTab: ', opens in a new tab', reduce: 'Reduce', increase: 'Increase',
+  },
+} as const;
+
+export default function BookingFlow({ minDate, maxDate, locale = 'es' }: { minDate: string; maxDate: string; locale?: PublicLocale }) {
+  const t = bookingCopy[locale];
+  const formatDate = (value: string) => formatBocanaDate(value, locale);
   const [step, setStep] = useState(1);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
@@ -43,11 +54,11 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
 
   useEffect(() => {
     if (hold && new Date(hold.expiresAt).getTime() <= Date.now() && step === 4) {
-      setError('El bloqueo temporal ha caducado. Elige de nuevo una hora para comprobar disponibilidad.');
+      setError(t.expired);
       setHold(null);
       setStep(3);
     }
-  }, [remaining, hold, step]);
+  }, [remaining, hold, step, t.expired]);
 
   const partySize = adults + children;
 
@@ -56,7 +67,7 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
     try {
       const response = await fetch(`/api/reservations/availability?date=${encodeURIComponent(date)}&adults=${adults}&children=${children}`, { cache: 'no-store' });
       const json = await response.json();
-      if (!response.ok) throw new Error(json.error || 'No se pudo consultar la disponibilidad.');
+      if (!response.ok) throw new Error(locale === 'en' ? t.availabilityError : (json.error || t.availabilityError));
       setSlots(json.slots ?? []);
       setStep(3);
     } catch (e) { setError((e as Error).message); }
@@ -71,7 +82,7 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
         body: JSON.stringify({ date, adults, children, serviceId: slot.serviceId, startsAt: slot.startsAt, sessionId }),
       });
       const json = await response.json();
-      if (!response.ok) throw new Error(json.error || 'Esa hora ya no está disponible.');
+      if (!response.ok) throw new Error(locale === 'en' ? t.slotError : (json.error || t.slotError));
       setRemaining(Math.max(0, Math.floor((new Date(json.expiresAt).getTime() - Date.now()) / 1000)));
       setHold(json); setStep(4);
     } catch (e) {
@@ -104,7 +115,7 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
         }),
       });
       const json = await response.json();
-      if (!response.ok) throw new Error(json.error || 'No se pudo confirmar la reserva.');
+      if (!response.ok) throw new Error(locale === 'en' ? t.confirmError : (json.error || t.confirmError));
       setConfirmation(json); setStep(5);
     } catch (e) { setError((e as Error).message); }
     finally { setLoading(false); }
@@ -114,11 +125,11 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
     return (
       <div className="confirmation-card">
         <div className="confirmation-mark" aria-hidden="true" />
-        <span className="eyebrow dark">Reserva recibida</span>
-        <h2>Tu mesa está reservada.</h2>
+        <span className="eyebrow dark">{t.received}</span>
+        <h2>{t.reserved}</h2>
         <p className="confirmation-code">{confirmation.confirmationCode}</p>
-        <p>Guarda el código y utiliza el enlace privado para modificar o cancelar tu reserva.</p>
-        <a className="primary-button" href={`/reserva/${confirmation.managementToken}`}>Gestionar mi reserva</a>
+        <p>{t.confirmationHelp}</p>
+        <a className="primary-button" href={`/reserva/${confirmation.managementToken}${locale === 'en' ? '?lang=en' : ''}`}>{t.manage}</a>
       </div>
     );
   }
@@ -126,54 +137,54 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
   return (
     <div className="flow">
       <div className="progress-row">
-        <span>Reserva</span><strong>{Math.min(step, 4)} de 4</strong>
+        <span>{t.booking}</span><strong>{Math.min(step, 4)} {t.of} 4</strong>
       </div>
-      <div className="progress-track" role="progressbar" aria-label="Progreso de la reserva" aria-valuemin={1} aria-valuemax={4} aria-valuenow={Math.min(step, 4)}><i style={{ width: `${Math.min(step, 4) * 25}%` }} /></div>
+      <div className="progress-track" role="progressbar" aria-label={t.progress} aria-valuemin={1} aria-valuemax={4} aria-valuenow={Math.min(step, 4)}><i style={{ width: `${Math.min(step, 4) * 25}%` }} /></div>
 
       {step === 1 && (
         <section className="flow-step" aria-live="polite">
-          <span className="eyebrow dark">Tu mesa</span>
-          <h2>¿Cuántos seréis?</h2>
-          <p className="lead">Indícanos el número de adultos y niños.</p>
-          <Counter label="Adultos" value={adults} min={1} max={20} onChange={setAdults} />
-          <Counter label="Niños" value={children} min={0} max={12} onChange={setChildren} />
-          <button className="primary-button" type="button" onClick={() => setStep(2)}>Continuar · {partySize} {partySize === 1 ? 'persona' : 'personas'}</button>
+          <span className="eyebrow dark">{t.yourTable}</span>
+          <h2>{t.partyTitle}</h2>
+          <p className="lead">{t.partyLead}</p>
+          <Counter label={t.adults} value={adults} min={1} max={20} onChange={setAdults} locale={locale} />
+          <Counter label={t.children} value={children} min={0} max={12} onChange={setChildren} locale={locale} />
+          <button className="primary-button" type="button" onClick={() => setStep(2)}>{t.continue} · {partySize} {partySize === 1 ? t.person : t.people}</button>
         </section>
       )}
 
       {step === 2 && (
         <section className="flow-step" aria-live="polite">
-          <button className="back-button" type="button" onClick={() => setStep(1)}><span aria-hidden="true">←</span> Volver</button>
-          <span className="eyebrow dark">Fecha</span>
-          <h2>¿Cuándo os esperamos?</h2>
-          <BocanaCalendar value={date} min={minDate} max={maxDate} onChange={setDate} />
-          <div className="selection-summary"><span>{partySize} personas</span><span>·</span><span>{formatDate(date)}</span></div>
-          <button className="primary-button" type="button" disabled={loading} onClick={loadSlots}>{loading ? 'Consultando…' : 'Ver horarios'}</button>
+          <button className="back-button" type="button" onClick={() => setStep(1)}><span aria-hidden="true">←</span> {t.back}</button>
+          <span className="eyebrow dark">{t.date}</span>
+          <h2>{t.dateTitle}</h2>
+          <BocanaCalendar value={date} min={minDate} max={maxDate} onChange={setDate} locale={locale} />
+          <div className="selection-summary"><span>{partySize} {partySize === 1 ? t.person : t.people}</span><span>·</span><span>{formatDate(date)}</span></div>
+          <button className="primary-button" type="button" disabled={loading} onClick={loadSlots}>{loading ? t.checking : t.schedules}</button>
         </section>
       )}
 
       {step === 3 && (
         <section className="flow-step" aria-live="polite">
-          <button className="back-button" type="button" onClick={() => setStep(2)}><span aria-hidden="true">←</span> Cambiar fecha</button>
-          <span className="eyebrow dark">Horario</span>
+          <button className="back-button" type="button" onClick={() => setStep(2)}><span aria-hidden="true">←</span> {t.changeDate}</button>
+          <span className="eyebrow dark">{t.schedule}</span>
           <h2>{formatDate(date)}</h2>
-          <p className="lead">{partySize} personas · solo mostramos horas disponibles ahora mismo.</p>
+          <p className="lead">{partySize} {partySize === 1 ? t.person : t.people} · {t.availableNow}</p>
           {slots.length > 0 ? (
             <div className="slot-groups">
               {Object.entries(groupByService(slots)).map(([service, serviceSlots]) => (
                 <div key={service} className="slot-group">
                   <h3>{service}</h3>
                   <div className="slots">
-                    {serviceSlots.map((slot) => <button type="button" disabled={loading} key={slot.startsAt} onClick={() => chooseSlot(slot)}>{formatTime(slot.startsAt)}</button>)}
+                    {serviceSlots.map((slot) => <button type="button" disabled={loading} key={slot.startsAt} onClick={() => chooseSlot(slot)}>{formatTime(slot.startsAt, locale)}</button>)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="empty-state">
-              <h3>No quedan mesas online para esta fecha.</h3>
-              <p>Puedes cambiar el día o apuntarte a la lista de espera para recuperar una cancelación.</p>
-              <WaitlistForm date={date} adults={adults} children={children} />
+              <h3>{t.noTables}</h3>
+              <p>{t.noTablesText}</p>
+              <WaitlistForm date={date} adults={adults} children={children} locale={locale} />
             </div>
           )}
         </section>
@@ -181,21 +192,21 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
 
       {step === 4 && hold && (
         <section className="flow-step" aria-live="polite">
-          <button className="back-button" type="button" onClick={async () => { await releaseCurrentHold(); setStep(3); }}><span aria-hidden="true">←</span> Cambiar hora</button>
-          <span className="eyebrow dark">Tus datos</span>
-          <h2>Ya casi está.</h2>
-          <div className="hold-banner"><span>Mesa bloqueada temporalmente</span><strong>{Math.floor(remaining / 60)}:{pad(remaining % 60)}</strong></div>
-          <div className="booking-recap"><strong>{formatDate(date)}</strong><span>{formatTime(hold.startsAt)} · {partySize} personas</span></div>
+          <button className="back-button" type="button" onClick={async () => { await releaseCurrentHold(); setStep(3); }}><span aria-hidden="true">←</span> {t.changeTime}</button>
+          <span className="eyebrow dark">{t.details}</span>
+          <h2>{t.almost}</h2>
+          <div className="hold-banner"><span>{t.held}</span><strong>{Math.floor(remaining / 60)}:{pad(remaining % 60)}</strong></div>
+          <div className="booking-recap"><strong>{formatDate(date)}</strong><span>{formatTime(hold.startsAt, locale)} · {partySize} {partySize === 1 ? t.person : t.people}</span></div>
           <form onSubmit={confirm} className="details-form"><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-            <div className="form-grid two"><Field name="firstName" label="Nombre" autoComplete="given-name" /><Field name="lastName" label="Apellidos" autoComplete="family-name" /></div>
-            <div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" autoComplete="tel" /><Field name="email" label="Email" type="email" autoComplete="email" /></div>
-            <label className="input-label"><span>Alergias o intolerancias · opcional</span><input name="allergies" value={allergies} onChange={(event) => setAllergies(event.target.value)} maxLength={1000} /></label>
-            <Field name="preferences" label="Preferencias (terraza, trona, carrito…)" required={false} />
-            <label className="textarea-label">Notas para el restaurante<textarea name="notes" rows={3} maxLength={1500} /></label>
-            <div className="privacy-first-layer"><strong>Información básica de privacidad</strong><p>La Bocana utilizará tus datos para gestionar la reserva y contactar por cuestiones operativas. La base es la solicitud y prestación del servicio. Puedes ejercer tus derechos según la <a href="/privacidad" target="_blank" rel="noreferrer">política de privacidad<span className="sr-only">, se abre en una pestaña nueva</span></a>.</p></div>
-            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído la información de privacidad y las <a href="/condiciones-reserva" target="_blank" rel="noreferrer">condiciones de reserva<span className="sr-only">, se abren en una pestaña nueva</span></a>.</span></label>
-            <label className={`check-row health-consent ${allergies.trim() ? '' : 'disabled'}`}><input type="checkbox" name="healthDataConsent" required={allergies.trim().length > 0} disabled={!allergies.trim()} /><span>Si he indicado alergias o intolerancias, consiento expresamente que se traten para preparar y atender mi reserva.</span></label>
-            <button className="primary-button" disabled={loading || remaining === 0} type="submit">{loading ? 'Confirmando…' : 'Confirmar reserva'}</button>
+            <div className="form-grid two"><Field name="firstName" label={t.firstName} autoComplete="given-name" /><Field name="lastName" label={t.lastName} autoComplete="family-name" /></div>
+            <div className="form-grid two"><Field name="phone" label={t.phone} type="tel" autoComplete="tel" /><Field name="email" label={t.email} type="email" autoComplete="email" /></div>
+            <label className="input-label"><span>{t.allergies}</span><input name="allergies" value={allergies} onChange={(event) => setAllergies(event.target.value)} maxLength={1000} /></label>
+            <Field name="preferences" label={t.preferences} required={false} />
+            <label className="textarea-label">{t.notes}<textarea name="notes" rows={3} maxLength={1500} /></label>
+            <div className="privacy-first-layer"><strong>{t.privacyTitle}</strong><p>{t.privacyText} <a href={locale === 'es' ? '/privacidad' : '/en/privacy'} target="_blank" rel="noreferrer">{t.privacyPolicy}<span className="sr-only">{t.newTab}</span></a>.</p></div>
+            <label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>{t.privacyAccept} <a href={locale === 'es' ? '/condiciones-reserva' : '/en/booking-terms'} target="_blank" rel="noreferrer">{t.bookingTerms}<span className="sr-only">{t.newTab}</span></a>.</span></label>
+            <label className={`check-row health-consent ${allergies.trim() ? '' : 'disabled'}`}><input type="checkbox" name="healthDataConsent" required={allergies.trim().length > 0} disabled={!allergies.trim()} /><span>{t.health}</span></label>
+            <button className="primary-button" disabled={loading || remaining === 0} type="submit">{loading ? t.confirming : t.confirm}</button>
           </form>
         </section>
       )}
@@ -205,42 +216,9 @@ export default function BookingFlow({ minDate, maxDate }: { minDate: string; max
   );
 }
 
-function BocanaCalendar({ value, min, max, onChange }: { value: string; min: string; max: string; onChange: (value: string) => void }) {
-  const initial = new Date(`${value}T12:00:00`);
-  const [cursor, setCursor] = useState(() => new Date(initial.getFullYear(), initial.getMonth(), 1, 12));
-  const minDate = new Date(`${min}T12:00:00`);
-  const maxDate = new Date(`${max}T12:00:00`);
-  const monthLabel = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(cursor);
-  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1, 12);
-  const last = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 12);
-  const leading = (first.getDay() + 6) % 7;
-  const cells: Array<Date | null> = Array.from({ length: leading }, () => null);
-  for (let day = 1; day <= last.getDate(); day += 1) cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), day, 12));
-  while (cells.length % 7 !== 0) cells.push(null);
-  const prevMonth = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1, 12);
-  const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1, 12);
-  const canPrev = prevMonth.getFullYear() > minDate.getFullYear() || (prevMonth.getFullYear() === minDate.getFullYear() && prevMonth.getMonth() >= minDate.getMonth());
-  const canNext = nextMonth.getFullYear() < maxDate.getFullYear() || (nextMonth.getFullYear() === maxDate.getFullYear() && nextMonth.getMonth() <= maxDate.getMonth());
-
-  return <div className="bocana-calendar" aria-label="Selecciona una fecha">
-    <div className="calendar-toolbar">
-      <div><span className="calendar-kicker">Selecciona un día</span><strong>{monthLabel}</strong></div>
-      <div className="calendar-arrows"><button type="button" aria-label="Mes anterior" disabled={!canPrev} onClick={() => setCursor(prevMonth)}><span className="calendar-chevron previous" aria-hidden="true" /></button><button type="button" aria-label="Mes siguiente" disabled={!canNext} onClick={() => setCursor(nextMonth)}><span className="calendar-chevron next" aria-hidden="true" /></button></div>
-    </div>
-    <div className="calendar-weekdays">{['L','M','X','J','V','S','D'].map((day) => <span key={day}>{day}</span>)}</div>
-    <div className="calendar-days">{cells.map((day, index) => {
-      if (!day) return <span className="calendar-empty" key={`empty-${index}`} />;
-      const iso = localDate(day);
-      const disabled = day < minDate || day > maxDate;
-      const selected = iso === value;
-      return <button type="button" key={iso} disabled={disabled} className={selected ? 'selected' : ''} aria-label={formatDate(iso)} aria-pressed={selected} onClick={() => onChange(iso)}><span>{day.getDate()}</span>{selected && <i />}</button>;
-    })}</div>
-    <div className="calendar-foot"><span><i className="legend-dot" /> Día seleccionado</span><span>La hora se confirma en tiempo real</span></div>
-  </div>;
-}
-
-function Counter({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (n: number) => void }) {
-  return <div className="counter"><span>{label}</span><div><button type="button" aria-label={`Reducir ${label.toLowerCase()}`} onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>−</button><output aria-live="polite" aria-label={`${label}: ${value}`}>{value}</output><button type="button" aria-label={`Aumentar ${label.toLowerCase()}`} onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>+</button></div></div>;
+function Counter({ label, value, min, max, onChange, locale }: { label: string; value: number; min: number; max: number; onChange: (n: number) => void; locale: PublicLocale }) {
+  const t = bookingCopy[locale];
+  return <div className="counter"><span>{label}</span><div><button type="button" aria-label={`${t.reduce} ${label.toLowerCase()}`} onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>−</button><output aria-live="polite" aria-label={`${label}: ${value}`}>{value}</output><button type="button" aria-label={`${t.increase} ${label.toLowerCase()}`} onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>+</button></div></div>;
 }
 
 function Field({ name, label, type = 'text', autoComplete, required = true }: { name: string; label: string; type?: string; autoComplete?: string; required?: boolean }) {
@@ -253,16 +231,17 @@ function groupByService(slots: Slot[]) {
   }, {});
 }
 
-function WaitlistForm({ date, adults, children }: { date: string; adults: number; children: number }) {
+function WaitlistForm({ date, adults, children, locale }: { date: string; adults: number; children: number; locale: PublicLocale }) {
+  const t = bookingCopy[locale];
   const [sent, setSent] = useState(false); const [error, setError] = useState('');
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError('');
     const form = new FormData(event.currentTarget);
     const response = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ date, adults, children, firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), privacyAccepted: form.get('privacyAccepted') === 'on', companyWebsite: form.get('companyWebsite') }) });
     const json = await response.json();
-    if (!response.ok) { setError(json.error || 'No se pudo crear la solicitud.'); return; }
+    if (!response.ok) { setError(locale === 'en' ? t.waitError : (json.error || t.waitError)); return; }
     setSent(true);
   }
-  if (sent) return <p className="waitlist-success" role="status">Solicitud registrada en la lista de espera.</p>;
-  return <form className="waitlist-form" onSubmit={submit}><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" /><div className="form-grid two"><Field name="firstName" label="Nombre" /><Field name="lastName" label="Apellidos" /></div><div className="form-grid two"><Field name="phone" label="Teléfono" type="tel" /><Field name="email" label="Email" type="email" /></div><div className="privacy-first-layer compact"><strong>Privacidad</strong><p>Usaremos estos datos para gestionar la lista de espera y avisarte sobre esta solicitud. <a href="/privacidad" target="_blank" rel="noreferrer">Más información<span className="sr-only">, se abre en una pestaña nueva</span></a>.</p></div><label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>He leído la información sobre privacidad.</span></label>{error && <div className="error-box" role="alert">{error}</div>}<button className="secondary-button" type="submit">Entrar en lista de espera</button></form>;
+  if (sent) return <p className="waitlist-success" role="status">{t.waitSuccess}</p>;
+  return <form className="waitlist-form" onSubmit={submit}><input className="hp-field" name="companyWebsite" tabIndex={-1} autoComplete="off" aria-hidden="true" /><div className="form-grid two"><Field name="firstName" label={t.firstName} /><Field name="lastName" label={t.lastName} /></div><div className="form-grid two"><Field name="phone" label={t.phone} type="tel" /><Field name="email" label={t.email} type="email" /></div><div className="privacy-first-layer compact"><strong>{t.privacy}</strong><p>{t.waitPrivacy} <a href={locale === 'es' ? '/privacidad' : '/en/privacy'} target="_blank" rel="noreferrer">{t.more}<span className="sr-only">{t.newTab}</span></a>.</p></div><label className="check-row"><input type="checkbox" name="privacyAccepted" required /><span>{t.privacyRead}</span></label>{error && <div className="error-box" role="alert">{error}</div>}<button className="secondary-button" type="submit">{t.waitButton}</button></form>;
 }

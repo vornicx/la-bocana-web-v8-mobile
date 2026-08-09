@@ -11,6 +11,8 @@ type PublicMetadataOptions = {
   description?: string;
   path: `/${string}` | '/';
   image?: string;
+  alternatePath?: string;
+  locale?: 'es' | 'en';
 };
 
 export function createPublicMetadata({
@@ -18,16 +20,18 @@ export function createPublicMetadata({
   description = SITE_DESCRIPTION,
   path,
   image = DEFAULT_SOCIAL_IMAGE,
+  alternatePath,
+  locale = 'es',
 }: PublicMetadataOptions): Metadata {
   const socialTitle = title ? `${title} | ${SITE_NAME}` : SITE_TITLE;
 
   return {
     ...(title ? { title } : {}),
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, ...(alternatePath ? { languages: { [locale]: path, [locale === 'es' ? 'en' : 'es']: alternatePath, 'x-default': '/' } } : {}) },
     openGraph: {
       type: 'website',
-      locale: 'es_ES',
+      locale: locale === 'es' ? 'es_ES' : 'en_GB',
       siteName: SITE_NAME,
       title: socialTitle,
       description,

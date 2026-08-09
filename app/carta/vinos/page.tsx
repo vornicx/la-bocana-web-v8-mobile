@@ -7,6 +7,7 @@ export const metadata = createPublicMetadata({
   title: 'Carta de vinos',
   description: 'Carta oficial de vinos de La Bocana: blancos, rosados, tintos, cavas y champagne.',
   path: '/carta/vinos',
+  alternatePath: '/en/menu/wines',
   image: '/images/gallery-official/mesa-vista.webp',
 });
 
@@ -17,6 +18,8 @@ export default function VinosPage() {
       title="Una botella para cada sobremesa."
       intro="Una selección que recorre grandes denominaciones, referencias de la casa y vinos por copa."
       image="/images/gallery-official/mesa-vista.webp"
+      mobileImage="/images/curated/mesa-vista-mobile.webp"
+      imageAlt="Mesa preparada con copas frente al Mediterráneo"
     >
       <MenuCatalog categories={wineMenu} current="wine" />
       <aside className="menu-legal-note" aria-label="Información sobre la carta de vinos">

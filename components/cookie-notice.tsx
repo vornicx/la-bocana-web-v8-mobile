@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useId, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import type { PublicLocale } from '@/lib/i18n';
 
 const NOTICE_COOKIE = 'lb_privacy_notice';
 const NOTICE_MAX_AGE = 60 * 60 * 24 * 180;
@@ -13,6 +15,13 @@ function rememberNotice() {
 }
 
 export function CookieNotice() {
+  const pathname = usePathname();
+  const locale: PublicLocale = pathname.startsWith('/en') ? 'en' : 'es';
+  const copy = locale === 'es' ? {
+    privacy: 'Privacidad', close: 'Cerrar', closeLabel: 'Cerrar información sobre cookies', title: 'Solo lo necesario.', description: 'Usamos cookies técnicas para las reservas, el acceso privado y recordar este aviso. Sin analítica, publicidad ni seguimiento.', active: 'Siempre activas', technical: 'Cookies técnicas', technicalText: 'Permiten mantener la sesión del área privada, proteger el servicio y recordar este aviso.', inactive: 'No instaladas', analytics: 'Analítica y publicidad', analyticsText: 'No hay herramientas de seguimiento, perfiles publicitarios ni cookies de marketing configuradas.', understood: 'Entendido', hide: 'Ocultar detalle', show: 'Ver detalle', policy: 'Política de cookies',
+  } : {
+    privacy: 'Privacy', close: 'Close', closeLabel: 'Close cookie information', title: 'Only what is necessary.', description: 'We use technical cookies for bookings, private access and to remember this notice. No analytics, advertising or tracking.', active: 'Always active', technical: 'Technical cookies', technicalText: 'They maintain private-area sessions, protect the service and remember this notice.', inactive: 'Not installed', analytics: 'Analytics and advertising', analyticsText: 'No tracking tools, advertising profiles or marketing cookies are configured.', understood: 'Understood', hide: 'Hide details', show: 'View details', policy: 'Cookie policy',
+  };
   const titleId = useId();
   const detailsId = useId();
   const [open, setOpen] = useState(false);
@@ -37,26 +46,26 @@ export function CookieNotice() {
   return (
     <section className="cookie-notice" role="region" aria-labelledby={titleId} aria-live="polite">
       <div className="cookie-notice-head">
-        <span>Privacidad</span>
-        <button type="button" onClick={close} aria-label="Cerrar información sobre cookies">Cerrar</button>
+        <span>{copy.privacy}</span>
+        <button type="button" onClick={close} aria-label={copy.closeLabel}>{copy.close}</button>
       </div>
       <div className="cookie-notice-copy">
-        <h2 id={titleId}>Solo lo necesario.</h2>
-        <p>Usamos cookies técnicas para las reservas, el acceso privado y recordar este aviso. Sin analítica, publicidad ni seguimiento.</p>
+        <h2 id={titleId}>{copy.title}</h2>
+        <p>{copy.description}</p>
       </div>
       <div className="cookie-categories" id={detailsId} hidden={!details}>
-          <div><span>Siempre activas</span><strong>Cookies técnicas</strong><p>Permiten mantener la sesión del área privada, proteger el servicio y recordar este aviso.</p></div>
-          <div className="inactive"><span>No instaladas</span><strong>Analítica y publicidad</strong><p>No hay herramientas de seguimiento, perfiles publicitarios ni cookies de marketing configuradas.</p></div>
+          <div><span>{copy.active}</span><strong>{copy.technical}</strong><p>{copy.technicalText}</p></div>
+          <div className="inactive"><span>{copy.inactive}</span><strong>{copy.analytics}</strong><p>{copy.analyticsText}</p></div>
       </div>
       <div className="cookie-notice-actions">
-        <button className="cookie-primary" type="button" onClick={close}>Entendido</button>
-        <button className="cookie-secondary" type="button" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails((value) => !value)}>{details ? 'Ocultar detalle' : 'Ver detalle'}</button>
-        <Link href="/cookies" onClick={close}>Política de cookies</Link>
+        <button className="cookie-primary" type="button" onClick={close}>{copy.understood}</button>
+        <button className="cookie-secondary" type="button" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails((value) => !value)}>{details ? copy.hide : copy.show}</button>
+        <Link href={locale === 'es' ? '/cookies' : '/en/cookies'} onClick={close}>{copy.policy}</Link>
       </div>
     </section>
   );
 }
 
-export function CookieSettingsButton() {
-  return <button className="footer-cookie-button" type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}>Preferencias de privacidad</button>;
+export function CookieSettingsButton({ locale = 'es' }: { locale?: PublicLocale }) {
+  return <button className="footer-cookie-button" type="button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}>{locale === 'es' ? 'Preferencias de privacidad' : 'Privacy preferences'}</button>;
 }

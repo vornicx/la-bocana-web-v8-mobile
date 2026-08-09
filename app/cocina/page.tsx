@@ -1,5 +1,5 @@
-import Image from 'next/image';
-import { PublicPage } from '@/components/public-page';
-import { createPublicMetadata } from '@/lib/site';
-export const metadata = createPublicMetadata({ title: 'Cocina', description: 'Pescados, mariscos, arroces y cocina andaluza frente al Mediterráneo.', path: '/cocina', image: '/images/pescado-mediterraneo-la-bocana.jpeg' });
-export default function CocinaPage(){return <PublicPage eyebrow="Cocina y producto" title="El Mediterráneo, sin disfraz." intro="Producto fresco, fondos trabajados y una cocina andaluza que sabe cuándo intervenir y cuándo dejar hablar al ingrediente." image="/images/pescado-mediterraneo-la-bocana.jpeg"><div className="subpage-grid"><div><span>01</span><h2>Pescados y mariscos</h2><p>La selección del día marca el ritmo de una parte esencial de la carta.</p></div><div><span>02</span><h2>Arroces</h2><p>Arroces pensados para compartir, con profundidad de sabor y producto mediterráneo.</p></div><div><span>03</span><h2>Cocina andaluza</h2><p>Frituras, recetas reconocibles y platos con memoria, ejecutados con sencillez.</p></div></div><div className="subpage-wide-image"><Image src="/images/marisco-la-bocana-real.jpeg" alt="Marisco de La Bocana junto al Mediterráneo" fill sizes="100vw" /></div></PublicPage>}
+import { redirect } from 'next/navigation';
+
+export default function CocinaPage() {
+  redirect('/carta');
+}
