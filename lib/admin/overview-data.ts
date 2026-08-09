@@ -2,7 +2,7 @@ import 'server-only';
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadFloorSnapshot } from './floor-data';
-import type { AdminReservation } from './types';
+import type { AdminReservation, AdminWaitlistItem, CustomerDetail, CustomerSummary, OperationalSettings, ReservationStatus } from './types';
 
 const ACTIVE_RESERVATION_STATUSES = new Set(['pending', 'confirmed', 'seated', 'completed']);
 
@@ -30,7 +30,40 @@ type CustomerRow = {
   last_seen_at: string | null;
   created_at: string;
 };
-type CustomerVisitRow = { customer_id: string | null; starts_at: string; party_size: number; status: string };
+type CustomerVisitRow = {
+  id: string;
+  customer_id: string | null;
+  starts_at: string;
+  party_size: number;
+  adults: number;
+  children: number;
+  status: ReservationStatus;
+  source: AdminReservation['source'];
+  notes: string | null;
+  allergies: string | null;
+  preferences: string | null;
+  internal_notes: string | null;
+  services: { name?: string } | { name?: string }[] | null;
+};
+
+type WaitlistAdminRow = {
+  id: string;
+  customer_id: string | null;
+  desired_date: string;
+  adults: number;
+  children: number;
+  party_size: number;
+  preferred_time: string | null;
+  flexible_from: string | null;
+  flexible_to: string | null;
+  status: AdminWaitlistItem['status'];
+  offered_at: string | null;
+  offer_expires_at: string | null;
+  converted_reservation_id: string | null;
+  created_at: string;
+  customers: { first_name?: string; last_name?: string; phone?: string | null; email?: string | null } | { first_name?: string; last_name?: string; phone?: string | null; email?: string | null }[] | null;
+  services: { name?: string } | { name?: string }[] | null;
+};
 
 function addDays(value: string, amount: number) {
   const date = new Date(`${value}T12:00:00Z`);
@@ -142,7 +175,39 @@ export async function loadDashboardData(date: string) {
   };
 }
 
-export async function loadCustomersData() {
+function typicalPartySize(visits: CustomerVisitRow[]) {
+  if (!visits.length) return null;
+  const counts = new Map<number, number>();
+  for (const visit of visits) counts.set(Number(visit.party_size), (counts.get(Number(visit.party_size)) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0] ?? null;
+}
+
+function customerSummary(customer: CustomerRow, reservations: CustomerVisitRow[]): CustomerSummary {
+  const completed = reservations.filter((reservation) => reservation.status === 'completed');
+  const chronological = [...completed].sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+  return {
+    id: customer.id,
+    name: `${customer.first_name} ${customer.last_name}`.trim(),
+    email: customer.email,
+    phone: customer.phone,
+    preferences: customer.preferences,
+    allergies: customer.allergies,
+    internalNotes: customer.internal_notes,
+    totalReservations: reservations.length,
+    completedVisits: completed.length,
+    cancellations: reservations.filter((reservation) => reservation.status === 'cancelled').length,
+    noShows: reservations.filter((reservation) => reservation.status === 'no_show').length,
+    activeReservations: reservations.filter((reservation) => ['pending', 'confirmed', 'seated'].includes(reservation.status)).length,
+    totalCovers: completed.reduce((sum, visit) => sum + Number(visit.party_size), 0),
+    typicalPartySize: typicalPartySize(completed.length ? completed : reservations),
+    firstVisit: chronological[0]?.starts_at ?? null,
+    lastVisit: chronological.at(-1)?.starts_at ?? null,
+  };
+}
+
+const CUSTOMER_HISTORY_SELECT = 'id, customer_id, starts_at, party_size, adults, children, status, source, notes, allergies, preferences, internal_notes, services(name)';
+
+export async function loadCustomersData(): Promise<CustomerSummary[]> {
   const supabase = createAdminClient();
   const customersResult = await supabase.from('customers')
     .select('id, first_name, last_name, email, phone, preferences, allergies, internal_notes, last_seen_at, created_at')
@@ -151,29 +216,77 @@ export async function loadCustomersData() {
   const customers = (customersResult.data ?? []) as CustomerRow[];
   const ids = customers.map((customer) => customer.id);
   const visitsResult = ids.length
-    ? await supabase.from('reservations').select('customer_id, starts_at, party_size, status').in('customer_id', ids).order('starts_at', { ascending: false })
+    ? await supabase.from('reservations').select(CUSTOMER_HISTORY_SELECT).in('customer_id', ids).order('starts_at', { ascending: false })
     : { data: [], error: null };
   if (visitsResult.error) throw new Error(`No se pudo cargar el historial: ${visitsResult.error.message}`);
 
   const visitsByCustomer = new Map<string, CustomerVisitRow[]>();
   for (const visit of (visitsResult.data ?? []) as CustomerVisitRow[]) {
-    if (!visit.customer_id || ['cancelled', 'no_show'].includes(visit.status)) continue;
+    if (!visit.customer_id) continue;
     visitsByCustomer.set(visit.customer_id, [...(visitsByCustomer.get(visit.customer_id) ?? []), visit]);
   }
 
-  return customers.map((customer) => {
-    const visits = visitsByCustomer.get(customer.id) ?? [];
+  return customers.map((customer) => customerSummary(customer, visitsByCustomer.get(customer.id) ?? []));
+}
+
+export async function loadCustomerDetail(id: string): Promise<CustomerDetail | null> {
+  const supabase = createAdminClient();
+  const [customerResult, historyResult] = await Promise.all([
+    supabase.from('customers').select('id, first_name, last_name, email, phone, preferences, allergies, internal_notes, last_seen_at, created_at').eq('id', id).maybeSingle(),
+    supabase.from('reservations').select(CUSTOMER_HISTORY_SELECT).eq('customer_id', id).order('starts_at', { ascending: false }),
+  ]);
+  if (customerResult.error) throw new Error(`No se pudo cargar el cliente: ${customerResult.error.message}`);
+  if (historyResult.error) throw new Error(`No se pudo cargar su historial: ${historyResult.error.message}`);
+  if (!customerResult.data) return null;
+  const customer = customerResult.data as CustomerRow;
+  const history = (historyResult.data ?? []) as CustomerVisitRow[];
+  return {
+    ...customerSummary(customer, history),
+    createdAt: customer.created_at,
+    history: history.map((reservation) => ({
+      id: reservation.id,
+      startsAt: reservation.starts_at,
+      partySize: Number(reservation.party_size),
+      adults: Number(reservation.adults),
+      children: Number(reservation.children),
+      status: reservation.status,
+      source: reservation.source,
+      serviceName: relationOne(reservation.services)?.name ?? null,
+      notes: reservation.notes,
+      allergies: reservation.allergies,
+      preferences: reservation.preferences,
+      internalNotes: reservation.internal_notes,
+    })),
+  };
+}
+
+export async function loadWaitlistData(): Promise<AdminWaitlistItem[]> {
+  const supabase = createAdminClient();
+  const result = await supabase.from('waitlist')
+    .select('id, customer_id, desired_date, adults, children, party_size, preferred_time, flexible_from, flexible_to, status, offered_at, offer_expires_at, converted_reservation_id, created_at, customers(first_name, last_name, phone, email), services(name)')
+    .order('desired_date', { ascending: true }).order('created_at', { ascending: true }).limit(250);
+  if (result.error) throw new Error(`No se pudo cargar la lista de espera: ${result.error.message}`);
+  return ((result.data ?? []) as WaitlistAdminRow[]).map((row) => {
+    const customer = relationOne(row.customers);
     return {
-      id: customer.id,
-      name: `${customer.first_name} ${customer.last_name}`.trim(),
-      email: customer.email,
-      phone: customer.phone,
-      preferences: customer.preferences,
-      allergies: customer.allergies,
-      internalNotes: customer.internal_notes,
-      visits: visits.length,
-      totalCovers: visits.reduce((sum, visit) => sum + Number(visit.party_size), 0),
-      lastVisit: visits[0]?.starts_at ?? customer.last_seen_at,
+      id: row.id,
+      customerId: row.customer_id,
+      customerName: [customer?.first_name, customer?.last_name].filter(Boolean).join(' ') || 'Cliente',
+      phone: customer?.phone ?? null,
+      email: customer?.email ?? null,
+      serviceName: relationOne(row.services)?.name ?? null,
+      desiredDate: row.desired_date,
+      adults: Number(row.adults),
+      children: Number(row.children),
+      partySize: Number(row.party_size),
+      preferredTime: row.preferred_time,
+      flexibleFrom: row.flexible_from,
+      flexibleTo: row.flexible_to,
+      status: row.status,
+      offeredAt: row.offered_at,
+      offerExpiresAt: row.offer_expires_at,
+      convertedReservationId: row.converted_reservation_id,
+      createdAt: row.created_at,
     };
   });
 }
@@ -210,16 +323,33 @@ export async function loadCalendarData(anchor: string) {
   return { start, end, previous: addDays(start, -7), next: addDays(start, 7), days };
 }
 
-export async function loadSettingsData() {
+export async function loadSettingsData(): Promise<OperationalSettings> {
   const supabase = createAdminClient();
-  const names = ['services', 'areas', 'tables', 'table_combinations', 'availability_rules', 'users'] as const;
-  const results = await Promise.all(names.map((name) => supabase.from(name).select('id', { count: 'exact', head: true })));
-  const counts: Record<(typeof names)[number], number> = { services: 0, areas: 0, tables: 0, table_combinations: 0, availability_rules: 0, users: 0 };
-  results.forEach((result, index) => {
-    if (result.error) throw new Error(`No se pudo verificar ${names[index]}: ${result.error.message}`);
-    counts[names[index]] = result.count ?? 0;
-  });
-  return counts;
+  const [servicesResult, rulesResult, areasResult, tablesResult, combinationsResult, usersResult, closuresResult] = await Promise.all([
+    supabase.from('services').select('id, name, slug, active, auto_confirm, default_duration_minutes').order('slug'),
+    supabase.from('availability_rules').select('id, service_id, day_of_week, open_time, close_time, slot_interval_minutes, max_covers, min_notice_minutes, booking_horizon_days, min_party_size, max_party_size, active').order('day_of_week'),
+    supabase.from('areas').select('id', { count: 'exact', head: true }),
+    supabase.from('tables').select('id', { count: 'exact', head: true }),
+    supabase.from('table_combinations').select('id', { count: 'exact', head: true }),
+    supabase.from('users').select('id', { count: 'exact', head: true }),
+    supabase.from('closures').select('id', { count: 'exact', head: true }).eq('active', true),
+  ]);
+  const results = [servicesResult, rulesResult, areasResult, tablesResult, combinationsResult, usersResult, closuresResult];
+  const failed = results.find((result) => result.error);
+  if (failed?.error) throw new Error(`No se pudo cargar la configuración: ${failed.error.message}`);
+  const rules = rulesResult.data ?? [];
+  return {
+    services: (servicesResult.data ?? []).map((service) => ({
+      id: String(service.id), name: String(service.name), slug: String(service.slug), active: Boolean(service.active),
+      autoConfirm: Boolean(service.auto_confirm), defaultDurationMinutes: Number(service.default_duration_minutes),
+      rules: rules.filter((rule) => String(rule.service_id) === String(service.id)).map((rule) => ({
+        id: String(rule.id), serviceId: String(rule.service_id), dayOfWeek: Number(rule.day_of_week), openTime: String(rule.open_time).slice(0, 5), closeTime: String(rule.close_time).slice(0, 5),
+        slotIntervalMinutes: Number(rule.slot_interval_minutes), maxCovers: rule.max_covers == null ? null : Number(rule.max_covers), minNoticeMinutes: Number(rule.min_notice_minutes),
+        bookingHorizonDays: Number(rule.booking_horizon_days), minPartySize: Number(rule.min_party_size), maxPartySize: Number(rule.max_party_size), active: Boolean(rule.active),
+      })),
+    })),
+    counts: { areas: areasResult.count ?? 0, tables: tablesResult.count ?? 0, combinations: combinationsResult.count ?? 0, users: usersResult.count ?? 0, closures: closuresResult.count ?? 0 },
+  };
 }
 
 export function dateLabel(value: string, options?: Intl.DateTimeFormatOptions) {
