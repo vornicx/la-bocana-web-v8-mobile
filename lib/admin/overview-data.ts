@@ -339,12 +339,18 @@ export async function loadSettingsData(): Promise<OperationalSettings> {
     supabase.from('tables').select('id', { count: 'exact', head: true }),
     supabase.from('table_combinations').select('id', { count: 'exact', head: true }),
     supabase.from('users').select('id', { count: 'exact', head: true }),
-    supabase.from('closures').select('id', { count: 'exact', head: true }).eq('active', true),
+    supabase.from('closures').select('id, service_id, starts_at, ends_at, reason, active').eq('active', true).is('area_id', null).is('table_id', null).gte('ends_at', new Date().toISOString()).order('starts_at'),
   ]);
   const results = [servicesResult, rulesResult, areasResult, tablesResult, combinationsResult, usersResult, closuresResult];
   const failed = results.find((result) => result.error);
   if (failed?.error) throw new Error(`No se pudo cargar la configuración: ${failed.error.message}`);
   const rules = rulesResult.data ?? [];
+  const serviceNames = new Map((servicesResult.data ?? []).map((service) => [String(service.id), String(service.name)]));
+  const closures = (closuresResult.data ?? []).map((closure) => ({
+    id: String(closure.id), serviceId: closure.service_id ? String(closure.service_id) : null,
+    serviceName: closure.service_id ? (serviceNames.get(String(closure.service_id)) ?? 'Servicio') : 'Todo el restaurante',
+    startsAt: String(closure.starts_at), endsAt: String(closure.ends_at), reason: closure.reason ? String(closure.reason) : null, active: Boolean(closure.active),
+  }));
   return {
     services: (servicesResult.data ?? []).map((service) => ({
       id: String(service.id), name: String(service.name), slug: String(service.slug), active: Boolean(service.active),
@@ -355,7 +361,8 @@ export async function loadSettingsData(): Promise<OperationalSettings> {
         bookingHorizonDays: Number(rule.booking_horizon_days), minPartySize: Number(rule.min_party_size), maxPartySize: Number(rule.max_party_size), active: Boolean(rule.active),
       })),
     })),
-    counts: { areas: areasResult.count ?? 0, tables: tablesResult.count ?? 0, combinations: combinationsResult.count ?? 0, users: usersResult.count ?? 0, closures: closuresResult.count ?? 0 },
+    closures,
+    counts: { areas: areasResult.count ?? 0, tables: tablesResult.count ?? 0, combinations: combinationsResult.count ?? 0, users: usersResult.count ?? 0, closures: closures.length },
   };
 }
 

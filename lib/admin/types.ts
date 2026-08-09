@@ -166,8 +166,19 @@ export type OperationalService = {
   rules: AvailabilityRule[];
 };
 
+export type OperationalClosure = {
+  id: string;
+  serviceId: string | null;
+  serviceName: string;
+  startsAt: string;
+  endsAt: string;
+  reason: string | null;
+  active: boolean;
+};
+
 export type OperationalSettings = {
   services: OperationalService[];
+  closures: OperationalClosure[];
   counts: { areas: number; tables: number; combinations: number; users: number; closures: number };
 };
 
