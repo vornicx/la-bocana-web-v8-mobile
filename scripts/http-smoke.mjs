@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 
 const port = Number(process.env.HTTP_SMOKE_PORT ?? 3200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const publicSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://labocana.vercel.app').replace(/\/$/, '');
 let logs = '';
 
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '-H', '127.0.0.1', '-p', String(port)], {
@@ -28,7 +29,7 @@ async function expectPage(path, text) {
   assert.equal(response.status, 200, `${path} devolvió HTTP ${response.status}`);
   const html = await response.text();
   assert(html.includes(text), `${path} no contiene “${text}”`);
-  return response;
+  return { response, html };
 }
 
 try {
@@ -49,7 +50,25 @@ try {
     ['/robots.txt', 'Disallow: /admin/'],
     ['/sitemap.xml', '/reservar'],
   ];
-  for (const [path, text] of routes) await expectPage(path, text);
+  const rendered = new Map();
+  for (const [path, text] of routes) rendered.set(path, await expectPage(path, text));
+
+  const canonicalRoutes = ['/', '/cocina', '/la-casa', '/galeria', '/carta', '/contacto', '/reservar'];
+  for (const path of canonicalRoutes) {
+    const html = rendered.get(path).html;
+    const expectedCanonical = `${publicSiteUrl}${path === '/' ? '' : path}`;
+    assert(html.includes('rel="canonical"'), `${path} no declara URL canónica.`);
+    assert(html.includes(`href="${expectedCanonical}"`), `${path} no usa su propia URL canónica: ${expectedCanonical}`);
+    assert(html.includes('href="#main-content"'), `${path} no ofrece salto al contenido.`);
+    assert(html.includes('id="main-content"'), `${path} no expone el destino del salto al contenido.`);
+  }
+
+  for (const path of ['/privacidad', '/cookies', '/aviso-legal', '/condiciones-reserva', '/admin-login']) {
+    assert(rendered.get(path).html.includes('noindex'), `${path} debe quedar fuera del índice.`);
+  }
+
+  assert(rendered.get('/').html.includes('https://schema.org'), 'La portada no incluye datos estructurados del restaurante.');
+  assert(!rendered.get('/admin-login').html.includes('"@type":"Restaurant"'), 'El área privada hereda datos estructurados públicos.');
 
   const admin = await fetch(`${baseUrl}/admin`, { redirect: 'manual' });
   assert([302, 303, 307, 308].includes(admin.status), `/admin no redirige: HTTP ${admin.status}`);
@@ -75,7 +94,7 @@ try {
   assert.equal(security.headers.get('x-frame-options'), 'DENY');
   assert(security.headers.get('content-security-policy')?.includes("frame-ancestors 'none'"));
 
-  console.log(JSON.stringify({ result: 'HTTP_SMOKE_OK', publicRoutes: 11, systemRoutes: 3, adminGuard: true, custom404: true, privacyValidation: true, healthDataConsent: true, validation: true, securityHeaders: true }));
+  console.log(JSON.stringify({ result: 'HTTP_SMOKE_OK', publicRoutes: 11, systemRoutes: 3, canonicalRoutes: canonicalRoutes.length, privateNoIndex: true, skipNavigation: true, structuredDataScope: true, adminGuard: true, custom404: true, privacyValidation: true, healthDataConsent: true, validation: true, securityHeaders: true }));
 } finally {
   server.kill('SIGTERM');
   await new Promise((resolve) => {

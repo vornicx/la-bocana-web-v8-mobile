@@ -1,33 +1,25 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { CookieNotice } from '@/components/cookie-notice';
+import { DEFAULT_SOCIAL_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '@/lib/site';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://labocana.vercel.app'),
-  title: { default: 'La Bocana | Puerto Banús', template: '%s | La Bocana' },
-  description: 'Cocina mediterránea, pescado fresco y arroces frente al mar en Puerto Banús, Marbella.',
-  alternates: { canonical: '/' },
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    siteName: 'La Bocana',
-    title: 'La Bocana | Puerto Banús',
-    description: 'Cocina mediterránea, pescado fresco y arroces frente al mar en Puerto Banús, Marbella.',
-    images: [{ url: '/images/photo-1.jpg', alt: 'La Bocana frente al Mediterráneo' }],
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [{ url: DEFAULT_SOCIAL_IMAGE, alt: 'La Bocana frente al Mediterráneo' }],
   },
+  twitter: { card: 'summary_large_image', title: SITE_TITLE, description: SITE_DESCRIPTION, images: [DEFAULT_SOCIAL_IMAGE] },
   robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const restaurant = {
-    '@context': 'https://schema.org',
-    '@type': 'Restaurant',
-    name: 'La Bocana',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://labocana.vercel.app',
-    telephone: '+34 952 781 410',
-    servesCuisine: ['Mediterránea', 'Andaluza', 'Pescados y mariscos', 'Arroces'],
-    address: { '@type': 'PostalAddress', streetAddress: 'Complejo Benabola, Bloque 1', addressLocality: 'Marbella', addressRegion: 'Málaga', addressCountry: 'ES' },
-  };
-  return <html lang="es"><body>{children}<CookieNotice /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurant).replace(/</g, '\\u003c') }} /></body></html>;
+  return <html lang="es"><body><a className="skip-link" href="#main-content">Saltar al contenido principal</a>{children}<CookieNotice /></body></html>;
 }

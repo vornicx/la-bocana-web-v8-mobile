@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { PublicPage } from '@/components/public-page';
 import { legalDataPending, legalIdentity } from '@/lib/legal';
+import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Privacidad',
-  description: 'Información sobre el tratamiento de datos personales en las reservas de La Bocana.',
+  ...createPublicMetadata({ title: 'Privacidad', description: 'Información sobre el tratamiento de datos personales en las reservas de La Bocana.', path: '/privacidad' }),
+  robots: { index: false, follow: true },
 };
 
 export default function PrivacyPage() {

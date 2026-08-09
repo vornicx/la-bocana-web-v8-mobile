@@ -43,13 +43,13 @@ export default function ManageReservation({ token, initial }: { token: string; i
   }
   const status = String(reservation.status ?? '');
   const active = !['cancelled','completed','no_show'].includes(status);
-  return <main className="manage-page"><div className="manage-shell">
+  return <main className="manage-page" id="main-content"><div className="manage-shell">
     <header className="manage-header"><div className="wordmark">LA BOCANA</div><span className="eyebrow dark">Gestionar reserva</span></header>
     <section className="manage-card"><span className="eyebrow dark">{String(reservation.confirmation_code ?? '')}</span><h1>{status === 'cancelled' ? 'Reserva cancelada' : 'Tu reserva'}</h1>
       <div className="manage-details"><div><span>Fecha</span><strong>{fullDate(String(reservation.starts_at))}</strong></div><div><span>Hora</span><strong>{time(String(reservation.starts_at))}</strong></div><div><span>Personas</span><strong>{String(reservation.party_size)} personas</strong></div><div><span>Servicio</span><strong>{String(reservation.service_name ?? '')}</strong></div></div>
-      {message && <p className="waitlist-success">✓ {message}</p>}{error && <div className="error-box">{error}</div>}
-      {active && <div className="manage-actions"><button className="secondary-button" onClick={()=>setEditing(!editing)}>Modificar</button><button className="danger-button" onClick={cancel}>Cancelar reserva</button></div>}
-      {editing && <div className="modify-box"><h3>Buscar una nueva hora</h3><p className="muted">Tu reserva actual se mantiene hasta que el nuevo horario quede asegurado.</p><div className="mini-grid"><label>Fecha<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Adultos<input type="number" min="1" max="30" value={adults} onChange={e=>setAdults(Number(e.target.value))}/></label><label>Niños<input type="number" min="0" max="20" value={children} onChange={e=>setChildren(Number(e.target.value))}/></label></div><button className="secondary-button" onClick={findSlots}>Ver disponibilidad</button><div className="modify-slots">{slots.map(s=><button key={s.startsAt} onClick={()=>modify(s)}>{s.serviceName} · {time(s.startsAt)}</button>)}</div></div>}
+      {message && <p className="waitlist-success" role="status">{message}</p>}{error && <div className="error-box" role="alert">{error}</div>}
+      {active && <div className="manage-actions"><button className="secondary-button" type="button" onClick={()=>setEditing(!editing)}>Modificar</button><button className="danger-button" type="button" onClick={cancel}>Cancelar reserva</button></div>}
+      {editing && <div className="modify-box"><h3>Buscar una nueva hora</h3><p className="muted">Tu reserva actual se mantiene hasta que el nuevo horario quede asegurado.</p><div className="mini-grid"><label>Fecha<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Adultos<input type="number" min="1" max="30" value={adults} onChange={e=>setAdults(Number(e.target.value))}/></label><label>Niños<input type="number" min="0" max="20" value={children} onChange={e=>setChildren(Number(e.target.value))}/></label></div><button className="secondary-button" type="button" onClick={findSlots}>Ver disponibilidad</button><div className="modify-slots">{slots.map(s=><button type="button" key={s.startsAt} onClick={()=>modify(s)}>{s.serviceName} · {time(s.startsAt)}</button>)}</div></div>}
     </section>
   </div></main>;
 }

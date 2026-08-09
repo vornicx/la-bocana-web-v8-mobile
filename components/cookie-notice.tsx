@@ -14,6 +14,7 @@ function rememberNotice() {
 
 export function CookieNotice() {
   const titleId = useId();
+  const detailsId = useId();
   const [open, setOpen] = useState(false);
   const [details, setDetails] = useState(false);
 
@@ -34,7 +35,7 @@ export function CookieNotice() {
   if (!open) return null;
 
   return (
-    <section className="cookie-notice" role="dialog" aria-labelledby={titleId} aria-live="polite">
+    <section className="cookie-notice" role="region" aria-labelledby={titleId} aria-live="polite">
       <div className="cookie-notice-head">
         <span>Privacidad</span>
         <button type="button" onClick={close} aria-label="Cerrar información sobre cookies">Cerrar</button>
@@ -43,15 +44,13 @@ export function CookieNotice() {
         <h2 id={titleId}>Privacidad sin letra pequeña.</h2>
         <p>Esta web utiliza únicamente cookies técnicas necesarias para las reservas, el acceso privado y recordar que has leído este aviso. No utilizamos cookies publicitarias ni de analítica.</p>
       </div>
-      {details && (
-        <div className="cookie-categories">
+      <div className="cookie-categories" id={detailsId} hidden={!details}>
           <div><span>Siempre activas</span><strong>Cookies técnicas</strong><p>Permiten mantener la sesión del área privada, proteger el servicio y recordar este aviso.</p></div>
           <div className="inactive"><span>No instaladas</span><strong>Analítica y publicidad</strong><p>No hay herramientas de seguimiento, perfiles publicitarios ni cookies de marketing configuradas.</p></div>
-        </div>
-      )}
+      </div>
       <div className="cookie-notice-actions">
         <button className="cookie-primary" type="button" onClick={close}>Entendido</button>
-        <button className="cookie-secondary" type="button" onClick={() => setDetails((value) => !value)}>{details ? 'Ocultar detalle' : 'Ver detalle'}</button>
+        <button className="cookie-secondary" type="button" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails((value) => !value)}>{details ? 'Ocultar detalle' : 'Ver detalle'}</button>
         <Link href="/cookies" onClick={close}>Política de cookies</Link>
       </div>
     </section>

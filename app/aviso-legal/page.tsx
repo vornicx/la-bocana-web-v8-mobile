@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { PublicPage } from '@/components/public-page';
 import { legalDataPending, legalIdentity } from '@/lib/legal';
+import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Aviso legal',
-  description: 'Identificación, titularidad y condiciones de uso del sitio web de La Bocana.',
+  ...createPublicMetadata({ title: 'Aviso legal', description: 'Identificación, titularidad y condiciones de uso del sitio web de La Bocana.', path: '/aviso-legal' }),
   robots: { index: false, follow: true },
 };
 

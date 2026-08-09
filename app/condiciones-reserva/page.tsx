@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { PublicPage } from '@/components/public-page';
 import { legalIdentity } from '@/lib/legal';
+import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Condiciones de reserva',
-  description: 'Funcionamiento, modificación y cancelación de las reservas online de La Bocana.',
+  ...createPublicMetadata({ title: 'Condiciones de reserva', description: 'Funcionamiento, modificación y cancelación de las reservas online de La Bocana.', path: '/condiciones-reserva' }),
   robots: { index: false, follow: true },
 };
 

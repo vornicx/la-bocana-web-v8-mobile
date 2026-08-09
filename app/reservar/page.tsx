@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import BookingFlow from './booking-flow';
+import { createPublicMetadata } from '@/lib/site';
 
-export const metadata = { title: 'Reservar mesa', description: 'Reserva tu mesa en La Bocana con disponibilidad confirmada en tiempo real.' };
+export const metadata = createPublicMetadata({ title: 'Reservar mesa', description: 'Reserva tu mesa en La Bocana con disponibilidad confirmada en tiempo real.', path: '/reservar', image: '/images/mesa-frente-al-mar.jpg' });
 
 function madridDate() {
   const parts = new Intl.DateTimeFormat('en', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -18,8 +19,8 @@ function addDays(isoDate: string, days: number) {
 export default function ReservationPage() {
   const minDate = madridDate();
   return (
-    <main className="booking-page">
-      <section className="booking-visual" aria-hidden="true">
+    <main className="booking-page" id="main-content">
+      <section className="booking-visual">
         <Image src="/images/mesa-frente-al-mar.jpg" alt="" fill priority sizes="(max-width: 900px) 100vw, 44vw" />
         <div className="visual-shade" />
         <div className="visual-copy">

@@ -1,7 +1,10 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getStaffSession } from '@/lib/admin/auth';
 import { redirect } from 'next/navigation';
 import { loginStaff } from './actions';
+
+export const metadata: Metadata = { title: 'Acceso de equipo', robots: { index: false, follow: false, noarchive: true } };
 
 const messages: Record<string, string> = {
   missing: 'Introduce email y contraseña.',
@@ -17,7 +20,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
   const message = params.error ? messages[params.error] : null;
 
   return (
-    <main className="staff-login-page">
+    <main className="staff-login-page" id="main-content">
       <section className="staff-login-visual">
         <div className="staff-login-brand"><span>LB</span><strong>LA BOCANA</strong></div>
         <div className="staff-login-copy">
@@ -30,7 +33,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
       <section className="staff-login-panel">
         <form action={loginStaff} className="staff-login-form">
           <div><span className="admin-kicker">Acceso de equipo</span><h2>Entrar a operaciones</h2><p>Utiliza tu cuenta autorizada de La Bocana.</p></div>
-          {message && <div className="staff-login-error">{message}</div>}
+          {message && <div className="staff-login-error" role="alert">{message}</div>}
           <label><span>Email</span><input type="email" name="email" autoComplete="email" required placeholder="nombre@labocana.es" /></label>
           <label><span>Contraseña</span><input type="password" name="password" autoComplete="current-password" required placeholder="••••••••" /></label>
           <button type="submit">Entrar al sistema</button>

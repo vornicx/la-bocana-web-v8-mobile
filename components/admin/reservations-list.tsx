@@ -232,7 +232,7 @@ export function ReservationsList({ initialSnapshot, canOperate, openCreateSignal
       <table className="reservation-table premium-reservation-table"><thead><tr><th>Hora</th><th>Cliente</th><th>Mesa</th><th>Pax</th><th>Estado</th><th>Origen</th><th/></tr></thead><tbody>
         {filtered.map((reservation) => <tr key={reservation.id} onClick={() => setSelectedId(reservation.id)} className="reservation-row">
           <td><strong>{reservation.time}</strong><small>hasta {reservationEnd(reservation.time, reservation.duration)}</small></td>
-          <td><strong>{reservation.customer}</strong><small>{reservation.phone}{reservation.allergies ? ' · ⚑ alergia' : ''}</small></td>
+          <td><strong>{reservation.customer}</strong><small>{reservation.phone}{reservation.allergies ? ' · alergia registrada' : ''}</small></td>
           <td><strong className={!reservation.table ? 'unassigned-text' : ''}>{reservation.table ?? 'Sin asignar'}</strong><small>{reservation.area}</small></td>
           <td><strong>{reservation.partySize}</strong><small>{reservation.children ? `${reservation.adults} ad. · ${reservation.children} ni.` : `${reservation.adults} adultos`}</small></td>
           <td><StatusPill status={reservation.status}/></td><td><span className="source-label">{sourceLabel[reservation.source]}</span></td>
@@ -243,7 +243,7 @@ export function ReservationsList({ initialSnapshot, canOperate, openCreateSignal
     </div>
 
     <div className="mobile-reservations">
-      {filtered.map((reservation) => <button className="mobile-reservation-card premium-mobile-reservation" key={reservation.id} onClick={() => setSelectedId(reservation.id)}><div className="mobile-reservation-time"><strong>{reservation.time}</strong><small>{reservation.duration} min</small></div><div className="mobile-reservation-body"><div className="mobile-reservation-title"><strong>{reservation.customer}</strong><StatusPill status={reservation.status}/></div><p>{reservation.partySize} pax · {reservation.table ?? 'Sin mesa'} · {sourceLabel[reservation.source]}</p>{(reservation.allergies || reservation.internalNotes) && <small>{reservation.allergies ? '⚑ Alergia registrada' : 'Nota interna registrada'}</small>}</div><ChevronRightIcon/></button>)}
+      {filtered.map((reservation) => <button className="mobile-reservation-card premium-mobile-reservation" key={reservation.id} onClick={() => setSelectedId(reservation.id)}><div className="mobile-reservation-time"><strong>{reservation.time}</strong><small>{reservation.duration} min</small></div><div className="mobile-reservation-body"><div className="mobile-reservation-title"><strong>{reservation.customer}</strong><StatusPill status={reservation.status}/></div><p>{reservation.partySize} pax · {reservation.table ?? 'Sin mesa'} · {sourceLabel[reservation.source]}</p>{(reservation.allergies || reservation.internalNotes) && <small>{reservation.allergies ? 'Alergia registrada' : 'Nota interna registrada'}</small>}</div><ChevronRightIcon/></button>)}
       {!filtered.length && <div className="admin-empty">No hay reservas que coincidan con esta vista.</div>}
     </div>
 
@@ -283,7 +283,7 @@ function ReservationDrawer({ reservation, choices, canOperate, loading, onClose,
           <Link href="/admin/sala"><TableIcon/><span>Ver sala</span></Link>
         </div>
 
-        {reservation.allergies && <section className="reservation-alert"><div><strong>Atención · alergia registrada</strong><p>{reservation.allergies}</p></div><span>⚑</span></section>}
+        {reservation.allergies && <section className="reservation-alert"><div><strong>Atención · alergia registrada</strong><p>{reservation.allergies}</p></div><span aria-hidden="true">AL</span></section>}
 
         <section className="drawer-section premium-drawer-section"><div className="drawer-section-head"><div><span className="admin-kicker">Servicio</span><h3>Mesa y operación</h3></div></div><div className="reservation-field-grid">
           <label><span>Mesa asignada</span><div className="select-shell"><TableIcon/><select disabled={!canOperate || loading || ['completed','cancelled','no_show'].includes(reservation.status)} value={currentChoice} onChange={(event) => void onAssign(reservation.id, event.target.value)}><option value="">Sin asignar</option>{choices.filter((choice) => choice.capacity >= reservation.partySize).map((choice) => <option key={choice.key} value={choice.key}>{choice.name} · {choice.capacity} pax</option>)}</select></div></label>

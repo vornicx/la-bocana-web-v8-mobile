@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { PublicPage } from '@/components/public-page';
 import { legalIdentity } from '@/lib/legal';
+import { createPublicMetadata } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Política de cookies',
-  description: 'Cookies y tecnologías técnicas utilizadas por el sitio web de La Bocana.',
+  ...createPublicMetadata({ title: 'Política de cookies', description: 'Cookies y tecnologías técnicas utilizadas por el sitio web de La Bocana.', path: '/cookies' }),
   robots: { index: false, follow: true },
 };
 
