@@ -1,6 +1,6 @@
 import { MenuCatalog } from '@/components/menu-catalog';
 import { PublicPage } from '@/components/public-page';
-import { wineMenu } from '@/lib/menu-data';
+import { loadPublicMenu } from '@/lib/menu-service';
 import { createPublicMetadata } from '@/lib/site';
 
 export const metadata = createPublicMetadata({
@@ -11,7 +11,8 @@ export const metadata = createPublicMetadata({
   image: '/images/gallery-official/mesa-vista.webp',
 });
 
-export default function VinosPage() {
+export default async function VinosPage() {
+  const wineMenu = await loadPublicMenu('wine', 'es');
   return (
     <PublicPage
       eyebrow="Carta · Bodega"

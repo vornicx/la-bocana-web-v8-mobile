@@ -9,6 +9,9 @@ export const FloorIcon=(p:P)=><svg {...base} {...p}><path d="M4 4h7v7H4zM13 4h7v
 export const UsersIcon=(p:P)=><svg {...base} {...p}><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5A4 4 0 0 1 20.5 18v2"/></svg>;
 export const SettingsIcon=(p:P)=><svg {...base} {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1-2.9 2.9-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21h-4v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1-2.9-2.9.1-.1A1.6 1.6 0 0 0 4.6 15a1.6 1.6 0 0 0-1.5-1H3v-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1 2.9-2.9.1.1A1.6 1.6 0 0 0 9 4.6a1.6 1.6 0 0 0 1-1.5V3h4v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1 2.9 2.9-.1.1a1.6 1.6 0 0 0-.3 1.8 1.6 1.6 0 0 0 1.5 1h.1v4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>;
 export const WaitlistIcon=(p:P)=><svg {...base} {...p}><path d="M5 6h14M5 12h10M5 18h7"/><circle cx="19" cy="17" r="2.5"/><path d="M19 15v2l1.2.8"/></svg>;
+export const MenuIcon=(p:P)=><svg {...base} {...p}><path d="M6 3v18M3.5 3v6a2.5 2.5 0 0 0 5 0V3M16 3v18M16 3c3 1.5 4.5 4.5 4.5 8H16"/></svg>;
+export const AnalyticsIcon=(p:P)=><svg {...base} {...p}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>;
+export const CommunicationIcon=(p:P)=><svg {...base} {...p}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6M17 3v4"/></svg>;
 export const PlusIcon=(p:P)=><svg {...base} {...p}><path d="M12 5v14M5 12h14"/></svg>;
 export const SearchIcon=(p:P)=><svg {...base} {...p}><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>;
 export const MoreIcon=(p:P)=><svg {...base} {...p}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>;

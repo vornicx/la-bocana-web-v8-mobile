@@ -1,6 +1,6 @@
 import { MenuCatalog } from '@/components/menu-catalog';
 import { PublicPage } from '@/components/public-page';
-import { foodMenu } from '@/lib/menu-data';
+import { loadPublicMenu } from '@/lib/menu-service';
 import { createPublicMetadata } from '@/lib/site';
 
 export const metadata = createPublicMetadata({
@@ -11,7 +11,8 @@ export const metadata = createPublicMetadata({
   image: '/images/menu-official/paella-marisco.webp',
 });
 
-export default function CartaPage() {
+export default async function CartaPage() {
+  const foodMenu = await loadPublicMenu('food', 'es');
   return (
     <PublicPage
       eyebrow="La carta"

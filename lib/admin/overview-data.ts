@@ -18,6 +18,7 @@ type WaitlistRow = {
 
 type WeekReservationRow = { reservation_date: string; party_size: number; status: string; service_id: string };
 type CapacityRuleRow = { service_id: string; day_of_week: number; max_covers: number | null };
+type CalendarClosureRow = { service_id: string | null; area_id: string | null; table_id: string | null; starts_at: string; ends_at: string; reason: string | null };
 type CustomerRow = {
   id: string;
   first_name: string;
@@ -295,30 +296,36 @@ export async function loadCalendarData(anchor: string) {
   const supabase = createAdminClient();
   const start = mondayOfWeek(anchor);
   const end = addDays(start, 6);
-  const [reservationsResult, servicesResult, rulesResult] = await Promise.all([
+  const [reservationsResult, servicesResult, rulesResult, closuresResult] = await Promise.all([
     supabase.from('reservations').select('reservation_date, party_size, status, service_id').gte('reservation_date', start).lte('reservation_date', end).order('reservation_date'),
     supabase.from('services').select('id, name, slug').eq('active', true).order('slug'),
     supabase.from('availability_rules').select('service_id, day_of_week, max_covers').eq('active', true),
+    supabase.from('closures').select('service_id, area_id, table_id, starts_at, ends_at, reason').eq('active', true)
+      .lte('starts_at', `${addDays(end, 1)}T00:00:00Z`).gte('ends_at', `${addDays(start, -1)}T00:00:00Z`),
   ]);
   if (reservationsResult.error) throw new Error(`No se pudo cargar el calendario: ${reservationsResult.error.message}`);
   if (servicesResult.error) throw new Error(`No se pudieron cargar los servicios: ${servicesResult.error.message}`);
   if (rulesResult.error) throw new Error(`No se pudo cargar la capacidad: ${rulesResult.error.message}`);
+  if (closuresResult.error) throw new Error(`No se pudieron cargar los cierres: ${closuresResult.error.message}`);
 
   const rows = (reservationsResult.data ?? []) as WeekReservationRow[];
   const services = (servicesResult.data ?? []).map((service) => ({ id: String(service.id), name: String(service.name) }));
   const rules = (rulesResult.data ?? []) as CapacityRuleRow[];
+  const closures = (closuresResult.data ?? []) as CalendarClosureRow[];
+  const dateInMadrid = (value: string) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
   const today = todayMadrid();
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = addDays(start, index);
     const dow = new Date(`${date}T12:00:00Z`).getUTCDay();
     const dayRows = rows.filter((row) => row.reservation_date === date && ACTIVE_RESERVATION_STATUSES.has(row.status));
     const serviceMetrics = services.map((service) => {
+      const serviceClosure = closures.find((closure) => !closure.area_id && !closure.table_id && (!closure.service_id || closure.service_id === service.id) && date >= dateInMadrid(closure.starts_at) && date <= dateInMadrid(closure.ends_at));
       const covers = dayRows.filter((row) => row.service_id === service.id).reduce((sum, row) => sum + Number(row.party_size), 0);
-      const capacity = rules.filter((rule) => Number(rule.day_of_week) === dow && String(rule.service_id) === service.id && rule.max_covers != null)
+      const capacity = serviceClosure ? 0 : rules.filter((rule) => Number(rule.day_of_week) === dow && String(rule.service_id) === service.id && rule.max_covers != null)
         .reduce((max, rule) => Math.max(max, Number(rule.max_covers)), 0);
-      return { ...service, covers, capacity, occupancy: capacity ? Math.min(100, Math.round((covers / capacity) * 100)) : 0 };
+      return { ...service, covers, capacity, occupancy: capacity ? Math.min(100, Math.round((covers / capacity) * 100)) : 0, closed: Boolean(serviceClosure), closureReason: serviceClosure?.reason ?? null };
     });
-    return { date, active: date === today, closed: !rules.some((rule) => Number(rule.day_of_week) === dow), covers: activeCovers(dayRows), reservations: dayRows.length, services: serviceMetrics };
+    return { date, active: date === today, closed: !rules.some((rule) => Number(rule.day_of_week) === dow) || serviceMetrics.every((service) => service.closed), covers: activeCovers(dayRows), reservations: dayRows.length, services: serviceMetrics };
   });
   return { start, end, previous: addDays(start, -7), next: addDays(start, 7), days };
 }
@@ -349,6 +356,60 @@ export async function loadSettingsData(): Promise<OperationalSettings> {
       })),
     })),
     counts: { areas: areasResult.count ?? 0, tables: tablesResult.count ?? 0, combinations: combinationsResult.count ?? 0, users: usersResult.count ?? 0, closures: closuresResult.count ?? 0 },
+  };
+}
+
+export async function loadAnalyticsData(days = 30) {
+  const supabase = createAdminClient();
+  const end = todayMadrid();
+  const start = addDays(end, -(days - 1));
+  const [reservationsResult, servicesResult] = await Promise.all([
+    supabase.from('reservations').select('id, customer_id, reservation_date, starts_at, party_size, status, source, service_id').gte('reservation_date', start).lte('reservation_date', end).order('starts_at'),
+    supabase.from('services').select('id, name'),
+  ]);
+  if (reservationsResult.error) throw new Error(`No se pudo cargar la analítica: ${reservationsResult.error.message}`);
+  if (servicesResult.error) throw new Error(`No se pudieron cargar los servicios: ${servicesResult.error.message}`);
+  const rows = (reservationsResult.data ?? []) as Array<{ id: string; customer_id: string | null; reservation_date: string; starts_at: string; party_size: number; status: ReservationStatus; source: AdminReservation['source']; service_id: string }>;
+  const settled = rows.filter((row) => ['completed', 'cancelled', 'no_show'].includes(row.status));
+  const completed = rows.filter((row) => row.status === 'completed');
+  const cancellations = rows.filter((row) => row.status === 'cancelled');
+  const noShows = rows.filter((row) => row.status === 'no_show');
+  const customerVisits = new Map<string, number>();
+  completed.forEach((row) => { if (row.customer_id) customerVisits.set(row.customer_id, (customerVisits.get(row.customer_id) ?? 0) + 1); });
+  const services = new Map((servicesResult.data ?? []).map((service) => [String(service.id), String(service.name)]));
+  const group = <T extends string>(values: T[]) => [...values.reduce((map, value) => map.set(value, (map.get(value) ?? 0) + 1), new Map<T, number>()).entries()].sort((a, b) => b[1] - a[1]);
+  const sources = group(rows.map((row) => row.source)).map(([key, count]) => ({ key, count, percentage: rows.length ? Math.round((count / rows.length) * 100) : 0 }));
+  const serviceMix = group(rows.map((row) => services.get(row.service_id) ?? 'Sin servicio')).map(([name, count]) => ({ name, count, percentage: rows.length ? Math.round((count / rows.length) * 100) : 0 }));
+  const hours = group(rows.map((row) => new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' }).format(new Date(row.starts_at)))).slice(0, 5).map(([time, count]) => ({ time, count }));
+  const weekdays = group(rows.map((row) => new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long' }).format(new Date(row.starts_at)))).map(([day, count]) => ({ day, count }));
+  return {
+    start, end, days,
+    metrics: {
+      reservations: rows.length,
+      bookedCovers: rows.filter((row) => !['cancelled', 'no_show'].includes(row.status)).reduce((sum, row) => sum + Number(row.party_size), 0),
+      completedVisits: completed.length,
+      servedCovers: completed.reduce((sum, row) => sum + Number(row.party_size), 0),
+      cancellationRate: settled.length ? Math.round((cancellations.length / settled.length) * 100) : 0,
+      noShowRate: settled.length ? Math.round((noShows.length / settled.length) * 100) : 0,
+      returningCustomers: [...customerVisits.values()].filter((count) => count >= 2).length,
+    },
+    sources, serviceMix, hours, weekdays,
+  };
+}
+
+export async function loadCommunicationsData() {
+  const supabase = createAdminClient();
+  const [jobsResult, templatesResult] = await Promise.all([
+    supabase.from('communication_jobs').select('id, event_key, channel, recipient, status, scheduled_for, attempts, last_error, created_at').order('created_at', { ascending: false }).limit(100),
+    supabase.from('communication_templates').select('id, event_key, channel, locale, subject, enabled').order('event_key').order('locale'),
+  ]);
+  if (jobsResult.error) throw new Error(`No se pudo cargar la cola: ${jobsResult.error.message}`);
+  if (templatesResult.error) throw new Error(`No se pudieron cargar las plantillas: ${templatesResult.error.message}`);
+  const jobs = jobsResult.data ?? [];
+  return {
+    jobs: jobs.map((job) => ({ id: String(job.id), eventKey: String(job.event_key), channel: String(job.channel), recipient: String(job.recipient), status: String(job.status), scheduledFor: String(job.scheduled_for), attempts: Number(job.attempts), lastError: job.last_error ? String(job.last_error) : null, createdAt: String(job.created_at) })),
+    templates: (templatesResult.data ?? []).map((template) => ({ id: String(template.id), eventKey: String(template.event_key), channel: String(template.channel), locale: String(template.locale), subject: template.subject ? String(template.subject) : null, enabled: Boolean(template.enabled) })),
+    counts: { pending: jobs.filter((job) => job.status === 'pending').length, sent: jobs.filter((job) => job.status === 'sent').length, failed: jobs.filter((job) => job.status === 'failed').length, cancelled: jobs.filter((job) => job.status === 'cancelled').length },
   };
 }
 

@@ -170,3 +170,33 @@ export type OperationalSettings = {
   services: OperationalService[];
   counts: { areas: number; tables: number; combinations: number; users: number; closures: number };
 };
+
+export type ManagedMenuItem = {
+  id: string;
+  categoryId: string;
+  nameEs: string;
+  nameEn: string | null;
+  priceLabel: string;
+  noteEs: string | null;
+  noteEn: string | null;
+  imagePath: string | null;
+  imageAltEs: string | null;
+  imageAltEn: string | null;
+  sortOrder: number;
+  active: boolean;
+};
+
+export type ManagedMenuCategory = {
+  id: string;
+  menuType: 'food' | 'wine';
+  slug: string;
+  nameEs: string;
+  nameEn: string | null;
+  eyebrowEs: string | null;
+  eyebrowEn: string | null;
+  introEs: string | null;
+  introEn: string | null;
+  sortOrder: number;
+  active: boolean;
+  items: ManagedMenuItem[];
+};
