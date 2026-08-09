@@ -177,6 +177,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .cookie-notice{max-height:calc(100svh - 48px);overflow-y:auto;overscroll-behavior:contain}
 .cookie-notice-head>button{min-width:44px;min-height:44px}
 .cookie-notice-actions>a{display:inline-flex;align-items:center;min-height:42px}
+.manage-empty{margin:16px 0 0;padding:14px 16px;border:1px solid var(--line);color:var(--ink-soft);font-size:13px;line-height:1.55}
+.error-state{min-height:100svh;padding:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--paper)}.error-state>span{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}.error-state h1{max-width:760px;margin:20px 0;font:400 clamp(48px,8vw,92px)/.93 Georgia,'Times New Roman',serif;letter-spacing:-.055em}.error-state p{max-width:520px;margin:0 0 32px;color:var(--ink-soft);line-height:1.7}.error-state>div{display:flex;gap:10px}.error-state button,.error-state a{min-height:50px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ink);background:var(--ink);color:#fff;text-decoration:none;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.error-state a{background:transparent;color:var(--ink)}
 
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}

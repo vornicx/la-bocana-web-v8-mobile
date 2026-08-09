@@ -8,6 +8,11 @@ export function asInt(value: unknown, min: number, max: number, label: string): 
 
 export function asDate(value: unknown): string {
   if (typeof value !== 'string' || !ISO_DATE.test(value)) throw new Error('La fecha no es válida.');
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
+    throw new Error('La fecha no es válida.');
+  }
   return value;
 }
 

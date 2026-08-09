@@ -17,6 +17,7 @@ import {
   UserIcon,
 } from './admin-icons';
 import { StatusPill } from './status-pill';
+import { useDialogFocus } from './use-dialog-focus';
 
 type AvailabilitySlot = { serviceId: string; serviceName: string; startsAt: string; endsAt: string; durationMinutes: number };
 type TableChoice = { key: string; name: string; tableIds: string[]; capacity: number; area: string };
@@ -265,6 +266,7 @@ function ReservationDrawer({ reservation, choices, canOperate, loading, onClose,
   const [preferences, setPreferences] = useState(reservation.preferences ?? '');
   const [allergies, setAllergies] = useState(reservation.allergies ?? '');
   const [internalNotes, setInternalNotes] = useState(reservation.internalNotes ?? '');
+  const dialogRef = useDialogFocus<HTMLElement>(onClose);
   const primaryNext = nextPrimaryStatus(reservation.status);
   const currentChoice = choices.find((choice) => {
     const current = [...(reservation.tableIds ?? [])].sort().join('|');
@@ -272,7 +274,7 @@ function ReservationDrawer({ reservation, choices, canOperate, loading, onClose,
   })?.key ?? '';
 
   return <div className="admin-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
-    <aside className="reservation-drawer premium-reservation-drawer" role="dialog" aria-modal="true" aria-labelledby="reservation-title">
+    <aside ref={dialogRef} className="reservation-drawer premium-reservation-drawer" role="dialog" aria-modal="true" aria-labelledby="reservation-title" tabIndex={-1}>
       <header className="drawer-topbar"><div><span className="admin-kicker">{reservation.confirmationCode ?? 'Reserva'}</span><p>{sourceLabel[reservation.source]} · {reservation.visits ? `${Math.max(0, reservation.visits - 1)} visitas previas` : 'Primera visita'}</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header>
       <div className="drawer-scroll">
         <section className="reservation-hero-card premium-reservation-hero"><div className="reservation-hero-time"><strong>{reservation.time}</strong><span>hasta {reservationEnd(reservation.time, reservation.duration)}</span></div><div className="reservation-hero-person"><StatusPill status={reservation.status}/><h2 id="reservation-title">{reservation.customer}</h2><p>{reservation.partySize} personas · {reservation.adults} adultos{reservation.children ? ` · ${reservation.children} niños` : ''}</p></div></section>
@@ -321,6 +323,7 @@ function CreateReservationModal({ date, loading, onClose, onCreated }: { date: s
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const dialogRef = useDialogFocus<HTMLElement>(onClose);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -359,13 +362,13 @@ function CreateReservationModal({ date, loading, onClose, onCreated }: { date: s
     finally { setSubmitting(false); }
   }
 
-  return <div className="admin-overlay modal-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}><section className="create-reservation-modal premium-create-reservation" role="dialog" aria-modal="true" aria-labelledby="create-reservation-title"><header className="drawer-topbar"><div><span className="admin-kicker">Nueva reserva</span><p>{dateLabel(date)} · disponibilidad real</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header><form onSubmit={submit}><div className="create-scroll">
+  return <div className="admin-overlay modal-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}><section ref={dialogRef} className="create-reservation-modal premium-create-reservation" role="dialog" aria-modal="true" aria-labelledby="create-reservation-title" tabIndex={-1}><header className="drawer-topbar"><div><span className="admin-kicker">Nueva reserva</span><p>{dateLabel(date)} · disponibilidad real</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header><form onSubmit={submit}><div className="create-scroll">
     <div className="create-intro"><h2 id="create-reservation-title">Reserva manual, sin atajos.</h2><p>El horario se valida contra el mismo motor que utiliza la web y la mesa se bloquea atómicamente al confirmar.</p></div>
     <div className="create-form-section"><span className="admin-kicker">1 · Comensales y hora</span><div className="create-form-grid"><label><span>Adultos</span><input type="number" min="1" max="30" value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value) || 1))}/></label><label><span>Niños</span><input type="number" min="0" max="20" value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value) || 0))}/></label></div>
       <div className="admin-slot-selector">{availabilityLoading ? <p className="slot-loading">Calculando disponibilidad real…</p> : grouped.length ? grouped.map(([serviceName, serviceSlots]) => <div key={serviceName}><div className="slot-service-head"><strong>{serviceName}</strong><span>{serviceSlots.length} horas</span></div><div className="admin-slots">{serviceSlots.map((slot) => <button type="button" key={`${slot.serviceId}:${slot.startsAt}`} className={selectedSlot?.startsAt === slot.startsAt && selectedSlot.serviceId === slot.serviceId ? 'active' : ''} onClick={() => setSelectedSlot(slot)}>{localTime(slot.startsAt)}</button>)}</div></div>) : <p className="slot-loading">No hay huecos disponibles para {adults + children} personas.</p>}</div>
     </div>
     <div className="create-form-section"><span className="admin-kicker">2 · Cliente</span><div className="create-form-grid"><label><span>Nombre</span><input name="firstName" required placeholder="Nombre"/></label><label><span>Apellidos</span><input name="lastName" required placeholder="Apellidos"/></label><label><span>Teléfono</span><input name="phone" type="tel" required placeholder="+34"/></label><label><span>Email</span><input name="email" type="email" placeholder="Opcional"/></label><label><span>Origen</span><select name="source" defaultValue="phone"><option value="phone">Teléfono</option><option value="admin">Recepción / Admin</option><option value="instagram">Instagram</option><option value="google">Google</option><option value="other">Otro</option></select></label><label><span>Preferencias</span><input name="preferences" placeholder="Terraza, trona…"/></label><label className="span-2"><span>Alergias</span><input name="allergies" placeholder="Alergias o intolerancias"/></label><label className="span-2"><span>Notas del cliente</span><textarea name="notes" placeholder="Ocasión o petición especial"/></label><label className="span-2"><span>Nota interna</span><textarea name="internalNotes" placeholder="Contexto solo para el equipo"/></label></div></div>
-    {availabilityError && <div className="staff-login-error create-error">{availabilityError}</div>}
-    {selectedSlot && <div className="selected-admin-slot"><CheckIcon/><div><span>Hora seleccionada</span><strong>{selectedSlot.serviceName} · {localTime(selectedSlot.startsAt)} · {adults + children} pax</strong></div></div>}
+    {availabilityError && <div className="staff-login-error create-error" role="alert">{availabilityError}</div>}
+    {selectedSlot && <div className="selected-admin-slot" role="status"><CheckIcon/><div><span>Hora seleccionada</span><strong>{selectedSlot.serviceName} · {localTime(selectedSlot.startsAt)} · {adults + children} pax</strong></div></div>}
   </div><footer className="create-actions"><button type="button" className="admin-secondary" onClick={onClose}>Cancelar</button><button className="admin-primary" type="submit" disabled={loading || submitting || !selectedSlot}>{submitting ? 'Reservando…' : 'Crear reserva'}</button></footer></form></section></div>;
 }

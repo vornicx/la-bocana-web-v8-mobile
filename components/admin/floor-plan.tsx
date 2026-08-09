@@ -5,6 +5,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import type { AdminReservation, DiningTable, FloorSnapshot, ReservationStatus } from '@/lib/admin/types';
 import { CheckIcon, CloseIcon, PlusIcon, TableIcon, UserIcon } from './admin-icons';
 import { StatusPill } from './status-pill';
+import { useDialogFocus } from './use-dialog-focus';
 
 type AssignmentMode = {
   reservationId: string;
@@ -335,14 +336,15 @@ export function FloorPlan({ initialSnapshot, canOperate }: { initialSnapshot: Fl
 }
 
 function WalkInModal({ table, serviceName, defaultDuration, loading, onClose, onCreate }: { table: DiningTable; serviceName: string; defaultDuration: number; loading: boolean; onClose: () => void; onCreate: (payload: { name: string; partySize: number; duration: number }) => void }) {
+  const dialogRef = useDialogFocus<HTMLDivElement>(onClose);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     onCreate({ name: String(form.get('name') || 'Walk-in'), partySize: Number(form.get('partySize') || 2), duration: Number(form.get('duration') || defaultDuration) });
   }
   return <div className="admin-overlay modal-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
-    <div className="walkin-modal premium-walkin" role="dialog" aria-modal="true" aria-labelledby="walkin-title">
-      <header className="drawer-topbar"><div><span className="admin-kicker">Entrada sin reserva</span><p>{table.label} · {table.area} · {serviceName}</p></div><button className="drawer-close" onClick={onClose}><CloseIcon/></button></header>
+    <div ref={dialogRef} className="walkin-modal premium-walkin" role="dialog" aria-modal="true" aria-labelledby="walkin-title" tabIndex={-1}>
+      <header className="drawer-topbar"><div><span className="admin-kicker">Entrada sin reserva</span><p>{table.label} · {table.area} · {serviceName}</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header>
       <form onSubmit={submit}><div className="walkin-hero"><i><UserIcon/></i><div><h2 id="walkin-title">Sentar walk-in</h2><p>Se crea una reserva real, queda sentada y ocupa la mesa inmediatamente.</p></div></div>
         <div className="create-form-grid walkin-fields"><label className="span-2"><span>Nombre / referencia</span><input name="name" defaultValue="Walk-in" required /></label><label><span>Personas</span><input name="partySize" type="number" min="1" max={table.seats} defaultValue={Math.min(2, table.seats)} required /></label><label><span>Duración estimada</span><select name="duration" defaultValue={String(defaultDuration)}><option value="75">75 min</option><option value="90">90 min</option><option value="105">105 min</option><option value="120">120 min</option><option value="135">135 min</option></select></label></div>
         <div className="walkin-table-summary"><TableIcon/><span><strong>{table.label}</strong>{table.seats} plazas · {table.area}</span></div>

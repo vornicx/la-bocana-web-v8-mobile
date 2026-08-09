@@ -8,18 +8,18 @@ La aplicación ya trabaja contra el proyecto real de Supabase y está preparada 
 
 Incluye:
 
-- web pública responsive: inicio, cocina, historia, galería, carta, contacto y privacidad;
+- web pública responsive: inicio, cocina, historia, galería, carta, contacto y páginas legales;
 - reserva en tiempo real con adultos/niños, calendario, disponibilidad, bloqueo temporal, confirmación, modificación, cancelación y lista de espera;
 - protección frente a dobles reservas mediante transacciones, advisory locks y asignación atómica de mesas;
 - acceso privado de equipo con roles;
 - dashboard, reservas, clientes, calendario, configuración y plano de sala conectados a Supabase;
 - creación manual, walk-ins, asignación/movimiento de mesas, bloqueos y cambios de estado;
 - RLS, RPC sensibles restringidas a servidor, rate limiting persistente y cabeceras HTTP de seguridad;
-- SEO técnico con metadatos, datos estructurados, `robots.txt`, sitemap y página 404 propia.
+- SEO técnico con metadatos, datos estructurados, `robots.txt`, sitemap, iconos, manifest y páginas 404/500 propias.
 
 ## Desarrollo
 
-Requiere Node.js 20.9 o superior.
+Requiere Node.js 22 o superior.
 
 ```bash
 cp .env.example .env.local

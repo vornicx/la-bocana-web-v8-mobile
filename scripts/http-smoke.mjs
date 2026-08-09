@@ -49,6 +49,8 @@ try {
     ['/admin-login', 'Acceso de equipo'],
     ['/robots.txt', 'Disallow: /admin/'],
     ['/sitemap.xml', '/reservar'],
+    ['/manifest.webmanifest', 'La Bocana'],
+    ['/icon.svg', 'La Bocana'],
   ];
   const rendered = new Map();
   for (const [path, text] of routes) rendered.set(path, await expectPage(path, text));
@@ -81,6 +83,10 @@ try {
   const invalidAvailability = await fetch(`${baseUrl}/api/reservations/availability?date=no&adults=0&children=0`);
   assert.equal(invalidAvailability.status, 400, `La validación de disponibilidad devolvió HTTP ${invalidAvailability.status}`);
 
+  const impossibleDate = await fetch(`${baseUrl}/api/reservations/availability?date=2026-02-31&adults=2&children=0`);
+  assert.equal(impossibleDate.status, 400, `Una fecha inexistente devolvió HTTP ${impossibleDate.status}`);
+  assert((await impossibleDate.json()).error.includes('fecha no es válida'), 'La API acepta fechas inexistentes del calendario.');
+
   const waitlistWithoutPrivacy = await fetch(`${baseUrl}/api/waitlist`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({}) });
   assert.equal(waitlistWithoutPrivacy.status, 400, `La lista de espera sin privacidad devolvió HTTP ${waitlistWithoutPrivacy.status}`);
   assert((await waitlistWithoutPrivacy.json()).error.includes('privacidad'), 'La lista de espera no exige información de privacidad.');
@@ -93,8 +99,10 @@ try {
   assert.equal(security.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(security.headers.get('x-frame-options'), 'DENY');
   assert(security.headers.get('content-security-policy')?.includes("frame-ancestors 'none'"));
+  assert.equal(security.headers.get('cross-origin-opener-policy'), 'same-origin');
+  assert.equal(security.headers.get('x-permitted-cross-domain-policies'), 'none');
 
-  console.log(JSON.stringify({ result: 'HTTP_SMOKE_OK', publicRoutes: 11, systemRoutes: 3, canonicalRoutes: canonicalRoutes.length, privateNoIndex: true, skipNavigation: true, structuredDataScope: true, adminGuard: true, custom404: true, privacyValidation: true, healthDataConsent: true, validation: true, securityHeaders: true }));
+  console.log(JSON.stringify({ result: 'HTTP_SMOKE_OK', publicRoutes: 11, systemRoutes: 5, canonicalRoutes: canonicalRoutes.length, privateNoIndex: true, skipNavigation: true, structuredDataScope: true, manifestAndIcons: true, adminGuard: true, custom404: true, privacyValidation: true, healthDataConsent: true, strictCalendarValidation: true, securityHeaders: true }));
 } finally {
   server.kill('SIGTERM');
   await new Promise((resolve) => {

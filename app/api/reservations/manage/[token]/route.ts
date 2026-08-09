@@ -10,9 +10,10 @@ export async function GET(request: Request, context: { params: Promise<{ token: 
     const { token } = await context.params;
     const reservation = await getManagedReservation(token);
     if (!reservation) return NextResponse.json({ error: 'Reserva no encontrada.' }, { status: 404 });
-    return NextResponse.json({ reservation });
+    return NextResponse.json({ reservation }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    const status = (error as Error & { status?: number }).status ?? 400;
+    return NextResponse.json({ error: (error as Error).message }, { status, headers: { 'Cache-Control': 'no-store' } });
   }
 }
 
@@ -26,7 +27,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ toke
     if (!ok) return NextResponse.json({ error: 'La reserva no se puede cancelar.' }, { status: 409 });
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    const status = (error as Error & { status?: number }).status ?? 400;
+    return NextResponse.json({ error: (error as Error).message }, { status });
   }
 }
 
@@ -46,6 +48,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ token
     });
     return NextResponse.json({ ok });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 409 });
+    const status = (error as Error & { status?: number }).status ?? 409;
+    return NextResponse.json({ error: (error as Error).message }, { status });
   }
 }

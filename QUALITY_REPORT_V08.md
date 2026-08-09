@@ -1,6 +1,6 @@
 # Informe de calidad — La Bocana v0.8
 
-Fecha de cierre técnico: 8 de agosto de 2026.
+Fecha de cierre técnico: 9 de agosto de 2026.
 
 ## Resultado
 
@@ -14,7 +14,7 @@ La v0.8 convierte el prototipo anterior en un producto conectado y demostrable: 
 - Actualizados Next.js y React a versiones corregidas para eliminar vulnerabilidades conocidas.
 - Generado `package-lock.json` reproducible.
 - Corregida la firma de sincronización de cookies de `@supabase/ssr` en `proxy.ts`.
-- Resultado: `npm run typecheck` y `npm run build` correctos; 25 páginas generadas por Next.js.
+- Resultado: `npm run typecheck` y `npm run build` correctos para todas las rutas públicas, privadas y API.
 - Resultado: `npm audit --omit=dev` informa de 0 vulnerabilidades.
 
 ### Supabase y seguridad de datos
@@ -53,19 +53,34 @@ La v0.8 convierte el prototipo anterior en un producto conectado y demostrable: 
 - Integradas cinco fotografías reales entregadas por el cliente en portada, cocina y galería.
 - Los dos vídeos no se incluyen en esta versión: pesan 20–21 MB cada uno, son verticales y ralentizarían la experiencia. Se conservan como material para una fase de vídeo optimizado/CDN.
 - Añadida página de privacidad por capas y enlace desde el formulario y el footer.
+- Añadidos aviso legal, política de cookies, condiciones de reserva y primera capa de privacidad en reservas/lista de espera.
 - El texto legal se mantiene explícitamente pendiente de razón social, NIF y correo: no se han inventado datos.
 - Añadidos metadatos por página, Open Graph, JSON-LD de restaurante, sitemap, robots y 404 editorial.
-- Añadidas cabeceras CSP, anti-clickjacking, `nosniff`, política de referencia y permisos restringidos.
+- Añadidos icono de navegador, icono de inicio para iOS, manifest de aplicación y recuperaciones editoriales 500/global.
+- Añadidas cabeceras CSP, anti-clickjacking, aislamiento de ventana, `nosniff`, política de referencia y permisos restringidos.
+- Verificada la producción real en navegador y por HTTP: navegación, títulos, imágenes, contenido, ausencia de IDs duplicados y consola de la aplicación sin errores.
+
+### Cierre de calidad del 9 de agosto
+
+- Los tres diálogos operativos del admin bloquean el scroll de fondo, mueven el foco al abrir, lo retienen con Tab, cierran con Escape y devuelven el foco al control de origen.
+- La gestión privada de una reserva incorpora estados de carga, límites de fecha y comensales, mensajes de disponibilidad vacía y bloqueo de acciones duplicadas.
+- Un token de gestión inexistente devuelve ahora una respuesta 404 real, no una página visual de error con HTTP 200.
+- Las respuestas privadas de gestión marcan `Cache-Control: no-store` y conservan los códigos 429/503 cuando corresponde.
+- La validación de fecha rechaza días imposibles como `2026-02-31` antes de consultar PostgreSQL.
+- Eliminados dos JPEG duplicados y sin referencias (`photo-3.jpg` y `photo-5.jpg`), ahorrando 743.630 bytes en el repositorio sin cambiar ninguna imagen visible.
+- La documentación de ejecución queda alineada con `engines`: Node.js 22 o superior.
 
 ### Prueba HTTP
 
 El smoke test autónomo comprueba:
 
-- 8 rutas públicas;
-- 3 rutas de sistema (`admin-login`, robots y sitemap);
+- 11 rutas públicas;
+- 5 rutas de sistema (`admin-login`, robots, sitemap, manifest e icono);
+- 7 URL canónicas y exclusión de índice de páginas privadas/legales;
 - redirección del admin sin sesión;
 - 404 personalizada;
-- rechazo de entrada inválida;
+- rechazo de entrada inválida y de fechas inexistentes;
+- consentimiento de privacidad y consentimiento explícito separado para alergias;
 - cabeceras de seguridad.
 
 Resultado final: `HTTP_SMOKE_OK`.
@@ -84,6 +99,12 @@ Resultado final: `HTTP_SMOKE_OK`.
 10. Prueba de concurrencia dependía de un servidor externo: ahora arranca y se limpia sola.
 11. Conflictos de inventario tratados como caída técnica: separados 409 y 503.
 12. ZIP anterior con `.env` y `.env.local`: la v0.8 los excluye y añade `.env.example` sin secretos.
+13. Diálogos admin incompletos para teclado: añadido control de foco, Escape, devolución de foco y bloqueo de scroll.
+14. Gestión privada sin estados de carga ni límites de fecha: añadidos límites, feedback y protección frente a envíos repetidos.
+15. Fechas con formato correcto pero inexistentes: validación estricta del calendario antes de base de datos.
+16. Identidad de navegador y recuperación 500 ausentes: añadidos iconos, manifest y límites de error editoriales.
+17. Documentación de Node incoherente con el proyecto: unificada en Node.js 22 o superior.
+18. Dos fotografías duplicadas sin uso: eliminadas tras verificar que sus hashes coincidían con activos conservados.
 
 ## Checkpoint que necesita al propietario
 
@@ -96,6 +117,6 @@ La siguiente revisión ya no es “un detalle pequeño”; define el comportamie
 5. Aprobar política de cancelación/modificación y textos de comunicación.
 6. Configurar SMTP/SMS y hacer una reserva real completa con el equipo.
 7. Activar protección de contraseñas filtradas y rotar la clave secreta usada en entregables anteriores.
-8. Revisar visualmente la URL desplegada en móvil y escritorio. El entorno de revisión automatizada no pudo abrir esta aplicación Next.js, aunque build, render HTTP y pruebas funcionales sí finalizaron correctamente.
+8. Realizar la aceptación comercial final con el propietario sobre la URL ya desplegada.
 
 Hasta completar esos puntos, el sistema debe considerarse una versión de venta/QA conectada, no producción pública definitiva.
