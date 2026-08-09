@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { PublicFooter } from '@/components/public-footer';
 import { PublicHeader } from '@/components/public-header';
 import { BrandMark } from '@/components/brand-mark';
+import { HeroVideo } from '@/components/hero-video';
 import { createPublicMetadata, restaurantStructuredData } from '@/lib/site';
 
 export const metadata = createPublicMetadata({ path: '/' });
@@ -37,10 +38,7 @@ export default function HomePage() {
       <PublicHeader />
       <main id="main-content">
       <section className="public-hero">
-        <picture className="public-hero-media">
-          <source media="(max-width: 900px)" srcSet="/images/sobremesa-la-bocana-real.jpeg" />
-          <img className="public-hero-image" src="/images/mesa-frente-al-mar.jpg" alt="Mesa preparada en La Bocana frente al Mediterráneo" fetchPriority="high" />
-        </picture>
+        <HeroVideo />
         <div className="public-hero-shade" />
         <div className="public-hero-copy">
           <span>Restaurante · Puerto Banús</span>
