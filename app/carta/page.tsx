@@ -57,9 +57,9 @@ const dishes = [
 export default function CartaPage() {
   return (
     <PublicPage
-      eyebrow="Carta"
-      title="Producto antes que artificio."
-      intro="Una carta mediterránea construida alrededor del producto, la temporada y platos pensados para compartir."
+      eyebrow="Un recorrido por el sabor"
+      title="Inspirada en el Mediterráneo."
+      intro="Producto, tradición y platos pensados para compartir frente al mar."
       image="/images/paella-la-bocana.jpg"
     >
       <div className="visual-menu-intro">
@@ -78,7 +78,8 @@ export default function CartaPage() {
                 sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
                 style={{ objectPosition: dish.position }}
               />
-              <span>{String(index + 1).padStart(2, '0')}</span>
+              <span className="visual-menu-rail">{dish.name}</span>
+              <span className="visual-menu-number">{String(index + 1).padStart(2, '0')}</span>
             </div>
             <div className="visual-menu-copy">
               <span>{dish.category}</span>

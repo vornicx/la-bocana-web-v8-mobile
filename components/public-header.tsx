@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { BrandMark } from '@/components/brand-mark';
 
 const navigation = [
   { href: '/cocina', label: 'Cocina' },
@@ -39,7 +40,7 @@ export function PublicHeader({ solid = false }: { solid?: boolean }) {
 
   return (
     <header className={`public-header${solid ? ' solid' : ''}${open ? ' menu-open' : ''}`}>
-      <Link className="public-brand" href="/" aria-label="La Bocana, inicio">LA BOCANA</Link>
+      <Link className="public-brand" href="/" aria-label="La Bocana, inicio"><BrandMark compact /></Link>
       <nav ref={navigationRef} className="public-nav" id="public-navigation" aria-label="Principal">
         {navigation.map((item) => (
           <Link key={item.href} href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>{item.label}</Link>
