@@ -43,7 +43,7 @@ export function PublicHeader({ solid = false }: { solid?: boolean }) {
       <Link className="public-brand" href="/" aria-label="La Bocana, inicio"><BrandMark compact /></Link>
       <nav ref={navigationRef} className="public-nav" id="public-navigation" aria-label="Principal">
         {navigation.map((item) => (
-          <Link key={item.href} href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>{item.label}</Link>
+          <Link key={item.href} href={item.href} aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'page' : undefined}>{item.label}</Link>
         ))}
       </nav>
       <div className="public-actions">

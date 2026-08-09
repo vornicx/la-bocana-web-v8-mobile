@@ -8,7 +8,7 @@ export function PublicPage({ eyebrow, title, intro, image, children }: { eyebrow
   return <div className="public-site public-subpage">
     <PublicHeader solid />
     <main id="main-content">
-      <section className="subpage-hero"><div className="subpage-copy"><span>{eyebrow}</span><h1>{title}</h1><p>{intro}</p></div><div className="subpage-image"><Image src={image} alt="" fill priority sizes="50vw" /></div></section>
+      <section className="subpage-hero"><div className="subpage-copy"><span>{eyebrow}</span><h1>{title}</h1><p>{intro}</p></div><div className="subpage-image"><Image src={image} alt="" fill priority sizes="(max-width: 900px) 100vw, 50vw" /></div></section>
       <section className="subpage-body">{children}</section>
       <section className="subpage-reserve"><span>Tu mesa</span><h2>Una mesa junto al Mediterráneo.</h2><Link href="/reservar">Reservar</Link></section>
     </main>
