@@ -205,4 +205,5 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .check-row input{accent-color:#123b46}
 .cuisine-head>span,.gallery-copy>span,.public-reserve>span,.subpage-copy>span,.subpage-reserve>span,.subpage-grid span,.visual-menu-intro>span,.visual-menu-copy>span{color:#9b5738}
 .calendar-chevron{width:8px;height:8px;display:block;margin:auto;border-top:1px solid currentColor;border-right:1px solid currentColor}.calendar-chevron.previous{transform:rotate(-135deg) translate(-1px,-1px)}.calendar-chevron.next{transform:rotate(45deg) translate(-1px,1px)}
-@media(max-width:900px){.public-header .public-nav{background:#0b2d35;color:#f4efe6}.public-header.solid .public-nav{background:#f4efe6;color:#123b46}}
+.gallery-wall{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery-wall>div{min-width:0;overflow:hidden}
+@media(max-width:900px){.public-header .public-nav{background:#0b2d35;color:#f4efe6}.public-header.solid .public-nav{background:#f4efe6;color:#123b46}.gallery-wall{grid-template-columns:minmax(0,1fr)}}
