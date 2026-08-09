@@ -78,7 +78,10 @@ try {
 
   const missing = await fetch(`${baseUrl}/esta-ruta-no-existe`);
   assert.equal(missing.status, 404, `La ruta inexistente devolvió HTTP ${missing.status}`);
-  assert((await missing.text()).includes('Esta mesa no existe.'), 'La página 404 personalizada no se renderiza.');
+  const missingHtml = await missing.text();
+  assert(missingHtml.includes('Esta mesa no existe.'), 'La página 404 personalizada no se renderiza.');
+  assert(missingHtml.includes('noindex'), 'La página 404 no impide su indexación.');
+  assert(!missingHtml.includes('content="index, follow"'), 'La página 404 contiene directivas de indexación contradictorias.');
 
   const invalidAvailability = await fetch(`${baseUrl}/api/reservations/availability?date=no&adults=0&children=0`);
   assert.equal(invalidAvailability.status, 400, `La validación de disponibilidad devolvió HTTP ${invalidAvailability.status}`);

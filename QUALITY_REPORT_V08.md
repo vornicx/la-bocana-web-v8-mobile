@@ -67,6 +67,7 @@ La v0.8 convierte el prototipo anterior en un producto conectado y demostrable: 
 - Un token de gestión inexistente devuelve ahora una respuesta 404 real, no una página visual de error con HTTP 200.
 - Las respuestas privadas de gestión marcan `Cache-Control: no-store` y conservan los códigos 429/503 cuando corresponde.
 - La validación de fecha rechaza días imposibles como `2026-02-31` antes de consultar PostgreSQL.
+- La página 404 declara una única política coherente `noindex, nofollow`; se eliminó la herencia contradictoria de `index, follow` detectada durante la verificación de producción.
 - Eliminados dos JPEG duplicados y sin referencias (`photo-3.jpg` y `photo-5.jpg`), ahorrando 743.630 bytes en el repositorio sin cambiar ninguna imagen visible.
 - La documentación de ejecución queda alineada con `engines`: Node.js 22 o superior.
 
@@ -105,6 +106,7 @@ Resultado final: `HTTP_SMOKE_OK`.
 16. Identidad de navegador y recuperación 500 ausentes: añadidos iconos, manifest y límites de error editoriales.
 17. Documentación de Node incoherente con el proyecto: unificada en Node.js 22 o superior.
 18. Dos fotografías duplicadas sin uso: eliminadas tras verificar que sus hashes coincidían con activos conservados.
+19. La 404 mezclaba `noindex` con el `index, follow` global: añadidos metadatos propios y una regresión automática que prohíbe la contradicción.
 
 ## Checkpoint que necesita al propietario
 
