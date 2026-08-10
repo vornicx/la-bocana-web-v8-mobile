@@ -11,7 +11,6 @@ import './lookup.css';
 import './mobile-header.css';
 import './mobile-menu.css';
 import './mobile-layout.css';
-import './mobile-dock.css';
 import './mobile-footer-fix.css';
 import { headers } from 'next/headers';
 import { chromeCopy, type PublicLocale } from '@/lib/i18n';
