@@ -1,0 +1,819 @@
+/* PHASE 6 — Mobile booking precision.
+   The booking journey is a product flow: fast to scan, easy to tap and calm enough to trust. */
+
+@media (max-width: 700px) {
+  .booking-page,
+  .lookup-page {
+    min-height: 100svh;
+    background: #fbf9f4;
+    color: #102c4c;
+  }
+
+  /* Keep the restaurant context, but do not make guests scroll through a hero before booking. */
+  .booking-page .booking-visual,
+  .lookup-page .booking-visual {
+    position: relative;
+    width: 100%;
+    height: 218px;
+    min-height: 218px;
+    max-height: 218px;
+    overflow: hidden;
+    background: #0b2744;
+  }
+
+  .booking-page .booking-visual img,
+  .lookup-page .booking-visual img {
+    object-position: center 61%;
+  }
+
+  .booking-page .visual-shade,
+  .lookup-page .visual-shade {
+    background: linear-gradient(180deg, rgba(4,19,35,.08), rgba(4,19,35,.58));
+  }
+
+  .booking-page .visual-copy,
+  .lookup-page .visual-copy {
+    left: max(20px, calc(env(safe-area-inset-left) + 16px));
+    right: max(20px, calc(env(safe-area-inset-right) + 16px));
+    bottom: 20px;
+  }
+
+  .booking-page .visual-copy .eyebrow,
+  .lookup-page .visual-copy .eyebrow {
+    font-size: 8px;
+    line-height: 1;
+    letter-spacing: .20em;
+    opacity: .88;
+  }
+
+  .booking-page .visual-copy h1,
+  .lookup-page .visual-copy h1 {
+    max-width: 9.5em;
+    margin: 10px 0 0;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 35px;
+    font-weight: 500;
+    line-height: .94;
+    letter-spacing: -.035em;
+    text-wrap: balance;
+  }
+
+  .booking-page .visual-copy p,
+  .lookup-page .visual-copy p {
+    display: none;
+  }
+
+  /* Booking surface. */
+  .booking-page .booking-panel,
+  .lookup-page .booking-panel {
+    width: 100%;
+    min-height: calc(100svh - 218px);
+    margin: 0;
+    padding:
+      20px
+      max(20px, calc(env(safe-area-inset-right) + 16px))
+      calc(30px + env(safe-area-inset-bottom))
+      max(20px, calc(env(safe-area-inset-left) + 16px)) !important;
+    background: #fbf9f4;
+  }
+
+  .booking-page .brand-row,
+  .lookup-page .brand-row {
+    min-height: 43px;
+    margin: 0 0 20px;
+    padding: 0 0 15px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(16,44,76,.13);
+  }
+
+  .booking-page .brand-row > a:first-child,
+  .lookup-page .brand-row > a:first-child {
+    width: max-content;
+    text-decoration: none;
+  }
+
+  .booking-page .brand-row .brand-lockup.compact,
+  .lookup-page .brand-row .brand-lockup.compact {
+    gap: 7px;
+  }
+
+  .booking-page .brand-row .brand-lockup.compact .brand-sail,
+  .lookup-page .brand-row .brand-lockup.compact .brand-sail {
+    width: 28px;
+    height: 28px;
+  }
+
+  .booking-page .brand-row .brand-lockup.compact strong,
+  .lookup-page .brand-row .brand-lockup.compact strong {
+    font-size: 10px;
+    letter-spacing: .12em;
+  }
+
+  .booking-page .brand-row .brand-lockup.compact small,
+  .lookup-page .brand-row .brand-lockup.compact small {
+    display: none;
+  }
+
+  .booking-page .brand-row > span,
+  .lookup-page .brand-row > span {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: #74808a;
+  }
+
+  .booking-language {
+    min-width: 38px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    color: #102c4c;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .14em;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Existing booking: useful but secondary. */
+  .booking-page .existing-booking.prominent,
+  .lookup-page .existing-booking.prominent {
+    margin: 0 0 29px;
+    padding: 14px 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+    border: 0;
+    border-bottom: 1px solid rgba(16,44,76,.13);
+    background: transparent;
+  }
+
+  .booking-page .existing-booking.prominent > span,
+  .lookup-page .existing-booking.prominent > span {
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.1;
+    color: #102c4c;
+  }
+
+  .booking-page .existing-booking.prominent a,
+  .lookup-page .existing-booking.prominent a {
+    padding: 12px 0 12px 8px;
+    border: 0;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .14em;
+    text-align: right;
+    white-space: nowrap;
+    color: #102c4c;
+  }
+
+  /* Progress belongs to the booking flow, so keep it understated rather than decorative. */
+  .booking-page .progress-row {
+    margin: 0 0 9px;
+    font-size: 8px;
+    line-height: 1;
+    letter-spacing: .16em;
+    color: #7b858c;
+  }
+
+  .booking-page .progress-row strong {
+    font-weight: 800;
+    color: #102c4c;
+  }
+
+  .booking-page .progress-track {
+    height: 2px;
+    margin: 0 0 34px;
+    overflow: hidden;
+    background: rgba(16,44,76,.11);
+  }
+
+  .booking-page .progress-track i {
+    height: 2px;
+    background: #102c4c;
+    transition: width .32s cubic-bezier(.2,.72,.2,1);
+  }
+
+  .booking-page .flow-step,
+  .lookup-page .lookup-flow {
+    min-width: 0;
+  }
+
+  .booking-page .flow-step > .eyebrow,
+  .lookup-page .lookup-flow > .eyebrow {
+    font-size: 8px;
+    letter-spacing: .18em;
+    color: #9a765c;
+  }
+
+  .booking-page .flow-step h2,
+  .booking-page .confirmation-card h2,
+  .lookup-page .lookup-flow > h2 {
+    max-width: 9.2em;
+    margin: 13px 0 16px;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: clamp(39px, 11.4vw, 49px) !important;
+    font-weight: 500;
+    line-height: .94 !important;
+    letter-spacing: -.035em !important;
+    text-wrap: balance;
+    color: #102c4c;
+  }
+
+  .booking-page .lead,
+  .lookup-page .lookup-flow > .lead {
+    max-width: 35ch;
+    margin: 0 0 28px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #65717a;
+  }
+
+  /* Party size: generous touch targets without looking like app widgets. */
+  .booking-page .counter {
+    min-height: 72px;
+    padding: 13px 0;
+    border-top: 1px solid rgba(16,44,76,.13);
+    font-size: 14px;
+  }
+
+  .booking-page .counter:last-of-type {
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(16,44,76,.13);
+  }
+
+  .booking-page .counter > div {
+    gap: 13px;
+  }
+
+  .booking-page .counter button {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(16,44,76,.18);
+    border-radius: 50%;
+    background: transparent;
+    color: #102c4c;
+    font-size: 20px;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .booking-page .counter output,
+  .booking-page .counter strong {
+    min-width: 24px;
+    text-align: center;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 21px;
+    font-weight: 500;
+  }
+
+  /* Buttons: strong hierarchy, no hover-only behaviour on touch. */
+  .booking-page .primary-button,
+  .booking-page .secondary-button,
+  .lookup-page .primary-button,
+  .lookup-page .secondary-button {
+    min-height: 54px;
+    margin-top: 24px;
+    padding: 0 18px;
+    border-radius: 0;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .14em;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .16s ease, background .16s ease, opacity .16s ease;
+  }
+
+  .booking-page .primary-button,
+  .lookup-page .primary-button {
+    background: #102c4c;
+    color: #fff;
+  }
+
+  .booking-page .secondary-button,
+  .lookup-page .secondary-button {
+    border: 1px solid #102c4c;
+    background: transparent;
+    color: #102c4c;
+  }
+
+  .booking-page .primary-button:active,
+  .booking-page .secondary-button:active,
+  .lookup-page .primary-button:active,
+  .lookup-page .secondary-button:active {
+    transform: scale(.988);
+  }
+
+  .booking-page .back-button {
+    min-height: 42px;
+    margin: -5px 0 20px;
+    padding: 0 10px 0 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 0;
+    background: transparent;
+    color: #687680;
+    font-size: 10px;
+    font-weight: 700;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Calendar: larger targets and a calmer selected state. */
+  .booking-page .bocana-calendar {
+    margin-top: 24px;
+    padding: 19px 0 17px;
+    border-top: 1px solid rgba(16,44,76,.13);
+    border-bottom: 1px solid rgba(16,44,76,.13);
+  }
+
+  .booking-page .calendar-toolbar {
+    margin-bottom: 14px;
+  }
+
+  .booking-page .calendar-kicker {
+    font-size: 8px;
+    letter-spacing: .13em;
+  }
+
+  .booking-page .calendar-toolbar strong {
+    margin-top: 2px;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 23px;
+    font-weight: 500;
+  }
+
+  .booking-page .calendar-arrows {
+    gap: 5px;
+  }
+
+  .booking-page .calendar-arrows button {
+    width: 42px;
+    height: 42px;
+    border-color: rgba(16,44,76,.16);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .booking-page .calendar-weekdays span {
+    padding: 8px 0 7px;
+    font-size: 8px;
+  }
+
+  .booking-page .calendar-days {
+    row-gap: 3px;
+  }
+
+  .booking-page .calendar-days button,
+  .booking-page .calendar-empty {
+    min-height: 44px !important;
+    aspect-ratio: 1 / 1;
+  }
+
+  .booking-page .calendar-days button {
+    font-size: 13px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .booking-page .calendar-days button.selected {
+    background: #102c4c !important;
+    color: #fff !important;
+  }
+
+  .booking-page .calendar-days button.selected i {
+    bottom: 6px;
+  }
+
+  .booking-page .calendar-foot {
+    margin-top: 13px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    font-size: 8px;
+    line-height: 1.45;
+  }
+
+  .booking-page .selection-summary {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* Available times: easy to compare with one hand. */
+  .booking-page .slot-groups {
+    gap: 30px;
+    margin-top: 28px;
+  }
+
+  .booking-page .slot-group h3 {
+    margin-bottom: 12px;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 23px;
+    font-weight: 500;
+  }
+
+  .booking-page .slots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .booking-page .slots button {
+    min-height: 50px;
+    padding: 0 6px;
+    border-color: rgba(16,44,76,.16);
+    background: transparent;
+    color: #102c4c;
+    font-size: 13px;
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .booking-page .slots button:hover:not(:disabled) {
+      background: transparent;
+      color: #102c4c;
+    }
+
+    .booking-page .slots button:active:not(:disabled) {
+      background: #102c4c;
+      color: #fff;
+    }
+  }
+
+  .booking-page .empty-state {
+    padding-top: 25px;
+  }
+
+  .booking-page .empty-state h3 {
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 27px;
+    line-height: 1.05;
+  }
+
+  .booking-page .empty-state p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  /* Hold + recap: important information, without looking like an alert. */
+  .booking-page .hold-banner {
+    margin: 23px 0 0;
+    padding: 14px 0;
+    border-top: 1px solid rgba(16,44,76,.14);
+    border-bottom: 1px solid rgba(16,44,76,.14);
+    background: transparent;
+    font-size: 10px;
+    color: #68747d;
+  }
+
+  .booking-page .hold-banner strong {
+    font-size: 13px;
+    color: #102c4c;
+  }
+
+  .booking-page .booking-recap {
+    margin: 0 0 29px;
+    padding: 16px 0 19px;
+    display: grid;
+    gap: 5px;
+    border-bottom: 1px solid rgba(16,44,76,.13);
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 16px;
+  }
+
+  .booking-page .booking-recap span {
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 11px;
+    color: #68747d;
+  }
+
+  /* Forms: 16px inputs prevent Safari from zooming on focus. */
+  .booking-page .details-form,
+  .booking-page .waitlist-form,
+  .lookup-page .lookup-form {
+    gap: 20px;
+  }
+
+  .booking-page .form-grid,
+  .booking-page .form-grid.two,
+  .lookup-page .form-grid,
+  .lookup-page .form-grid.two {
+    grid-template-columns: 1fr !important;
+    gap: 18px;
+  }
+
+  .booking-page .input-label,
+  .booking-page .textarea-label,
+  .lookup-page .input-label,
+  .lookup-page .textarea-label {
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: .10em;
+    color: #66727b;
+  }
+
+  .booking-page .input-label input,
+  .booking-page .textarea-label textarea,
+  .booking-page .date-input,
+  .lookup-page .input-label input,
+  .lookup-page .textarea-label textarea,
+  .lookup-page .date-input {
+    min-height: 50px;
+    padding: 12px 0;
+    border-bottom-color: rgba(16,44,76,.18);
+    background: transparent;
+    color: #102c4c;
+    font-size: 16px !important;
+    line-height: 1.35;
+  }
+
+  .booking-page .textarea-label textarea,
+  .lookup-page .textarea-label textarea {
+    min-height: 92px;
+    padding-top: 15px;
+    resize: vertical;
+  }
+
+  .booking-page .privacy-first-layer,
+  .lookup-page .privacy-first-layer {
+    margin-top: 4px;
+    padding: 17px 0 3px;
+    border-top: 1px solid rgba(16,44,76,.13);
+    background: transparent;
+  }
+
+  .booking-page .privacy-first-layer strong,
+  .lookup-page .privacy-first-layer strong {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #102c4c;
+  }
+
+  .booking-page .privacy-first-layer p,
+  .lookup-page .privacy-first-layer p {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.65;
+    color: #778189;
+  }
+
+  .booking-page .check-row,
+  .lookup-page .check-row {
+    min-height: 44px;
+    gap: 12px;
+    padding: 5px 0;
+    align-items: flex-start;
+    font-size: 11px;
+    line-height: 1.55;
+    color: #65717a;
+  }
+
+  .booking-page .check-row input,
+  .lookup-page .check-row input {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin: 0;
+    accent-color: #102c4c;
+  }
+
+  .booking-page .health-consent.disabled {
+    opacity: .45;
+  }
+
+  .booking-page .error-box,
+  .lookup-page .error-box {
+    margin-top: 18px;
+    padding: 13px 14px;
+    border-left-width: 2px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .booking-page .waitlist-success {
+    padding: 15px 0;
+    border-top: 1px solid rgba(16,44,76,.13);
+    border-bottom: 1px solid rgba(16,44,76,.13);
+    background: transparent;
+    font-size: 13px;
+  }
+
+  /* Confirmation: reduce ceremony, increase clarity. */
+  .booking-page .confirmation-card {
+    padding-top: 16px;
+  }
+
+  .booking-page .confirmation-mark {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 23px;
+  }
+
+  .booking-page .confirmation-code {
+    margin: 24px 0 18px;
+    padding: 16px 0;
+    font-size: 12px;
+    letter-spacing: .16em;
+  }
+
+  .booking-page .confirmation-card > p:not(.confirmation-code) {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .booking-page .privacy-footnote,
+  .lookup-page .privacy-footnote {
+    max-width: 36ch;
+    margin: 27px auto 0;
+    font-size: 9px;
+    line-height: 1.55;
+    text-align: center;
+    color: #879096;
+  }
+
+  /* Booking lookup deserves the same product quality as creating a booking. */
+  .lookup-page .lookup-flow {
+    max-width: none;
+    margin: 0;
+    padding: 5px 0 0;
+  }
+
+  .lookup-page .lookup-flow > h2 {
+    margin-top: 12px;
+  }
+
+  .lookup-page .lookup-results {
+    margin-top: 31px;
+    gap: 12px;
+  }
+
+  .lookup-page .lookup-result {
+    padding: 20px 0;
+    border: 0;
+    border-top: 1px solid rgba(16,44,76,.14);
+    border-bottom: 1px solid rgba(16,44,76,.14);
+    background: transparent;
+  }
+
+  .lookup-page .lookup-result-top {
+    margin-bottom: 17px;
+    padding-bottom: 15px;
+    border-bottom-color: rgba(16,44,76,.10);
+  }
+
+  .lookup-page .lookup-result-top > strong {
+    font-size: 10px;
+  }
+
+  .lookup-page .lookup-result-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 17px 14px;
+  }
+
+  .lookup-page .lookup-result-grid > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .lookup-page .lookup-result-grid span {
+    font-size: 8px;
+  }
+
+  .lookup-page .lookup-result-grid strong {
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .lookup-page .lookup-links {
+    margin-top: 25px;
+    gap: 12px;
+  }
+
+  .lookup-page .lookup-links a {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    border-bottom: 0;
+    font-size: 8px;
+  }
+
+  .lookup-page .lookup-empty {
+    margin-top: 27px;
+    padding: 24px 0;
+  }
+
+  .lookup-page .lookup-empty h3 {
+    font-size: 27px;
+    line-height: 1.05;
+  }
+
+  .lookup-page .lookup-empty p {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .lookup-page .lookup-privacy {
+    margin-top: 20px;
+    font-size: 9px;
+    line-height: 1.6;
+  }
+}
+
+@media (max-width: 390px) {
+  .booking-page .booking-visual,
+  .lookup-page .booking-visual {
+    height: 198px;
+    min-height: 198px;
+    max-height: 198px;
+  }
+
+  .booking-page .booking-panel,
+  .lookup-page .booking-panel {
+    min-height: calc(100svh - 198px);
+    padding-left: max(18px, calc(env(safe-area-inset-left) + 14px)) !important;
+    padding-right: max(18px, calc(env(safe-area-inset-right) + 14px)) !important;
+  }
+
+  .booking-page .visual-copy,
+  .lookup-page .visual-copy {
+    left: max(18px, calc(env(safe-area-inset-left) + 14px));
+    right: max(18px, calc(env(safe-area-inset-right) + 14px));
+    bottom: 17px;
+  }
+
+  .booking-page .visual-copy h1,
+  .lookup-page .visual-copy h1 {
+    font-size: 32px;
+  }
+
+  .booking-page .slots {
+    gap: 7px;
+  }
+
+  .booking-page .slots button {
+    min-height: 48px;
+    font-size: 12px;
+  }
+
+  .booking-page .existing-booking.prominent,
+  .lookup-page .existing-booking.prominent {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .booking-page .existing-booking.prominent a,
+  .lookup-page .existing-booking.prominent a {
+    width: max-content;
+    padding-left: 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 700px) and (max-height: 720px) {
+  .booking-page .booking-visual,
+  .lookup-page .booking-visual {
+    height: 178px;
+    min-height: 178px;
+    max-height: 178px;
+  }
+
+  .booking-page .booking-panel,
+  .lookup-page .booking-panel {
+    min-height: calc(100svh - 178px);
+  }
+
+  .booking-page .visual-copy h1,
+  .lookup-page .visual-copy h1 {
+    font-size: 31px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-page .primary-button,
+  .booking-page .secondary-button,
+  .booking-page .progress-track i,
+  .lookup-page .primary-button,
+  .lookup-page .secondary-button {
+    transition: none !important;
+  }
+}
