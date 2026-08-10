@@ -39,8 +39,8 @@ export function ReservationPageContent({ locale = 'es' }: { locale?: PublicLocal
           <span>{t.label}</span>
           <Link className="booking-language" href={t.languageHref} hrefLang={locale === 'es' ? 'en' : 'es'}>{t.language}</Link>
         </div>
+        <div className="existing-booking prominent"><span>{t.existing}</span><Link href={t.lookupHref}>{t.lookup}<span aria-hidden="true"> →</span></Link></div>
         <BookingFlow minDate={minDate} maxDate={addDays(minDate, 90)} locale={locale} />
-        <div className="existing-booking"><span>{t.existing}</span><Link href={t.lookupHref}>{t.lookup}<span aria-hidden="true"> →</span></Link></div>
         <p className="privacy-footnote">{t.realtime}</p>
       </section>
     </main>
