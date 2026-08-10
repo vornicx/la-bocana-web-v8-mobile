@@ -1,0 +1,176 @@
+/* Mobile-only refinement for La Bocana. Keep motion stable: no scroll-linked transforms. */
+
+@media (max-width: 700px) {
+  .experience-home .experience-hero-picture img,
+  .experience-home .experience-pause > picture img {
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+
+  .experience-home .experience-hero-copy {
+    transform: none !important;
+  }
+
+  /* Contextual reservation dock — designed as a branded navigation element,
+     not a generic floating button. */
+  .mobile-reserve-dock {
+    position: fixed;
+    z-index: 180;
+    left: 14px;
+    right: 14px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 11px 10px 20px;
+    background: #f6f2e9;
+    color: #0b2744;
+    border: 1px solid rgba(11,39,68,.12);
+    border-radius: 2px;
+    box-shadow: 0 10px 32px rgba(4,19,35,.14), 0 1px 0 rgba(255,255,255,.86) inset;
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(0, 18px, 0) scale(.985);
+    transform-origin: 50% 100%;
+    pointer-events: none;
+    transition:
+      opacity .24s ease,
+      transform .42s cubic-bezier(.16,.78,.24,1),
+      visibility 0s linear .42s,
+      box-shadow .2s ease,
+      background .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-reserve-dock[data-visible="true"] {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0,0,0) scale(1);
+    pointer-events: auto;
+    transition:
+      opacity .24s ease,
+      transform .42s cubic-bezier(.16,.78,.24,1),
+      visibility 0s linear 0s,
+      box-shadow .2s ease,
+      background .2s ease;
+  }
+
+  .mobile-reserve-dock > span {
+    display: block;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 21px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -.02em;
+  }
+
+  .mobile-reserve-dock > span::after {
+    content: ' · Puerto Banús';
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    vertical-align: 3px;
+    opacity: .58;
+  }
+
+  .mobile-reserve-dock > strong {
+    min-width: 112px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    background: #0b2744;
+    color: #f6f2e9;
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    border: 1px solid #0b2744;
+    transition: transform .16s ease, background .16s ease;
+  }
+
+  .mobile-reserve-dock:active {
+    transform: translate3d(0,1px,0) scale(.994);
+    box-shadow: 0 6px 20px rgba(4,19,35,.11);
+  }
+
+  .mobile-reserve-dock:active > strong {
+    transform: scale(.985);
+    background: #071d34;
+  }
+
+  /* Mobile reveals: shorter travel, clearer rhythm and zero scroll-jank. */
+  .experience-home [data-reveal] {
+    transition-duration: .72s;
+    transition-timing-function: cubic-bezier(.2,.72,.2,1);
+  }
+
+  .experience-chapter-media[data-reveal] {
+    clip-path: inset(0 0 7% 0);
+    transition: clip-path .82s cubic-bezier(.2,.72,.2,1);
+  }
+
+  .experience-chapter-media[data-reveal] img {
+    transform: scale(1.025);
+    transition: transform .9s cubic-bezier(.2,.72,.2,1);
+  }
+
+  .experience-chapter-copy[data-reveal] > span,
+  .experience-chapter-copy[data-reveal] > h3,
+  .experience-chapter-copy[data-reveal] > p {
+    transform: translateY(12px);
+    transition-duration: .68s;
+  }
+
+  .experience-dish[data-reveal] {
+    transform: translateY(16px);
+  }
+
+  .experience-review-grid article[data-reveal] {
+    transform: translateY(14px);
+  }
+
+  /* Give taps a deliberate response without fake hover states. */
+  .experience-primary,
+  .experience-end .reserve-main,
+  .experience-end .reserve-secondary,
+  .experience-text-link,
+  .experience-pause a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .experience-primary:active,
+  .experience-end .reserve-main:active,
+  .experience-end .reserve-secondary:active {
+    transform: scale(.985);
+  }
+}
+
+@media (max-width: 380px) {
+  .mobile-reserve-dock {
+    left: 10px;
+    right: 10px;
+    gap: 10px;
+    padding-left: 16px;
+  }
+
+  .mobile-reserve-dock > span::after { display: none; }
+  .mobile-reserve-dock > strong { min-width: 100px; padding-inline: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-reserve-dock,
+  .mobile-reserve-dock[data-visible="true"],
+  .mobile-reserve-dock > strong {
+    transition: none !important;
+  }
+}
