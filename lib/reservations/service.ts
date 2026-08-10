@@ -110,6 +110,51 @@ export async function getManagedReservation(token: string) {
   return row as Record<string, unknown>;
 }
 
+function comparablePhone(value: unknown) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
+function comparableName(value: unknown) {
+  return String(value ?? '').trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+}
+
+export async function findPublicReservations(input: { email: string; phone: string; name?: string }) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('email', input.email.toLowerCase())
+    .order('starts_at', { ascending: true })
+    .limit(12);
+
+  if (error) throw dbError('No se pudo consultar la reserva', error);
+
+  const requestedPhone = comparablePhone(input.phone);
+  const requestedName = comparableName(input.name);
+  const now = Date.now() - 6 * 60 * 60 * 1000;
+
+  return (data ?? [])
+    .filter((row: Record<string, unknown>) => comparablePhone(row.phone) === requestedPhone)
+    .filter((row: Record<string, unknown>) => {
+      if (!requestedName) return true;
+      const fullName = comparableName(`${String(row.first_name ?? '')} ${String(row.last_name ?? '')}`);
+      return fullName === requestedName || fullName.includes(requestedName) || requestedName.includes(fullName);
+    })
+    .filter((row: Record<string, unknown>) => {
+      const startsAt = new Date(String(row.starts_at ?? '')).getTime();
+      return Number.isFinite(startsAt) && startsAt >= now;
+    })
+    .filter((row: Record<string, unknown>) => !['cancelled', 'completed', 'no_show'].includes(String(row.status ?? '')))
+    .slice(0, 4)
+    .map((row: Record<string, unknown>) => ({
+      confirmationCode: String(row.confirmation_code ?? ''),
+      status: String(row.status ?? ''),
+      startsAt: String(row.starts_at ?? ''),
+      adults: Number(row.adults ?? 0),
+      children: Number(row.children ?? 0),
+    }));
+}
+
 export async function cancelManagedReservation(token: string, reason?: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc('cancel_reservation_by_management_token', {
