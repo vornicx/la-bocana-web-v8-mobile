@@ -38,6 +38,7 @@ export function PublicHeader({ solid = false, locale = 'es' }: { solid?: boolean
     { href: paths.about, label: copy.about },
     { href: paths.gallery, label: copy.gallery },
     { href: paths.contact, label: copy.contact },
+    { href: paths.lookup, label: copy.lookup, className: 'public-lookup-link' },
   ];
 
   function rememberLocale() {
@@ -49,7 +50,7 @@ export function PublicHeader({ solid = false, locale = 'es' }: { solid?: boolean
       <Link className="public-brand" href={paths.home} aria-label={copy.homeLabel}><BrandMark compact /></Link>
       <nav ref={navigationRef} className="public-nav" id="public-navigation" aria-label={copy.navLabel}>
         {navigation.map((item) => (
-          <Link key={item.href} href={item.href} aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'page' : undefined}>{item.label}</Link>
+          <Link className={item.className} key={item.href} href={item.href} aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'page' : undefined}>{item.label}</Link>
         ))}
       </nav>
       <div className="public-actions">
