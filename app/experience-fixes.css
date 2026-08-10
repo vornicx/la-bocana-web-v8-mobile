@@ -44,3 +44,51 @@
     font-size: clamp(58px, 3.8vw, 72px);
   }
 }
+
+/* Booking form focus: retain an obvious keyboard focus without the global
+   accessibility ring turning each underlined field into a large blue box. */
+.booking-page .input-label input:focus,
+.booking-page .input-label input:focus-visible,
+.booking-page .textarea-label textarea:focus,
+.booking-page .textarea-label textarea:focus-visible,
+.booking-page .date-input:focus,
+.booking-page .date-input:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -2px 0 var(--lb-navy);
+  border-bottom-color: var(--lb-navy);
+}
+
+.booking-page .input-label input,
+.booking-page .textarea-label textarea,
+.booking-page .date-input {
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Calendar: browsers on touch devices can keep :hover latched after a tap.
+   Never let that synthetic hover paint over the selected day. */
+.calendar-days button.selected,
+.calendar-days button.selected:hover,
+.calendar-days button.selected:focus,
+.calendar-days button.selected:focus-visible {
+  background: var(--lb-navy) !important;
+  color: #fff !important;
+}
+
+.calendar-days button:focus-visible {
+  outline: 2px solid var(--lb-navy);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .calendar-days button:hover:not(:disabled):not(.selected) {
+    background: transparent;
+    color: inherit;
+  }
+
+  .calendar-days button:active:not(:disabled):not(.selected) {
+    background: #e9e1d5;
+  }
+}
