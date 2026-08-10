@@ -1,0 +1,278 @@
+/* PHASE 3 — Mobile menu.
+   Editorial navigation first, booking management second, useful restaurant details last. */
+
+.public-mobile-menu-meta { display: none; }
+
+@media (max-width: 700px) {
+  /* Keep header and opened menu as one continuous navy surface. */
+  .public-site .public-header.menu-open,
+  .public-site .public-header.solid.menu-open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 220;
+    background: #0b2744;
+    color: #f6f2e9;
+    border-bottom-color: rgba(255,255,255,.13);
+  }
+
+  .public-site .public-header.menu-open .public-book,
+  .public-site .public-header.solid.menu-open .public-book {
+    border-color: #f6f2e9;
+    background: #f6f2e9;
+    color: #0b2744 !important;
+  }
+
+  .public-site .public-header .public-nav {
+    position: fixed;
+    z-index: 210;
+    top: 74px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    padding: clamp(34px, 5.5vh, 52px) 22px calc(24px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #0b2744 !important;
+    color: #f6f2e9 !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition:
+      opacity .24s ease,
+      transform .34s cubic-bezier(.2,.72,.2,1),
+      visibility 0s linear .34s;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .public-site .public-header.menu-open .public-nav {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    transition:
+      opacity .24s ease,
+      transform .34s cubic-bezier(.2,.72,.2,1),
+      visibility 0s linear 0s;
+  }
+
+  /* Primary navigation: large enough to feel editorial, compact enough to scan. */
+  .public-site .public-header .public-nav > a:not(.public-lookup-link) {
+    width: 100%;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    padding: 7px 0;
+    border: 0;
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: clamp(39px, 11.6vw, 52px);
+    font-weight: 500;
+    line-height: .96;
+    letter-spacing: -.035em;
+    text-transform: none;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity .42s ease, transform .52s cubic-bezier(.2,.72,.2,1), color .18s ease;
+  }
+
+  .public-site .public-header.menu-open .public-nav > a:not(.public-lookup-link) {
+    opacity: 1;
+    transform: none;
+  }
+
+  .public-site .public-header.menu-open .public-nav > a:nth-child(1) { transition-delay: .04s; }
+  .public-site .public-header.menu-open .public-nav > a:nth-child(2) { transition-delay: .08s; }
+  .public-site .public-header.menu-open .public-nav > a:nth-child(3) { transition-delay: .12s; }
+  .public-site .public-header.menu-open .public-nav > a:nth-child(4) { transition-delay: .16s; }
+
+  .public-site .public-header .public-nav > a:not(.public-lookup-link)[aria-current="page"] {
+    color: #d7b698;
+  }
+
+  .public-site .public-header .public-nav > a[aria-current="page"]::after {
+    display: none;
+  }
+
+  /* Booking lookup is a service action, not another editorial section. */
+  .public-site .public-header .public-nav > .public-lookup-link {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 20px;
+    padding: 19px 28px 16px 0;
+    border-top: 1px solid rgba(255,255,255,.17);
+    border-bottom: 1px solid rgba(255,255,255,.17);
+    display: flex;
+    align-items: center;
+    position: relative;
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #d8e1e7;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .4s ease, transform .48s cubic-bezier(.2,.72,.2,1), color .18s ease;
+  }
+
+  .public-site .public-header .public-nav > .public-lookup-link::after {
+    content: '→';
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #d7b698;
+  }
+
+  .public-site .public-header.menu-open .public-nav > .public-lookup-link {
+    opacity: 1;
+    transform: none;
+    transition-delay: .21s;
+  }
+
+  /* Bottom information gives the menu a deliberate close instead of empty navy space. */
+  .public-mobile-menu-meta {
+    margin-top: auto;
+    padding-top: clamp(28px, 5vh, 48px);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px 16px;
+    align-items: end;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .42s ease, transform .5s cubic-bezier(.2,.72,.2,1);
+  }
+
+  .public-site .public-header.menu-open .public-mobile-menu-meta {
+    opacity: 1;
+    transform: none;
+    transition-delay: .27s;
+  }
+
+  .public-mobile-menu-place {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .public-mobile-menu-place span,
+  .public-mobile-menu-place small {
+    display: block;
+  }
+
+  .public-mobile-menu-place span {
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #d7b698;
+  }
+
+  .public-mobile-menu-place small {
+    font-family: var(--font-bocana-serif), Georgia, serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: rgba(246,242,233,.74);
+  }
+
+  .public-site .public-header .public-mobile-menu-phone {
+    padding: 0;
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: .08em;
+    text-transform: none;
+    text-decoration: none;
+    color: rgba(246,242,233,.78);
+  }
+
+  .public-site .public-header .public-mobile-menu-reserve {
+    grid-column: 1 / -1;
+    min-height: 54px;
+    margin-top: 2px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(246,242,233,.9);
+    background: #f6f2e9;
+    color: #0b2744 !important;
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .16s ease, background .16s ease;
+  }
+
+  .public-mobile-menu-reserve > span {
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .public-mobile-menu-reserve:active {
+    transform: scale(.988);
+    background: #fff;
+  }
+}
+
+@media (max-width: 390px) {
+  .public-site .public-header .public-nav {
+    top: 70px;
+    padding: 28px 18px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .public-site .public-header .public-nav > a:not(.public-lookup-link) {
+    min-height: 49px;
+    font-size: clamp(36px, 11vw, 43px);
+  }
+
+  .public-site .public-header .public-nav > .public-lookup-link {
+    margin-top: 15px;
+    padding-top: 15px;
+    padding-bottom: 14px;
+  }
+
+  .public-mobile-menu-meta {
+    gap: 13px 12px;
+    padding-top: 22px;
+  }
+
+  .public-mobile-menu-place small { font-size: 15px; }
+  .public-site .public-header .public-mobile-menu-reserve { min-height: 50px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-site .public-header .public-nav,
+  .public-site .public-header .public-nav > a,
+  .public-mobile-menu-meta,
+  .public-mobile-menu-reserve {
+    transition: none !important;
+  }
+}
