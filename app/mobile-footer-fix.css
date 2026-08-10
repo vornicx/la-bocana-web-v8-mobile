@@ -1,14 +1,28 @@
-/* Mobile footer close — no decorative dead space after the useful content. */
+/* Final mobile cleanup — no progress strip, no floating booking dock, no dead page tail. */
+.experience-progress,
+.mobile-reserve-dock {
+  display: none !important;
+}
+
 @media (max-width: 700px) {
+  html:has(.public-site),
   body:has(.public-site) {
-    background: #071d34;
+    min-height: 100%;
+    margin: 0;
+    background: #071d34 !important;
+  }
+
+  .public-site {
+    margin: 0;
+    padding: 0;
   }
 
   .public-site .public-footer {
     margin: 0 !important;
-    gap: 24px !important;
-    padding-top: 44px !important;
-    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    gap: 22px !important;
+    padding-top: 42px !important;
+    padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    background: #071d34 !important;
   }
 
   .public-site .footer-identity p,
@@ -27,10 +41,17 @@
 
   .public-site .footer-signature {
     margin: 0 !important;
-    padding-top: 18px !important;
+    padding-top: 16px !important;
+    padding-bottom: 0 !important;
   }
 
   .public-site .public-footer > *:last-child {
     margin-bottom: 0 !important;
+  }
+
+  .public-site::after,
+  .public-footer::after {
+    display: none !important;
+    content: none !important;
   }
 }
