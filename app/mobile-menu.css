@@ -34,7 +34,7 @@
     width: 100%;
     min-height: 0;
     height: auto;
-    padding: clamp(34px, 5.5vh, 52px) 22px calc(24px + env(safe-area-inset-bottom));
+    padding: clamp(26px,4.2vh,42px) 22px calc(20px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -48,10 +48,7 @@
     visibility: hidden;
     pointer-events: none;
     transform: translateY(-6px);
-    transition:
-      opacity .24s ease,
-      transform .34s cubic-bezier(.2,.72,.2,1),
-      visibility 0s linear .34s;
+    transition: opacity .24s ease, transform .34s cubic-bezier(.2,.72,.2,1), visibility 0s linear .34s;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -60,22 +57,19 @@
     visibility: visible;
     pointer-events: auto;
     transform: none;
-    transition:
-      opacity .24s ease,
-      transform .34s cubic-bezier(.2,.72,.2,1),
-      visibility 0s linear 0s;
+    transition: opacity .24s ease, transform .34s cubic-bezier(.2,.72,.2,1), visibility 0s linear 0s;
   }
 
-  /* Primary navigation: large enough to feel editorial, compact enough to scan. */
+  /* Primary navigation: editorial, but no longer oversized. */
   .public-site .public-header .public-nav > a:not(.public-lookup-link) {
     width: 100%;
-    min-height: 54px;
+    min-height: 50px;
     display: flex;
     align-items: center;
-    padding: 7px 0;
+    padding: 5px 0;
     border: 0;
     font-family: var(--font-bocana-serif), Georgia, serif;
-    font-size: clamp(39px, 11.6vw, 52px);
+    font-size: clamp(37px,10.7vw,48px);
     font-weight: 500;
     line-height: .96;
     letter-spacing: -.035em;
@@ -101,16 +95,21 @@
     color: #d7b698;
   }
 
-  .public-site .public-header .public-nav > a[aria-current="page"]::after {
-    display: none;
+  .public-site .public-header .public-nav > a[aria-current="page"]::after { display: none; }
+
+  /* Replace the global 6px focus ring with a precise menu focus treatment. */
+  .public-site .public-header .public-nav > a:focus-visible {
+    outline: 1px solid rgba(246,242,233,.72);
+    outline-offset: 5px;
+    box-shadow: none;
   }
 
   /* Booking lookup is a service action, not another editorial section. */
   .public-site .public-header .public-nav > .public-lookup-link {
     width: 100%;
     min-height: 48px;
-    margin-top: 20px;
-    padding: 19px 28px 16px 0;
+    margin-top: 16px;
+    padding: 17px 28px 15px 0;
     border-top: 1px solid rgba(255,255,255,.17);
     border-bottom: 1px solid rgba(255,255,255,.17);
     display: flex;
@@ -148,13 +147,14 @@
     transition-delay: .21s;
   }
 
-  /* Bottom information gives the menu a deliberate close instead of empty navy space. */
+  /* Bottom information: compact utility strip, not another hero. */
   .public-mobile-menu-meta {
+    width: 100%;
     margin-top: auto;
-    padding-top: clamp(28px, 5vh, 48px);
+    padding-top: clamp(22px,3.6vh,34px);
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 18px 16px;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 14px 18px;
     align-items: end;
     opacity: 0;
     transform: translateY(10px);
@@ -170,48 +170,64 @@
   .public-mobile-menu-place {
     min-width: 0;
     display: grid;
-    gap: 6px;
+    gap: 5px;
   }
 
   .public-mobile-menu-place span,
-  .public-mobile-menu-place small {
-    display: block;
-  }
+  .public-mobile-menu-place small { display: block; }
 
   .public-mobile-menu-place span {
     font-family: var(--font-bocana-sans), Arial, sans-serif;
     font-size: 8px;
     font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: .18em;
+    line-height: 1.35;
+    letter-spacing: .17em;
     text-transform: uppercase;
     color: #d7b698;
   }
 
   .public-mobile-menu-place small {
+    max-width: 16ch;
     font-family: var(--font-bocana-serif), Georgia, serif;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
-    line-height: 1.2;
-    color: rgba(246,242,233,.74);
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    color: rgba(246,242,233,.72);
   }
 
-  .public-site .public-header .public-mobile-menu-phone {
+  /* Specificity intentionally exceeds the legacy .public-nav a rule. */
+  .public-site .public-header .public-nav .public-mobile-menu-phone {
+    width: auto;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    align-self: end;
     padding: 0;
+    margin: 0;
+    border: 0;
     font-family: var(--font-bocana-sans), Arial, sans-serif;
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 600;
     line-height: 1.2;
-    letter-spacing: .08em;
+    letter-spacing: .04em;
     text-transform: none;
     text-decoration: none;
-    color: rgba(246,242,233,.78);
+    color: rgba(246,242,233,.8);
   }
 
-  .public-site .public-header .public-mobile-menu-reserve {
+  .public-site .public-header .public-nav .public-mobile-menu-phone:focus-visible {
+    outline: 1px solid rgba(246,242,233,.72);
+    outline-offset: 4px;
+    box-shadow: none;
+  }
+
+  .public-site .public-header .public-nav .public-mobile-menu-reserve {
     grid-column: 1 / -1;
-    min-height: 54px;
-    margin-top: 2px;
+    width: 100%;
+    min-height: 52px;
+    margin: 0;
     padding: 0 18px;
     display: flex;
     align-items: center;
@@ -230,49 +246,65 @@
     transition: transform .16s ease, background .16s ease;
   }
 
-  .public-mobile-menu-reserve > span {
-    font-size: 16px;
+  .public-site .public-header .public-nav .public-mobile-menu-reserve > span {
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 15px;
     font-weight: 400;
+    line-height: 1;
     letter-spacing: 0;
   }
 
-  .public-mobile-menu-reserve:active {
+  .public-site .public-header .public-nav .public-mobile-menu-reserve:active {
     transform: scale(.988);
     background: #fff;
+  }
+
+  .public-site .public-header .public-nav .public-mobile-menu-reserve:focus-visible {
+    outline: 1px solid #f6f2e9;
+    outline-offset: 4px;
+    box-shadow: none;
   }
 }
 
 @media (max-width: 390px) {
   .public-site .public-header .public-nav {
     top: 70px;
-    padding: 28px 18px calc(18px + env(safe-area-inset-bottom));
+    padding: 24px 18px calc(16px + env(safe-area-inset-bottom));
   }
 
   .public-site .public-header .public-nav > a:not(.public-lookup-link) {
-    min-height: 49px;
-    font-size: clamp(36px, 11vw, 43px);
+    min-height: 46px;
+    font-size: clamp(34px,10.5vw,41px);
   }
 
   .public-site .public-header .public-nav > .public-lookup-link {
-    margin-top: 15px;
-    padding-top: 15px;
-    padding-bottom: 14px;
+    margin-top: 12px;
+    padding-top: 14px;
+    padding-bottom: 13px;
   }
 
   .public-mobile-menu-meta {
-    gap: 13px 12px;
-    padding-top: 22px;
+    gap: 10px 12px;
+    padding-top: 18px;
   }
 
-  .public-mobile-menu-place small { font-size: 15px; }
-  .public-site .public-header .public-mobile-menu-reserve { min-height: 50px; }
+  .public-mobile-menu-place small { font-size: 14px; }
+  .public-site .public-header .public-nav .public-mobile-menu-phone { font-size: 10px; }
+  .public-site .public-header .public-nav .public-mobile-menu-reserve { min-height: 48px; }
+}
+
+@media (max-height: 720px) and (max-width: 700px) {
+  .public-site .public-header .public-nav { padding-top: 18px; }
+  .public-site .public-header .public-nav > a:not(.public-lookup-link) { min-height: 42px; font-size: 34px; }
+  .public-site .public-header .public-nav > .public-lookup-link { margin-top: 8px; padding-block: 12px; }
+  .public-mobile-menu-meta { padding-top: 14px; }
+  .public-mobile-menu-place small { display: none; }
+  .public-site .public-header .public-nav .public-mobile-menu-reserve { min-height: 46px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .public-site .public-header .public-nav,
   .public-site .public-header .public-nav > a,
   .public-mobile-menu-meta,
-  .public-mobile-menu-reserve {
-    transition: none !important;
-  }
+  .public-mobile-menu-reserve { transition: none !important; }
 }
