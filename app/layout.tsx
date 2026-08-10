@@ -12,6 +12,7 @@ import './mobile-header.css';
 import './mobile-menu.css';
 import './mobile-layout.css';
 import './mobile-footer-fix.css';
+import './mobile-booking.css';
 import { headers } from 'next/headers';
 import { chromeCopy, type PublicLocale } from '@/lib/i18n';
 
