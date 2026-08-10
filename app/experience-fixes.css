@@ -1,126 +1,120 @@
-/* Targeted layout fixes for the La Bocana public experience. */
+/* Targeted layout fixes and final art direction for La Bocana. */
 
-/*
- * Chapters need enough editorial measure for long Spanish words such as
- * “Mediterráneo”. The previous 69/31 split plus 108px side padding caused
- * the heading to overflow into the photograph on wide desktop screens.
- */
 @media (min-width: 901px) {
-  .experience-chapter {
-    grid-template-columns: minmax(0, 1.18fr) minmax(430px, .82fr);
-  }
-
-  .experience-chapter.reverse {
-    grid-template-columns: minmax(430px, .82fr) minmax(0, 1.18fr);
-  }
-
-  .experience-chapter-copy {
-    min-width: 0;
-    padding: clamp(52px, 4.5vw, 78px);
-  }
-
-  .experience-chapter-copy h3 {
-    max-width: 9.2em;
-    font-size: clamp(48px, 4.25vw, 68px);
-    line-height: .95;
-    overflow-wrap: normal;
-    word-break: normal;
-    hyphens: none;
-  }
-
-  .experience-chapter-copy p {
-    max-width: 500px;
-  }
+  .experience-chapter { grid-template-columns:minmax(0,1.18fr) minmax(430px,.82fr); }
+  .experience-chapter.reverse { grid-template-columns:minmax(430px,.82fr) minmax(0,1.18fr); }
+  .experience-chapter-copy { min-width:0; padding:clamp(52px,4.5vw,78px); }
+  .experience-chapter-copy h3 { max-width:9.2em; font-size:clamp(48px,4.25vw,68px); line-height:.95; overflow-wrap:normal; word-break:normal; hyphens:none; }
+  .experience-chapter-copy p { max-width:500px; }
+}
+@media (min-width:1500px){
+  .experience-chapter-copy{padding-inline:clamp(64px,4.6vw,86px)}
+  .experience-chapter-copy h3{font-size:clamp(58px,3.8vw,72px)}
 }
 
-@media (min-width: 1500px) {
-  .experience-chapter-copy {
-    padding-inline: clamp(64px, 4.6vw, 86px);
-  }
+/* Booking precision */
+.booking-page .input-label input:focus,.booking-page .input-label input:focus-visible,.booking-page .textarea-label textarea:focus,.booking-page .textarea-label textarea:focus-visible,.booking-page .date-input:focus,.booking-page .date-input:focus-visible{outline:none;box-shadow:inset 0 -2px 0 var(--lb-navy);border-bottom-color:var(--lb-navy)}
+.booking-page .input-label input,.booking-page .textarea-label textarea,.booking-page .date-input{border-radius:0;-webkit-appearance:none;appearance:none}
+.calendar-days button.selected,.calendar-days button.selected:hover,.calendar-days button.selected:focus,.calendar-days button.selected:focus-visible{background:var(--lb-navy)!important;color:#fff!important}
+.calendar-days button:focus-visible{outline:2px solid var(--lb-navy);outline-offset:2px;box-shadow:none}
+@media (hover:none),(pointer:coarse){.calendar-days button:hover:not(:disabled):not(.selected){background:transparent;color:inherit}.calendar-days button:active:not(:disabled):not(.selected){background:#e9e1d5}}
 
-  .experience-chapter-copy h3 {
-    font-size: clamp(58px, 3.8vw, 72px);
-  }
+/* Brand typography */
+.public-site,.booking-page,.manage-page{font-family:var(--font-bocana-sans),Arial,sans-serif}
+.public-site h1,.public-site h2,.public-site h3,.public-site blockquote,.public-site .brand-lockup strong,.booking-page h1,.booking-page h2,.booking-page h3,.booking-page .wordmark,.booking-page .date-input,.manage-page h1,.manage-page h2,.manage-page h3{font-family:var(--font-bocana-serif),Georgia,serif!important;font-weight:500}
+.public-site h1,.public-site h2,.public-site h3,.booking-page h1,.booking-page h2,.booking-page h3{letter-spacing:-.035em}
+
+/* Art direction: quiet Mediterranean editorialism. No glass, no decorative UI noise. */
+.public-site{--lb-copper:#9b755c;--lb-ivory:#f6f2e9;--lb-sand:#ece5da;--lb-line:rgba(11,39,68,.13)}
+.public-site .public-section{padding-top:clamp(116px,12vw,190px);padding-bottom:clamp(116px,12vw,190px)}
+
+/* Navigation should disappear into the photograph rather than read as a component. */
+.public-site .public-header{height:88px;border-bottom-color:rgba(255,255,255,.20)}
+.public-site .public-header.solid{background:var(--lb-ivory);backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom-color:var(--lb-line)}
+.public-site .public-nav a,.public-site .public-actions a{letter-spacing:.16em}
+.public-site .public-book{transition:background .25s ease,color .25s ease,border-color .25s ease}
+
+/* Hero: image first, typography second. */
+.experience-hero-overlay{background:linear-gradient(90deg,rgba(4,19,35,.69) 0%,rgba(4,19,35,.34) 42%,rgba(4,19,35,.04) 72%),linear-gradient(180deg,rgba(3,18,33,.10),rgba(3,18,33,.03) 52%,rgba(3,18,33,.49))}
+.experience-hero-copy{max-width:min(790px,68vw);bottom:clamp(128px,16vh,188px)}
+.experience-hero-copy>span{font-size:10px;letter-spacing:.26em;opacity:.9}
+.experience-hero-copy h1{margin:24px 0 25px;font-size:clamp(82px,10vw,154px)!important;line-height:.82!important;letter-spacing:-.055em!important}
+.experience-hero-copy p{max-width:560px;font-family:var(--font-bocana-serif),Georgia,serif;font-size:clamp(19px,1.45vw,23px);line-height:1.55;color:rgba(255,255,255,.86)}
+.experience-primary{min-height:52px;padding:0 25px;letter-spacing:.17em;background:var(--lb-ivory);transition:background .25s ease,color .25s ease}
+.experience-primary:hover{transform:none;background:#fff}
+.experience-hero-proof{bottom:43px;padding-right:16px;opacity:.82}
+.experience-hero-proof strong{font-family:var(--font-bocana-serif),Georgia,serif;font-size:18px;font-weight:500}
+
+/* Opening: make the silence and whitespace part of the design. */
+.experience-opening{min-height:800px;grid-template-columns:150px minmax(0,920px) 1fr;align-items:center}
+.experience-opening>span{font-size:10px;letter-spacing:.24em;margin-top:11px}
+.experience-opening h2{max-width:820px;font-size:clamp(60px,7vw,106px)!important;line-height:.9!important;letter-spacing:-.045em!important;margin-bottom:42px}
+.experience-opening p{max-width:630px;font-family:var(--font-bocana-serif),Georgia,serif;font-size:clamp(19px,1.45vw,23px);line-height:1.7;color:#61717b}
+.experience-opening>.brand-lockup{opacity:.48;transform:scale(.9);transform-origin:right center}
+
+/* Journey: use fine rules and numbering like an editorial feature. */
+.experience-section-head{grid-template-columns:160px minmax(0,850px);padding-bottom:clamp(88px,9vw,140px)!important}
+.experience-section-head>span,.experience-chapter-copy>span,.experience-menu-head>span,.experience-reviews header>span,.experience-end>span{font-size:10px;letter-spacing:.24em}
+.experience-section-head h2{font-size:clamp(58px,6.5vw,96px)!important;line-height:.92!important;letter-spacing:-.045em!important}
+.experience-chapter{border-top-color:rgba(255,255,255,.13)}
+.experience-chapter-media>span{left:26px;bottom:24px;font-size:10px;letter-spacing:.2em;opacity:.78}
+.experience-chapter-media:after{background:linear-gradient(180deg,transparent 76%,rgba(3,17,31,.34))}
+.experience-chapter-copy>span{color:#cfad91}
+.experience-chapter-copy h3{margin:28px 0 34px;letter-spacing:-.035em!important}
+.experience-chapter-copy p{font-size:16px;line-height:1.9;color:#bcc9d2}
+
+/* Menu: remove the card feeling; treat dishes as a photographic edit. */
+.experience-menu{background:var(--lb-ivory)}
+.experience-menu-head{grid-template-columns:150px minmax(0,1fr) minmax(280px,.48fr);gap:50px;margin-bottom:86px}
+.experience-menu-head h2{font-size:clamp(56px,6vw,90px)!important;line-height:.92!important;letter-spacing:-.04em!important}
+.experience-menu-head p{max-width:410px;line-height:1.85}
+.experience-dishes{gap:clamp(18px,2vw,30px)}
+.experience-dish>div{aspect-ratio:4/5;background:#ddd6cb}
+.experience-dish>div>span{top:auto;right:auto;left:0;bottom:-1px;width:auto;height:auto;padding:11px 14px;border-radius:0;background:var(--lb-ivory);font-size:9px;letter-spacing:.16em}
+.experience-dish>p{margin-top:25px;font-size:9px;letter-spacing:.2em}
+.experience-dish h3{font-size:clamp(31px,2.7vw,43px)!important;letter-spacing:-.025em!important;margin-bottom:15px}
+.experience-dish small{font-size:9px;letter-spacing:.16em}
+.experience-text-link{margin-top:72px;font-size:10px;letter-spacing:.18em}
+
+/* Full bleed image: no card, just image, words and horizon. */
+.experience-pause-shade{background:linear-gradient(90deg,rgba(4,20,36,.61),rgba(4,20,36,.07) 70%),linear-gradient(180deg,transparent 56%,rgba(4,20,36,.36))}
+.experience-pause>div:last-child{max-width:760px}
+.experience-pause p{font-family:var(--font-bocana-serif),Georgia,serif;font-size:20px;opacity:.88}
+.experience-pause h2{font-size:clamp(58px,7vw,104px)!important;line-height:.88!important;letter-spacing:-.045em!important}
+
+/* Reviews: lighter, quieter, closer to a magazine pull quote than a UI card. */
+.experience-reviews>header{grid-template-columns:160px minmax(0,850px);margin-bottom:84px}
+.experience-reviews h2{font-size:clamp(56px,6vw,90px)!important;line-height:.92!important;letter-spacing:-.04em!important}
+.experience-review-grid article{min-height:430px;padding-top:48px;padding-bottom:48px}
+.experience-review-grid blockquote{max-width:680px;margin:62px 0 50px;font-size:clamp(25px,2.1vw,34px);line-height:1.5;letter-spacing:-.012em!important}
+.experience-review-grid strong{font-size:10px;letter-spacing:.17em}
+.experience-review-grid small{font-size:10px}
+
+/* Final invitation: one strong thought, not a CTA panel. */
+.experience-end{padding-top:clamp(140px,14vw,220px)!important;padding-bottom:clamp(140px,14vw,220px)!important}
+.experience-end>.brand-lockup{opacity:.72;margin-bottom:54px}
+.experience-end h2{max-width:920px;font-size:clamp(62px,7.5vw,112px)!important;line-height:.87!important;letter-spacing:-.05em!important;margin-top:24px;margin-bottom:34px}
+.experience-end p{font-family:var(--font-bocana-serif),Georgia,serif;font-size:18px;opacity:.82}
+.experience-end>div{margin-top:46px;gap:14px}
+
+@media (max-width:900px){
+  .public-site .public-section{padding-top:92px;padding-bottom:92px}
+  .experience-opening{min-height:auto}
+  .experience-hero-copy{max-width:calc(100vw - 48px)}
 }
-
-/* Booking form focus: retain an obvious keyboard focus without the global
-   accessibility ring turning each underlined field into a large blue box. */
-.booking-page .input-label input:focus,
-.booking-page .input-label input:focus-visible,
-.booking-page .textarea-label textarea:focus,
-.booking-page .textarea-label textarea:focus-visible,
-.booking-page .date-input:focus,
-.booking-page .date-input:focus-visible {
-  outline: none;
-  box-shadow: inset 0 -2px 0 var(--lb-navy);
-  border-bottom-color: var(--lb-navy);
-}
-
-.booking-page .input-label input,
-.booking-page .textarea-label textarea,
-.booking-page .date-input {
-  border-radius: 0;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-/* Calendar: browsers on touch devices can keep :hover latched after a tap.
-   Never let that synthetic hover paint over the selected day. */
-.calendar-days button.selected,
-.calendar-days button.selected:hover,
-.calendar-days button.selected:focus,
-.calendar-days button.selected:focus-visible {
-  background: var(--lb-navy) !important;
-  color: #fff !important;
-}
-
-.calendar-days button:focus-visible {
-  outline: 2px solid var(--lb-navy);
-  outline-offset: 2px;
-  box-shadow: none;
-}
-
-@media (hover: none), (pointer: coarse) {
-  .calendar-days button:hover:not(:disabled):not(.selected) {
-    background: transparent;
-    color: inherit;
-  }
-
-  .calendar-days button:active:not(:disabled):not(.selected) {
-    background: #e9e1d5;
-  }
-}
-
-/* Brand typography — retain the editorial language seen in La Bocana's
-   current social creatives, without turning glass into a site-wide motif. */
-.public-site,
-.booking-page,
-.manage-page {
-  font-family: var(--font-bocana-sans), Arial, sans-serif;
-}
-
-.public-site h1,
-.public-site h2,
-.public-site h3,
-.public-site blockquote,
-.public-site .brand-lockup strong,
-.booking-page h1,
-.booking-page h2,
-.booking-page h3,
-.booking-page .wordmark,
-.booking-page .date-input,
-.manage-page h1,
-.manage-page h2,
-.manage-page h3 {
-  font-family: var(--font-bocana-serif), Georgia, serif !important;
-  font-weight: 500;
-}
-
-.public-site h1,
-.public-site h2,
-.public-site h3,
-.booking-page h1,
-.booking-page h2,
-.booking-page h3 {
-  letter-spacing: -.035em;
+@media (max-width:700px){
+  .public-site .public-section{padding-top:78px;padding-bottom:78px}
+  .experience-hero{min-height:720px}
+  .experience-hero-overlay{background:linear-gradient(180deg,rgba(4,19,35,.16),rgba(4,19,35,.12) 38%,rgba(4,19,35,.70) 100%)}
+  .experience-hero-copy{left:22px;right:22px;bottom:116px;max-width:none}
+  .experience-hero-copy>span{font-size:9px}
+  .experience-hero-copy h1{font-size:clamp(62px,20vw,86px)!important;line-height:.84!important;margin:17px 0 20px}
+  .experience-hero-copy p{max-width:31ch;font-size:18px;line-height:1.5;margin-bottom:27px}
+  .experience-primary{min-height:50px;padding-inline:21px}
+  .experience-opening h2,.experience-section-head h2,.experience-menu-head h2,.experience-reviews h2{letter-spacing:-.035em!important}
+  .experience-chapter-copy h3{font-size:clamp(42px,13vw,58px)!important;line-height:.94!important}
+  .experience-menu-head{margin-bottom:52px}
+  .experience-dish>p{margin-top:20px}
+  .experience-review-grid blockquote{margin-top:38px}
+  .experience-end h2{font-size:clamp(52px,15vw,76px)!important}
 }
