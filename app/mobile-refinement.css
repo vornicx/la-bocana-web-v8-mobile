@@ -12,6 +12,126 @@
     transform: none !important;
   }
 
+  /* PHASE 1 — Mobile hero precision.
+     Keep one clear hierarchy: place -> statement -> explanation -> booking. */
+  .experience-home .experience-hero {
+    height: 100svh;
+    min-height: 680px;
+    max-height: 860px;
+  }
+
+  .experience-home .experience-hero-picture img {
+    object-position: 52% 52%;
+  }
+
+  .experience-home .experience-hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(3,18,33,.18) 0%, rgba(3,18,33,.08) 28%, rgba(3,18,33,.20) 48%, rgba(3,18,33,.77) 100%),
+      linear-gradient(90deg, rgba(3,18,33,.18), rgba(3,18,33,.02) 74%);
+  }
+
+  .experience-home .experience-hero-copy {
+    left: 22px;
+    right: 22px;
+    bottom: 76px;
+    max-width: none;
+  }
+
+  .experience-home .experience-hero-copy > span {
+    margin: 0 0 17px;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .22em;
+    opacity: .92;
+  }
+
+  .experience-home .experience-hero-copy h1 {
+    max-width: 5.2em;
+    margin: 0 0 20px;
+    font-size: clamp(64px, 18.5vw, 82px) !important;
+    line-height: .84 !important;
+    letter-spacing: -.052em !important;
+    text-wrap: balance;
+  }
+
+  .experience-home .experience-hero-copy p {
+    max-width: 29ch;
+    margin: 0 0 27px;
+    font-size: 17px;
+    line-height: 1.52;
+    color: rgba(255,255,255,.88);
+    text-wrap: pretty;
+  }
+
+  .experience-home .experience-primary {
+    width: 100%;
+    min-height: 56px;
+    padding: 0 20px;
+    font-size: 10px;
+    letter-spacing: .17em;
+    border: 1px solid rgba(255,255,255,.12);
+  }
+
+  /* The award remains present, but it no longer competes with the message. */
+  .experience-home .experience-hero-proof {
+    left: 22px;
+    right: 22px;
+    bottom: 27px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    text-align: right;
+    opacity: .76;
+  }
+
+  .experience-home .experience-hero-proof span {
+    display: none;
+  }
+
+  .experience-home .experience-hero-proof strong {
+    font-family: var(--font-bocana-sans), Arial, sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  .experience-home .experience-scroll {
+    display: none;
+  }
+
+  /* Deliberate hero entrance: short travel, no image movement and no scroll coupling. */
+  .experience-home:not([data-ready="true"]) .experience-hero-copy > span,
+  .experience-home:not([data-ready="true"]) .experience-hero-copy h1,
+  .experience-home:not([data-ready="true"]) .experience-hero-copy p,
+  .experience-home:not([data-ready="true"]) .experience-primary,
+  .experience-home:not([data-ready="true"]) .experience-hero-proof {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .experience-home[data-ready="true"] .experience-hero-copy > span,
+  .experience-home[data-ready="true"] .experience-hero-copy h1,
+  .experience-home[data-ready="true"] .experience-hero-copy p,
+  .experience-home[data-ready="true"] .experience-primary,
+  .experience-home[data-ready="true"] .experience-hero-proof {
+    transform: translateY(0);
+    transition-property: opacity, transform;
+    transition-duration: .66s;
+    transition-timing-function: cubic-bezier(.2,.72,.2,1);
+  }
+
+  .experience-home[data-ready="true"] .experience-hero-copy > span { transition-delay: .04s; }
+  .experience-home[data-ready="true"] .experience-hero-copy h1 { transition-delay: .10s; }
+  .experience-home[data-ready="true"] .experience-hero-copy p { transition-delay: .17s; }
+  .experience-home[data-ready="true"] .experience-primary { transition-delay: .24s; }
+  .experience-home[data-ready="true"] .experience-hero-proof { transition-delay: .30s; }
+
   /* Contextual reservation dock — designed as a branded navigation element,
      not a generic floating button. */
   .mobile-reserve-dock {
@@ -156,6 +276,27 @@
 }
 
 @media (max-width: 380px) {
+  .experience-home .experience-hero-copy {
+    left: 18px;
+    right: 18px;
+    bottom: 72px;
+  }
+
+  .experience-home .experience-hero-copy h1 {
+    font-size: clamp(59px, 18vw, 70px) !important;
+  }
+
+  .experience-home .experience-hero-copy p {
+    max-width: 28ch;
+    font-size: 16px;
+  }
+
+  .experience-home .experience-hero-proof {
+    left: 18px;
+    right: 18px;
+    bottom: 25px;
+  }
+
   .mobile-reserve-dock {
     left: 10px;
     right: 10px;
@@ -172,5 +313,14 @@
   .mobile-reserve-dock[data-visible="true"],
   .mobile-reserve-dock > strong {
     transition: none !important;
+  }
+
+  .experience-home:not([data-ready="true"]) .experience-hero-copy > span,
+  .experience-home:not([data-ready="true"]) .experience-hero-copy h1,
+  .experience-home:not([data-ready="true"]) .experience-hero-copy p,
+  .experience-home:not([data-ready="true"]) .experience-primary,
+  .experience-home:not([data-ready="true"]) .experience-hero-proof {
+    opacity: 1;
+    transform: none;
   }
 }
