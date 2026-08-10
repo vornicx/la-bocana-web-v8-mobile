@@ -40,6 +40,9 @@ export function PublicHeader({ solid = false, locale = 'es' }: { solid?: boolean
     { href: paths.contact, label: copy.contact },
     { href: paths.lookup, label: copy.lookup, className: 'public-lookup-link' },
   ];
+  const menuMeta = locale === 'es'
+    ? { place: 'Puerto Banús · Marbella', setting: 'Primera línea de mar', reserve: 'Reservar mesa', phone: 'Llamar al restaurante' }
+    : { place: 'Puerto Banús · Marbella', setting: 'Right on the seafront', reserve: 'Book a table', phone: 'Call the restaurant' };
 
   function rememberLocale() {
     document.cookie = `lb_language=${locale === 'es' ? 'en' : 'es'}; Max-Age=31536000; Path=/; SameSite=Lax`;
@@ -52,6 +55,11 @@ export function PublicHeader({ solid = false, locale = 'es' }: { solid?: boolean
         {navigation.map((item) => (
           <Link className={item.className} key={item.href} href={item.href} aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'page' : undefined}>{item.label}</Link>
         ))}
+        <div className="public-mobile-menu-meta">
+          <div className="public-mobile-menu-place"><span>{menuMeta.place}</span><small>{menuMeta.setting}</small></div>
+          <a className="public-mobile-menu-phone" href="tel:+34952781410" aria-label={menuMeta.phone}>+34 952 781 410</a>
+          <Link className="public-mobile-menu-reserve" href={paths.reserve}>{menuMeta.reserve}<span aria-hidden="true">→</span></Link>
+        </div>
       </nav>
       <div className="public-actions">
         <Link className="public-language" href={alternateLocalePath(pathname, locale)} hrefLang={locale === 'es' ? 'en' : 'es'} lang={locale === 'es' ? 'en' : 'es'} aria-label={copy.language} onClick={rememberLocale}>{locale === 'es' ? 'EN' : 'ES'}</Link>
