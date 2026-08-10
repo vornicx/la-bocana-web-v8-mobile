@@ -6,6 +6,7 @@ import { DEFAULT_SOCIAL_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL
 import './globals.css';
 import './experience.css';
 import './experience-fixes.css';
+import './mobile-refinement.css';
 import { headers } from 'next/headers';
 import { chromeCopy, type PublicLocale } from '@/lib/i18n';
 
