@@ -33,8 +33,6 @@
   }
 }
 
-/* Keep a little more breathing room on large screens without letting the
-   type grow beyond the width available in the text panel. */
 @media (min-width: 1500px) {
   .experience-chapter-copy {
     padding-inline: clamp(64px, 4.6vw, 86px);
@@ -93,8 +91,8 @@
   }
 }
 
-/* Brand typography — use the same editorial language seen in La Bocana's
-   current social creatives instead of the generic Georgia/Arial pairing. */
+/* Brand typography — retain the editorial language seen in La Bocana's
+   current social creatives, without turning glass into a site-wide motif. */
 .public-site,
 .booking-page,
 .manage-page {
@@ -125,88 +123,4 @@
 .booking-page h2,
 .booking-page h3 {
   letter-spacing: -.035em;
-}
-
-/* La Bocana glass language — restrained frosted surfaces over photography,
-   inspired by the restaurant's own review stories rather than generic neon
-   glassmorphism. */
-.public-site .public-header:not(.solid) {
-  background: linear-gradient(180deg, rgba(5, 21, 37, .30), rgba(5, 21, 37, .10));
-  backdrop-filter: blur(18px) saturate(125%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
-  border-bottom-color: rgba(255, 255, 255, .24);
-}
-
-.public-site .public-language,
-.public-site .public-book,
-.experience-hero-proof {
-  background: rgba(255, 255, 255, .12);
-  border: 1px solid rgba(255, 255, 255, .34);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 10px 32px rgba(3, 16, 29, .08);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
-}
-
-.public-site .public-language {
-  border-radius: 999px;
-}
-
-.public-site .public-book {
-  border-radius: 999px;
-  padding-inline: 20px;
-}
-
-.experience-hero-proof {
-  right: clamp(24px, 4vw, 64px);
-  bottom: 34px;
-  padding: 14px 16px;
-  border-radius: 22px;
-  border-right: 1px solid rgba(255, 255, 255, .34);
-}
-
-.experience-pause>div:last-child {
-  padding: clamp(22px, 3vw, 38px);
-  border: 1px solid rgba(255, 255, 255, .30);
-  border-radius: 32px;
-  background: rgba(246, 242, 234, .12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 24px 70px rgba(3, 16, 29, .12);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
-}
-
-.booking-page .booking-panel {
-  background: rgba(245, 241, 232, .96);
-}
-
-.booking-page .bocana-calendar {
-  border-radius: 26px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, .54);
-  border-color: rgba(11, 39, 68, .13);
-  box-shadow: 0 18px 60px rgba(11, 39, 68, .05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-@media (max-width: 700px) {
-  .public-site .public-header:not(.solid) {
-    background: rgba(5, 21, 37, .18);
-  }
-
-  .experience-hero-proof {
-    border-radius: 18px;
-    padding: 10px 12px;
-  }
-
-  .experience-pause>div:last-child {
-    left: 14px;
-    right: 14px;
-    bottom: 62px;
-    border-radius: 26px;
-    padding: 24px 20px;
-  }
-
-  .booking-page .bocana-calendar {
-    border-radius: 20px;
-  }
 }
