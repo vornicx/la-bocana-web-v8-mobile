@@ -30,22 +30,25 @@ export function ExperienceMotion() {
 
     const dock = document.querySelector<HTMLElement>('.mobile-reserve-dock');
     const hero = document.querySelector<HTMLElement>('.experience-hero');
+    const header = document.querySelector<HTMLElement>('.public-header');
     const reserveCtas = Array.from(document.querySelectorAll<HTMLElement>(
-      '.experience-primary, .experience-end .reserve-main, .public-header .public-book'
+      '.experience-primary, .experience-end .reserve-main, .public-header .public-book, .public-mobile-menu-reserve'
     ));
 
     let heroVisible = true;
+    let menuOpen = header?.classList.contains('menu-open') ?? false;
     const visibleReserveCtas = new Set<Element>();
 
     const syncDock = () => {
       if (!dock) return;
-      const shouldShow = !heroVisible && visibleReserveCtas.size === 0;
+      const shouldShow = !heroVisible && !menuOpen && visibleReserveCtas.size === 0;
       dock.dataset.visible = shouldShow ? 'true' : 'false';
       dock.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
     };
 
     let heroObserver: IntersectionObserver | null = null;
     let ctaObserver: IntersectionObserver | null = null;
+    let headerObserver: MutationObserver | null = null;
 
     if (dock && hero) {
       heroObserver = new IntersectionObserver((entries) => {
@@ -59,7 +62,15 @@ export function ExperienceMotion() {
           else visibleReserveCtas.delete(entry.target);
         });
         syncDock();
-      }, { threshold: 0.18 });
+      }, { threshold: 0.01 });
+
+      if (header) {
+        headerObserver = new MutationObserver(() => {
+          menuOpen = header.classList.contains('menu-open');
+          syncDock();
+        });
+        headerObserver.observe(header, { attributes: true, attributeFilter: ['class'] });
+      }
 
       dock.dataset.visible = 'false';
       dock.setAttribute('aria-hidden', 'true');
@@ -72,6 +83,7 @@ export function ExperienceMotion() {
       revealObserver?.disconnect();
       heroObserver?.disconnect();
       ctaObserver?.disconnect();
+      headerObserver?.disconnect();
     };
   }, []);
 
