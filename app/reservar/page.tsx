@@ -21,7 +21,7 @@ function addDays(isoDate: string, days: number) {
 
 export function ReservationPageContent({ locale = 'es' }: { locale?: PublicLocale }) {
   const minDate = madridDate();
-  const t = locale === 'es' ? { eyebrow: 'Puerto Banús · Marbella', title: <>Una mesa<br />frente al Mediterráneo.</>, text: 'Producto, cocina y sobremesa junto al mar.', label: 'Reservas', back: 'Volver a la web', language: 'EN', languageHref: '/en/reserve', realtime: 'La disponibilidad se confirma en tiempo real al elegir la hora.' } : { eyebrow: 'Puerto Banús · Marbella', title: <>A table<br />by the Mediterranean.</>, text: 'Produce, cuisine and long lunches by the sea.', label: 'Bookings', back: 'Back to the website', language: 'ES', languageHref: '/reservar', realtime: 'Availability is confirmed in real time when you choose a time.' };
+  const t = locale === 'es' ? { eyebrow: 'Puerto Banús · Marbella', title: <>Una mesa<br />frente al Mediterráneo.</>, text: 'Producto, cocina y sobremesa junto al mar.', label: 'Reservas', back: 'Volver a la web', language: 'EN', languageHref: '/en/reserve', realtime: 'La disponibilidad se confirma en tiempo real al elegir la hora.', existing: '¿Ya tienes una reserva?', lookup: 'Consultar mi reserva', lookupHref: '/consultar-reserva' } : { eyebrow: 'Puerto Banús · Marbella', title: <>A table<br />by the Mediterranean.</>, text: 'Produce, cuisine and long lunches by the sea.', label: 'Bookings', back: 'Back to the website', language: 'ES', languageHref: '/reservar', realtime: 'Availability is confirmed in real time when you choose a time.', existing: 'Already have a booking?', lookup: 'Check my booking', lookupHref: '/en/check-booking' };
   return (
     <main className="booking-page" id="main-content">
       <section className="booking-visual">
@@ -40,6 +40,7 @@ export function ReservationPageContent({ locale = 'es' }: { locale?: PublicLocal
           <Link className="booking-language" href={t.languageHref} hrefLang={locale === 'es' ? 'en' : 'es'}>{t.language}</Link>
         </div>
         <BookingFlow minDate={minDate} maxDate={addDays(minDate, 90)} locale={locale} />
+        <div className="existing-booking"><span>{t.existing}</span><Link href={t.lookupHref}>{t.lookup}<span aria-hidden="true"> →</span></Link></div>
         <p className="privacy-footnote">{t.realtime}</p>
       </section>
     </main>
