@@ -117,4 +117,11 @@
   .experience-dish>p{margin-top:20px}
   .experience-review-grid blockquote{margin-top:38px}
   .experience-end h2{font-size:clamp(52px,15vw,76px)!important}
+
+  /* Contextual booking dock: hidden in the hero and whenever another booking CTA is visible. */
+  .mobile-reserve-dock{display:flex;opacity:0;visibility:hidden;transform:translateY(calc(100% + 18px));pointer-events:none;transition:opacity .28s ease,transform .36s cubic-bezier(.2,.75,.2,1),visibility 0s linear .36s}
+  .mobile-reserve-dock[data-visible="true"]{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;transition:opacity .28s ease,transform .36s cubic-bezier(.2,.75,.2,1),visibility 0s linear 0s}
+}
+@media (prefers-reduced-motion:reduce) and (max-width:700px){
+  .mobile-reserve-dock{transition:none}
 }
