@@ -7,6 +7,7 @@ import './globals.css';
 import './experience.css';
 import './experience-fixes.css';
 import './mobile-refinement.css';
+import './lookup.css';
 import { headers } from 'next/headers';
 import { chromeCopy, type PublicLocale } from '@/lib/i18n';
 
