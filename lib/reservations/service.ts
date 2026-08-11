@@ -111,7 +111,14 @@ export async function getManagedReservation(token: string) {
 }
 
 function comparablePhone(value: unknown) {
-  return String(value ?? '').replace(/\D/g, '');
+  let digits = String(value ?? '').replace(/\D/g, '');
+  if (digits.startsWith('0034') && digits.length === 13) digits = digits.slice(4);
+  if (digits.startsWith('34') && digits.length === 11) digits = digits.slice(2);
+  return digits;
+}
+
+function comparableEmail(value: unknown) {
+  return String(value ?? '').trim().toLowerCase();
 }
 
 function comparableName(value: unknown) {
@@ -120,24 +127,26 @@ function comparableName(value: unknown) {
 
 export async function findPublicReservations(input: { email: string; phone: string; name?: string }) {
   const supabase = createAdminClient();
+  const requestedEmail = comparableEmail(input.email);
+  const requestedPhone = comparablePhone(input.phone);
+  const requestedName = comparableName(input.name);
+  const now = Date.now() - 6 * 60 * 60 * 1000;
+
   const { data, error } = await supabase
     .from('reservations')
-    .select('*')
-    .eq('email', input.email.toLowerCase())
+    .select('confirmation_code,status,starts_at,adults,children,customer_email,customer_phone,customer_name')
+    .eq('customer_email', requestedEmail)
     .order('starts_at', { ascending: true })
     .limit(12);
 
   if (error) throw dbError('No se pudo consultar la reserva', error);
 
-  const requestedPhone = comparablePhone(input.phone);
-  const requestedName = comparableName(input.name);
-  const now = Date.now() - 6 * 60 * 60 * 1000;
-
   return (data ?? [])
-    .filter((row: Record<string, unknown>) => comparablePhone(row.phone) === requestedPhone)
+    .filter((row: Record<string, unknown>) => comparableEmail(row.customer_email) === requestedEmail)
+    .filter((row: Record<string, unknown>) => comparablePhone(row.customer_phone) === requestedPhone)
     .filter((row: Record<string, unknown>) => {
       if (!requestedName) return true;
-      const fullName = comparableName(`${String(row.first_name ?? '')} ${String(row.last_name ?? '')}`);
+      const fullName = comparableName(row.customer_name);
       return fullName === requestedName || fullName.includes(requestedName) || requestedName.includes(fullName);
     })
     .filter((row: Record<string, unknown>) => {
