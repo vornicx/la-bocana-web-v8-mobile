@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireStaffSession } from '@/lib/admin/auth';
 import { loadFloorSnapshot } from '@/lib/admin/floor-data';
+import { loadReservationsSnapshot } from '@/lib/admin/reservations-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +12,25 @@ function todayMadrid() {
   return `${value.year}-${value.month}-${value.day}`;
 }
 
+function isReservationsRequest(request: Request) {
+  const referer = request.headers.get('referer');
+  if (!referer) return false;
+  try {
+    return new URL(referer).pathname.startsWith('/control/reservas');
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request: Request) {
   try {
     await requireStaffSession();
     const date = new URL(request.url).searchParams.get('date') ?? todayMadrid();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Fecha inválida.');
-    return NextResponse.json(await loadFloorSnapshot(date), { headers: { 'Cache-Control': 'no-store' } });
+    const snapshot = isReservationsRequest(request)
+      ? await loadReservationsSnapshot(date)
+      : await loadFloorSnapshot(date);
+    return NextResponse.json(snapshot, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const status = (error as Error & { status?: number }).status ?? 400;
     return NextResponse.json({ error: (error as Error).message }, { status });
