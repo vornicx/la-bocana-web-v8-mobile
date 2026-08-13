@@ -16,6 +16,7 @@ import './control-operations-premium.css';
 import './control-native-guard.css';
 import './control-refinement.css';
 import './control-legibility.css';
+import './control-touch.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
