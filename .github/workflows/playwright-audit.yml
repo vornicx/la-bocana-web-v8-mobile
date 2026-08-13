@@ -86,12 +86,24 @@ jobs:
           echo 'AUDIT_DEPLOYMENT_MODE=current-production-timeout' >> "$GITHUB_ENV"
       - name: Run Playwright audit v2
         run: node scripts/playwright-audit-v2.mjs
+      - name: Audit responsive image delivery
+        if: always()
+        run: node scripts/playwright-responsive-image-audit.mjs
       - name: Run authenticated Control audit
         if: always()
         run: node scripts/playwright-control-auth-audit.mjs
       - name: Continue authenticated mobile audit
         if: always()
         run: node scripts/playwright-control-mobile-continuation.mjs
+      - name: Invalidate QA login used by this run
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          OIDC_JSON="$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=labocana-qa")"
+          OIDC_TOKEN="$(printf '%s' "$OIDC_JSON" | jq -er '.value')"
+          curl -fsSL -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H 'content-type: application/json' "${QA_BROKER_URL}" >/dev/null
+          echo "QA password rotated after the audit; credentials used during this run are invalid."
       - name: Upload audit report
         if: always()
         uses: actions/upload-artifact@v4
