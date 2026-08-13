@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import {
-  BookingIcon,
   CalendarIcon,
   CheckIcon,
   ChevronRightIcon,
@@ -41,9 +40,9 @@ export default async function AdminDashboard() {
     </div>
 
     <section className="control-priority-grid" aria-label="Prioridades del servicio">
-      <Link className={`control-priority ${data.metrics.unassigned ? 'attention' : 'clear'}`} href="/control/reservas?unassigned=1">
-        <span className="control-priority-icon">{data.metrics.unassigned ? <BookingIcon /> : <CheckIcon />}</span>
-        <div><span>Asignación</span><strong>{data.metrics.unassigned ? `${data.metrics.unassigned} sin mesa` : 'Sala preparada'}</strong><small>{data.metrics.unassigned ? 'Asignar antes de la llegada' : 'No hay reservas activas sin asignar'}</small></div><ChevronRightIcon />
+      <Link className={`control-priority ${data.metrics.unassigned ? 'attention' : 'clear'}`} href="/control/sala">
+        <span className="control-priority-icon">{data.metrics.unassigned ? <FloorIcon /> : <CheckIcon />}</span>
+        <div><span>Asignación</span><strong>{data.metrics.unassigned ? `${data.metrics.unassigned} sin mesa` : 'Sala preparada'}</strong><small>{data.metrics.unassigned ? 'Asignar directamente desde el plano' : 'No hay reservas activas sin asignar'}</small></div><ChevronRightIcon />
       </Link>
       <Link className={`control-priority ${data.metrics.waitlist ? 'attention' : 'clear'}`} href="/control/espera">
         <span className="control-priority-icon">{data.metrics.waitlist ? <WaitlistIcon /> : <CheckIcon />}</span>
