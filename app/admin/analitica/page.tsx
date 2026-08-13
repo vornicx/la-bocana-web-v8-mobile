@@ -2,56 +2,11 @@ import { requireStaffSession } from '@/lib/admin/auth';
 import { dateLabel, loadAnalyticsData } from '@/lib/admin/overview-data';
 
 export const dynamic = 'force-dynamic';
-
-const sourceLabels: Record<string, string> = {
-  website: 'Web',
-  phone: 'Teléfono',
-  walk_in: 'Recepción',
-  admin: 'Control',
-  instagram: 'Instagram',
-  google: 'Google',
-  other: 'Otro',
-};
+const sourceLabels: Record<string, string> = { website: 'Web', phone: 'Teléfono', walk_in: 'Recepción', admin: 'Control', instagram: 'Instagram', google: 'Google', other: 'Otro' };
 
 export default async function AnalyticsPage() {
   await requireStaffSession();
   const data = await loadAnalyticsData(30);
   const maxWeekday = Math.max(1, ...data.weekdays.map((item) => item.count));
-
-  return <div className="admin-page analytics-page">
-    <div className="admin-page-head">
-      <div>
-        <span className="admin-kicker">{dateLabel(data.start)}–{dateLabel(data.end)} · últimos 30 días</span>
-        <h1>Analítica operativa</h1>
-        <p>Demanda, asistencia y recurrencia calculadas directamente desde las reservas del restaurante.</p>
-      </div>
-    </div>
-
-    <div className="analytics-metrics" aria-label="Indicadores de los últimos 30 días">
-      <div><span>Reservas</span><strong>{data.metrics.reservations}</strong><small>{data.metrics.bookedCovers} cubiertos válidos</small></div>
-      <div><span>Visitas completadas</span><strong>{data.metrics.completedVisits}</strong><small>{data.metrics.servedCovers} comensales atendidos</small></div>
-      <div><span>Cancelación</span><strong>{data.metrics.cancellationRate}%</strong><small>Sobre servicios resueltos</small></div>
-      <div><span>No-show</span><strong>{data.metrics.noShowRate}%</strong><small>Sobre servicios resueltos</small></div>
-      <div><span>Clientes recurrentes</span><strong>{data.metrics.returningCustomers}</strong><small>Dos o más visitas completadas</small></div>
-    </div>
-
-    <div className="analytics-grid">
-      <section className="admin-panel">
-        <span className="admin-kicker">Adquisición</span><h2>Origen de las reservas</h2>
-        <div className="analytics-bars">{data.sources.length ? data.sources.map((item) => <div key={item.key}><div><span>{sourceLabels[item.key] ?? item.key}</span><strong>{item.count} · {item.percentage}%</strong></div><i><b style={{ width: `${item.percentage}%` }} /></i></div>) : <p>Sin reservas en el periodo.</p>}</div>
-      </section>
-      <section className="admin-panel">
-        <span className="admin-kicker">Servicio</span><h2>Demanda por franja</h2>
-        <div className="analytics-slots">{data.hours.length ? data.hours.map((item) => <div key={item.time}><strong>{item.time}</strong><span>{item.count} reservas</span></div>) : <p>Sin datos suficientes.</p>}</div>
-      </section>
-      <section className="admin-panel span-2">
-        <span className="admin-kicker">Ritmo semanal</span><h2>Días con más presión</h2>
-        <div className="weekday-pressure">{data.weekdays.length ? data.weekdays.map((item) => <div key={item.day}><span>{item.day}</span><i><b style={{ width: `${Math.round((item.count / maxWeekday) * 100)}%` }} /></i><strong>{item.count}</strong></div>) : <p>Sin datos suficientes.</p>}</div>
-      </section>
-      <section className="admin-panel span-2 analytics-method">
-        <span className="admin-kicker">Cálculo</span>
-        <p>Cancelaciones y no-shows usan únicamente servicios ya resueltos. Los comensales atendidos incluyen solo reservas completadas para no mezclar previsión con histórico.</p>
-      </section>
-    </div>
-  </div>;
+  return <div className="admin-page analytics-page"><div className="admin-page-head"><div><span className="admin-kicker">Últimos 30 días · {dateLabel(data.start)}–{dateLabel(data.end)}</span><h1>Información para operar, no para decorar.</h1><p>Demanda, resultados y hábitos calculados directamente desde las reservas reales.</p></div></div><div className="analytics-metrics"><div><span>Reservas</span><strong>{data.metrics.reservations}</strong><small>{data.metrics.bookedCovers} cubiertos válidos</small></div><div><span>Visitas completadas</span><strong>{data.metrics.completedVisits}</strong><small>{data.metrics.servedCovers} comensales atendidos</small></div><div><span>Cancelación</span><strong>{data.metrics.cancellationRate}%</strong><small>Sobre servicios resueltos</small></div><div><span>No-show</span><strong>{data.metrics.noShowRate}%</strong><small>Sobre servicios resueltos</small></div><div><span>Clientes recurrentes</span><strong>{data.metrics.returningCustomers}</strong><small>Dos o más visitas completadas</small></div></div><div className="analytics-grid"><section className="admin-panel"><span className="admin-kicker">Adquisición</span><h2>Origen de las reservas</h2><div className="analytics-bars">{data.sources.length ? data.sources.map((item) => <div key={item.key}><div><span>{sourceLabels[item.key] ?? item.key}</span><strong>{item.count} · {item.percentage}%</strong></div><i><b style={{width:`${item.percentage}%`}}/></i></div>) : <p>Sin reservas en el periodo.</p>}</div></section><section className="admin-panel"><span className="admin-kicker">Servicio</span><h2>Demanda por franja</h2><div className="analytics-slots">{data.hours.length ? data.hours.map((item) => <div key={item.time}><strong>{item.time}</strong><span>{item.count} reservas</span></div>) : <p>Sin datos suficientes.</p>}</div></section><section className="admin-panel span-2"><span className="admin-kicker">Ritmo semanal</span><h2>Días con más presión</h2><div className="weekday-pressure">{data.weekdays.length ? data.weekdays.map((item) => <div key={item.day}><span>{item.day}</span><i><b style={{width:`${Math.round((item.count/maxWeekday)*100)}%`}}/></i><strong>{item.count}</strong></div>) : <p>Sin datos suficientes.</p>}</div></section><section className="admin-panel span-2 analytics-method"><span className="admin-kicker">Criterio</span><p>Cancelaciones y no-shows se calculan solo sobre servicios ya resueltos; los comensales atendidos incluyen únicamente reservas completadas. Así se evita que una reserva futura infle el rendimiento histórico.</p></section></div></div>;
 }
