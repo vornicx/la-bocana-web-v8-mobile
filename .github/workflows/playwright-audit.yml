@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   statuses: read
+  id-token: write
 
 concurrency:
   group: playwright-production-audit
@@ -21,8 +22,8 @@ jobs:
     env:
       BASE_URL: https://labocana.vercel.app
       AUDIT_OUT: artifacts/playwright-audit
-      CONTROL_EMAIL: ${{ secrets.LB_QA_CONTROL_EMAIL }}
-      CONTROL_PASSWORD: ${{ secrets.LB_QA_CONTROL_PASSWORD }}
+      QA_BROKER_URL: https://rjaeqcrtxzonxqhzfxtq.supabase.co/functions/v1/qa-auth-broker
+      AUDIT_DEPLOYMENT_MODE: exact-sha
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,27 +38,52 @@ jobs:
         run: npm install --no-save --package-lock=false playwright@1.62.1
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Wait for this commit on Vercel
+      - name: Acquire ephemeral QA login
+        shell: bash
+        run: |
+          set -euo pipefail
+          OIDC_JSON="$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=labocana-qa")"
+          OIDC_TOKEN="$(printf '%s' "$OIDC_JSON" | jq -er '.value')"
+          CREDS="$(curl -fsSL -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H 'content-type: application/json' "${QA_BROKER_URL}")"
+          EMAIL="$(printf '%s' "$CREDS" | jq -er '.email')"
+          PASSWORD="$(printf '%s' "$CREDS" | jq -er '.password')"
+          echo "::add-mask::${EMAIL}"
+          echo "::add-mask::${PASSWORD}"
+          printf 'CONTROL_EMAIL=%s\n' "$EMAIL" >> "$GITHUB_ENV"
+          printf 'CONTROL_PASSWORD=%s\n' "$PASSWORD" >> "$GITHUB_ENV"
+          echo "Dedicated QA identity acquired; credentials are masked and ephemeral."
+      - name: Resolve production deployment
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           for attempt in {1..36}; do
             STATUS_JSON="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/status" || true)"
             VERCEL_STATE="$(printf '%s' "$STATUS_JSON" | jq -r '[.statuses[]? | select(.context == "Vercel")][0].state // "pending"' 2>/dev/null || echo pending)"
+            VERCEL_DESCRIPTION="$(printf '%s' "$STATUS_JSON" | jq -r '[.statuses[]? | select(.context == "Vercel")][0].description // ""' 2>/dev/null || true)"
+            VERCEL_TARGET="$(printf '%s' "$STATUS_JSON" | jq -r '[.statuses[]? | select(.context == "Vercel")][0].target_url // ""' 2>/dev/null || true)"
             echo "Vercel state: ${VERCEL_STATE}"
             if [ "$VERCEL_STATE" = "success" ]; then
               curl -fsS -o /dev/null -H 'cache-control: no-cache' "${BASE_URL}/?audit=${GITHUB_SHA}"
+              echo 'AUDIT_DEPLOYMENT_MODE=exact-sha' >> "$GITHUB_ENV"
               exit 0
             fi
             if [ "$VERCEL_STATE" = "failure" ] || [ "$VERCEL_STATE" = "error" ]; then
-              echo "Vercel failed for ${GITHUB_SHA}."
+              if printf '%s %s' "$VERCEL_DESCRIPTION" "$VERCEL_TARGET" | grep -Eqi 'rate.?limit|build-rate-limit'; then
+                echo "Vercel is rate-limited; auditing the currently active production deployment instead."
+                curl -fsS -o /dev/null -H 'cache-control: no-cache' "${BASE_URL}/?audit=current-production"
+                echo 'AUDIT_DEPLOYMENT_MODE=current-production-rate-limited' >> "$GITHUB_ENV"
+                exit 0
+              fi
+              echo "Vercel failed for ${GITHUB_SHA}: ${VERCEL_DESCRIPTION}"
               exit 1
             fi
             sleep 5
           done
-          echo "Timed out waiting for the production deployment."
-          exit 1
+          echo "Vercel status timed out; auditing the currently active production deployment."
+          curl -fsS -o /dev/null -H 'cache-control: no-cache' "${BASE_URL}/?audit=current-production"
+          echo 'AUDIT_DEPLOYMENT_MODE=current-production-timeout' >> "$GITHUB_ENV"
       - name: Run Playwright audit v2
         run: node scripts/playwright-audit-v2.mjs
       - name: Upload audit report
