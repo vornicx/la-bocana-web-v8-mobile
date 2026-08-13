@@ -25,7 +25,7 @@ export function ReservationPageContent({ locale = 'es' }: { locale?: PublicLocal
   return (
     <main className="booking-page" id="main-content">
       <section className="booking-visual">
-        <ArtDirectedImage desktop="/images/gallery-official/mesa-atardecer.webp" mobile="/images/curated/mesa-vista-mobile.webp" alt={locale === 'es' ? 'Mesa preparada al atardecer frente al Mediterráneo en La Bocana' : 'A table set at sunset overlooking the Mediterranean at La Bocana'} priority />
+        <ArtDirectedImage desktop="/images/gallery-official/mesa-atardecer.webp" mobile="/images/curated/mesa-vista-mobile.webp" alt={locale === 'es' ? 'Mesa preparada al atardecer frente al Mediterráneo en La Bocana' : 'A table set at sunset overlooking the Mediterranean at La Bocana'} priority sizes="(max-width: 900px) 100vw, 52vw" />
         <div className="visual-shade" />
         <div className="visual-copy">
           <span className="eyebrow">{t.eyebrow}</span>
