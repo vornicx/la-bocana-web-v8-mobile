@@ -14,8 +14,8 @@ import {
   PlusIcon,
   SearchIcon,
   TableIcon,
-  UserIcon,
 } from './admin-icons';
+import { ControlSelect, DatePicker, NumberStepper } from './control-fields';
 import { StatusPill } from './status-pill';
 import { useDialogFocus } from './use-dialog-focus';
 
@@ -25,6 +25,14 @@ type TableChoice = { key: string; name: string; tableIds: string[]; capacity: nu
 const sourceLabel: Record<AdminReservation['source'], string> = {
   website: 'Web', phone: 'Teléfono', walk_in: 'Walk-in', admin: 'Admin', instagram: 'Instagram', google: 'Google', other: 'Otro',
 };
+
+const sourceOptions = [
+  { value: 'phone', label: 'Teléfono', description: 'Reserva recibida por llamada' },
+  { value: 'admin', label: 'Recepción / equipo', description: 'Creada manualmente en Control' },
+  { value: 'instagram', label: 'Instagram', description: 'Conversación en redes sociales' },
+  { value: 'google', label: 'Google', description: 'Contacto desde Google' },
+  { value: 'other', label: 'Otro', description: 'Otro canal de entrada' },
+];
 
 const statusOptions: Array<{ value: ReservationStatus | 'all'; label: string }> = [
   { value: 'all', label: 'Todas' },
@@ -198,10 +206,11 @@ export function ReservationsList({ initialSnapshot, canOperate, openCreateSignal
 
   return <>
     <section className="reservation-commandbar premium-reservation-commandbar">
-      <div className="reservation-date-control">
+      <div className="reservation-date-control bespoke-reservation-date">
         <button aria-label="Día anterior" onClick={() => changeDate(shiftDate(snapshot.date, -1))}>‹</button>
         <div><span>{snapshot.date === todayMadrid() ? 'Hoy' : 'Servicio'}</span><strong>{dateLabel(snapshot.date)}</strong></div>
         <button aria-label="Día siguiente" onClick={() => changeDate(shiftDate(snapshot.date, 1))}>›</button>
+        <div className="reservation-date-picker"><DatePicker value={snapshot.date} onChange={(value) => void changeDate(value)} ariaLabel="Ir a una fecha" /></div>
         {snapshot.date !== todayMadrid() && <button className="reservation-today" onClick={() => changeDate(todayMadrid())}>Hoy</button>}
       </div>
       <div className="reservation-live"><i/><span>{loading ? 'Actualizando…' : 'Supabase en vivo'}</span></div>
@@ -272,6 +281,7 @@ function ReservationDrawer({ reservation, choices, canOperate, loading, onClose,
     const current = [...(reservation.tableIds ?? [])].sort().join('|');
     return [...choice.tableIds].sort().join('|') === current;
   })?.key ?? '';
+  const assignable = [{ value: '', label: 'Sin asignar', description: 'Mantener la reserva sin mesa' }, ...choices.filter((choice) => choice.capacity >= reservation.partySize).map((choice) => ({ value: choice.key, label: choice.name, description: `${choice.area} · ${choice.capacity} pax` }))];
 
   return <div className="admin-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
     <aside ref={dialogRef} className="reservation-drawer premium-reservation-drawer" role="dialog" aria-modal="true" aria-labelledby="reservation-title" tabIndex={-1}>
@@ -282,13 +292,13 @@ function ReservationDrawer({ reservation, choices, canOperate, loading, onClose,
         <div className="reservation-contact-actions">
           {reservation.phone !== 'Sin teléfono' ? <a href={`tel:${reservation.phone.replace(/\s/g, '')}`}><PhoneIcon/><span>Llamar</span></a> : <span className="contact-disabled"><PhoneIcon/><small>Sin teléfono</small></span>}
           {reservation.email ? <a href={`mailto:${reservation.email}`}><MailIcon/><span>Email</span></a> : <span className="contact-disabled"><MailIcon/><small>Sin email</small></span>}
-          <Link href="/admin/sala"><TableIcon/><span>Ver sala</span></Link>
+          <Link href="/control/sala"><TableIcon/><span>Ver sala</span></Link>
         </div>
 
         {reservation.allergies && <section className="reservation-alert"><div><strong>Atención · alergia registrada</strong><p>{reservation.allergies}</p></div><span aria-hidden="true">AL</span></section>}
 
         <section className="drawer-section premium-drawer-section"><div className="drawer-section-head"><div><span className="admin-kicker">Servicio</span><h3>Mesa y operación</h3></div></div><div className="reservation-field-grid">
-          <label><span>Mesa asignada</span><div className="select-shell"><TableIcon/><select disabled={!canOperate || loading || ['completed','cancelled','no_show'].includes(reservation.status)} value={currentChoice} onChange={(event) => void onAssign(reservation.id, event.target.value)}><option value="">Sin asignar</option>{choices.filter((choice) => choice.capacity >= reservation.partySize).map((choice) => <option key={choice.key} value={choice.key}>{choice.name} · {choice.capacity} pax</option>)}</select></div></label>
+          <label><span>Mesa asignada</span><ControlSelect disabled={!canOperate || loading || ['completed','cancelled','no_show'].includes(reservation.status)} value={currentChoice} options={assignable} onChange={(value) => void onAssign(reservation.id, value)} ariaLabel="Mesa asignada" /></label>
           <label><span>Zona</span><div className="readonly-value">{reservation.table ? reservation.area : 'Pendiente de asignación'}</div></label>
           <label><span>Duración estimada</span><div className="readonly-value">{reservation.duration} min</div></label>
           <label><span>Origen</span><div className="readonly-value">{sourceLabel[reservation.source]}</div></label>
@@ -318,6 +328,7 @@ function ReservationDrawer({ reservation, choices, canOperate, loading, onClose,
 function CreateReservationModal({ date, loading, onClose, onCreated }: { date: string; loading: boolean; onClose: () => void; onCreated: (reservationId: string) => Promise<void> }) {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [source, setSource] = useState('phone');
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
@@ -354,7 +365,7 @@ function CreateReservationModal({ date, loading, onClose, onCreated }: { date: s
     try {
       const result = await parseResponse(await fetch('/api/admin/reservations/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
         date, serviceId: selectedSlot.serviceId, startsAt: selectedSlot.startsAt, adults, children,
-        firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), source: form.get('source'),
+        firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), source,
         allergies: form.get('allergies'), preferences: form.get('preferences'), notes: form.get('notes'), internalNotes: form.get('internalNotes'),
       }) }));
       await onCreated(String(result.reservationId));
@@ -364,10 +375,10 @@ function CreateReservationModal({ date, loading, onClose, onCreated }: { date: s
 
   return <div className="admin-overlay modal-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}><section ref={dialogRef} className="create-reservation-modal premium-create-reservation" role="dialog" aria-modal="true" aria-labelledby="create-reservation-title" tabIndex={-1}><header className="drawer-topbar"><div><span className="admin-kicker">Nueva reserva</span><p>{dateLabel(date)} · disponibilidad real</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header><form onSubmit={submit}><div className="create-scroll">
     <div className="create-intro"><h2 id="create-reservation-title">Reserva manual, sin atajos.</h2><p>El horario se valida contra el mismo motor que utiliza la web y la mesa se bloquea atómicamente al confirmar.</p></div>
-    <div className="create-form-section"><span className="admin-kicker">1 · Comensales y hora</span><div className="create-form-grid"><label><span>Adultos</span><input type="number" min="1" max="30" value={adults} onChange={(event) => setAdults(Math.max(1, Number(event.target.value) || 1))}/></label><label><span>Niños</span><input type="number" min="0" max="20" value={children} onChange={(event) => setChildren(Math.max(0, Number(event.target.value) || 0))}/></label></div>
+    <div className="create-form-section"><span className="admin-kicker">1 · Comensales y hora</span><div className="create-form-grid bespoke-guest-counts"><label><span>Adultos</span><NumberStepper value={adults} min={1} max={30} onChange={setAdults} ariaLabel="Número de adultos" /></label><label><span>Niños</span><NumberStepper value={children} min={0} max={20} onChange={setChildren} ariaLabel="Número de niños" /></label></div>
       <div className="admin-slot-selector">{availabilityLoading ? <p className="slot-loading">Calculando disponibilidad real…</p> : grouped.length ? grouped.map(([serviceName, serviceSlots]) => <div key={serviceName}><div className="slot-service-head"><strong>{serviceName}</strong><span>{serviceSlots.length} horas</span></div><div className="admin-slots">{serviceSlots.map((slot) => <button type="button" key={`${slot.serviceId}:${slot.startsAt}`} className={selectedSlot?.startsAt === slot.startsAt && selectedSlot.serviceId === slot.serviceId ? 'active' : ''} onClick={() => setSelectedSlot(slot)}>{localTime(slot.startsAt)}</button>)}</div></div>) : <p className="slot-loading">No hay huecos disponibles para {adults + children} personas.</p>}</div>
     </div>
-    <div className="create-form-section"><span className="admin-kicker">2 · Cliente</span><div className="create-form-grid"><label><span>Nombre</span><input name="firstName" required placeholder="Nombre"/></label><label><span>Apellidos</span><input name="lastName" required placeholder="Apellidos"/></label><label><span>Teléfono</span><input name="phone" type="tel" required placeholder="+34"/></label><label><span>Email</span><input name="email" type="email" placeholder="Opcional"/></label><label><span>Origen</span><select name="source" defaultValue="phone"><option value="phone">Teléfono</option><option value="admin">Recepción / Admin</option><option value="instagram">Instagram</option><option value="google">Google</option><option value="other">Otro</option></select></label><label><span>Preferencias</span><input name="preferences" placeholder="Terraza, trona…"/></label><label className="span-2"><span>Alergias</span><input name="allergies" placeholder="Alergias o intolerancias"/></label><label className="span-2"><span>Notas del cliente</span><textarea name="notes" placeholder="Ocasión o petición especial"/></label><label className="span-2"><span>Nota interna</span><textarea name="internalNotes" placeholder="Contexto solo para el equipo"/></label></div></div>
+    <div className="create-form-section"><span className="admin-kicker">2 · Cliente</span><div className="create-form-grid"><label><span>Nombre</span><input name="firstName" required placeholder="Nombre"/></label><label><span>Apellidos</span><input name="lastName" required placeholder="Apellidos"/></label><label><span>Teléfono</span><input name="phone" type="tel" required placeholder="+34"/></label><label><span>Email</span><input name="email" type="email" placeholder="Opcional"/></label><label><span>Origen</span><ControlSelect value={source} options={sourceOptions} onChange={setSource} ariaLabel="Origen de la reserva" /></label><label><span>Preferencias</span><input name="preferences" placeholder="Terraza, trona…"/></label><label className="span-2"><span>Alergias</span><input name="allergies" placeholder="Alergias o intolerancias"/></label><label className="span-2"><span>Notas del cliente</span><textarea name="notes" placeholder="Ocasión o petición especial"/></label><label className="span-2"><span>Nota interna</span><textarea name="internalNotes" placeholder="Contexto solo para el equipo"/></label></div></div>
     {availabilityError && <div className="staff-login-error create-error" role="alert">{availabilityError}</div>}
     {selectedSlot && <div className="selected-admin-slot" role="status"><CheckIcon/><div><span>Hora seleccionada</span><strong>{selectedSlot.serviceName} · {localTime(selectedSlot.startsAt)} · {adults + children} pax</strong></div></div>}
   </div><footer className="create-actions"><button type="button" className="admin-secondary" onClick={onClose}>Cancelar</button><button className="admin-primary" type="submit" disabled={loading || submitting || !selectedSlot}>{submitting ? 'Reservando…' : 'Crear reserva'}</button></footer></form></section></div>;
