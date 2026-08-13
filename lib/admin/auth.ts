@@ -1,9 +1,10 @@
 import 'server-only';
 
+import { cache } from 'react';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { StaffSession } from './types';
 
-export async function getStaffSession(): Promise<StaffSession | null> {
+const loadStaffSession = cache(async (): Promise<StaffSession | null> => {
   const supabase = await createServerSupabaseClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
@@ -23,10 +24,14 @@ export async function getStaffSession(): Promise<StaffSession | null> {
     fullName: String(staff.full_name),
     role: staff.role as StaffSession['role'],
   };
+});
+
+export async function getStaffSession(): Promise<StaffSession | null> {
+  return loadStaffSession();
 }
 
 export async function requireStaffSession(roles?: StaffSession['role'][]): Promise<StaffSession> {
-  const staff = await getStaffSession();
+  const staff = await loadStaffSession();
   if (!staff) {
     const error = new Error('No autorizado.') as Error & { status?: number };
     error.status = 401;
