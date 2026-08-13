@@ -4,6 +4,7 @@ import { getStaffSession } from '@/lib/admin/auth';
 import { redirect } from 'next/navigation';
 import { LoginForm } from './login-form';
 import './control-login.css';
+import './control-login-brand.css';
 
 export const metadata: Metadata = {
   title: 'La Bocana Control · Acceso',
