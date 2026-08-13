@@ -56,11 +56,18 @@ export async function DELETE(request: Request) {
     if (!objectPath || objectPath.includes('..') || objectPath.includes('\\')) throw new Error('Ruta de fotografía inválida.');
 
     const supabase = createAdminClient();
+    const { error: detachError } = await supabase.from('menu_items').update({
+      image_path: null,
+      image_alt_es: null,
+      image_alt_en: null,
+    }).eq('image_path', publicPath);
+    if (detachError) throw new Error(`No se pudo retirar la fotografía de la carta: ${detachError.message}`);
+
     const { error } = await supabase.storage.from('menu-media').remove([objectPath]);
-    if (error) throw new Error(`No se pudo retirar la fotografía: ${error.message}`);
+    if (error) throw new Error(`La fotografía ya no está publicada, pero no se pudo limpiar el archivo: ${error.message}`);
     await supabase.from('activity_logs').insert({
       actor_type: 'staff', actor_user_id: staff.id, action: 'menu_media_removed', entity_type: 'menu_media',
-      metadata: { object_path: objectPath },
+      metadata: { object_path: objectPath, detached_from_menu: true },
     });
     return NextResponse.json({ ok: true, removed: true });
   } catch (error) {
