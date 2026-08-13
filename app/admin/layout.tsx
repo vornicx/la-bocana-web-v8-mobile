@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/admin-shell';
+import { ControlA11yGuard } from '@/components/admin/control-a11y-guard';
 import { getStaffSession } from '@/lib/admin/auth';
 import './control-premium.css';
 import './control-content.css';
@@ -26,5 +27,5 @@ export const metadata: Metadata = {
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const staff = await getStaffSession();
   if (!staff) redirect('/control/login');
-  return <AdminShell staff={staff}>{children}</AdminShell>;
+  return <><ControlA11yGuard/><AdminShell staff={staff}>{children}</AdminShell></>;
 }
