@@ -1,50 +1,199 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { StaffSession } from '@/lib/admin/types';
-import { AnalyticsIcon, BookingIcon, CalendarIcon, CommunicationIcon, FloorIcon, HomeIcon, MenuIcon, SettingsIcon, UsersIcon, WaitlistIcon } from './admin-icons';
+import {
+  AnalyticsIcon,
+  BookingIcon,
+  CalendarIcon,
+  CloseIcon,
+  CommunicationIcon,
+  FloorIcon,
+  HomeIcon,
+  MenuIcon,
+  PlusIcon,
+  SearchIcon,
+  SettingsIcon,
+  UsersIcon,
+  WaitlistIcon,
+} from './admin-icons';
 
-const nav = [
-  {href:'/control',label:'Resumen',Icon:HomeIcon},
-  {href:'/control/reservas',label:'Reservas',Icon:BookingIcon},
-  {href:'/control/calendario',label:'Calendario',Icon:CalendarIcon},
-  {href:'/control/sala',label:'Sala',Icon:FloorIcon},
-  {href:'/control/espera',label:'Espera',Icon:WaitlistIcon},
-  {href:'/control/clientes',label:'Clientes',Icon:UsersIcon},
-  {href:'/control/carta',label:'Carta',Icon:MenuIcon},
-  {href:'/control/analitica',label:'Analítica',Icon:AnalyticsIcon},
-  {href:'/control/comunicaciones',label:'Comunicaciones',Icon:CommunicationIcon},
-  {href:'/control/configuracion',label:'Configuración',Icon:SettingsIcon},
+const serviceNav = [
+  { href: '/control', label: 'Resumen', description: 'Pulso del servicio', Icon: HomeIcon },
+  { href: '/control/reservas', label: 'Reservas', description: 'Llegadas y gestión', Icon: BookingIcon },
+  { href: '/control/sala', label: 'Sala', description: 'Mesas en tiempo real', Icon: FloorIcon },
+  { href: '/control/espera', label: 'Espera', description: 'Demanda sin mesa', Icon: WaitlistIcon },
+  { href: '/control/calendario', label: 'Calendario', description: 'Capacidad y presión', Icon: CalendarIcon },
 ];
 
-function initials(name:string){
-  return name.split(/\s+/).filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('') || 'LB';
+const managementNav = [
+  { href: '/control/clientes', label: 'Clientes', description: 'Historial y preferencias', Icon: UsersIcon },
+  { href: '/control/carta', label: 'Carta', description: 'Oferta gastronómica', Icon: MenuIcon },
+  { href: '/control/analitica', label: 'Analítica', description: 'Rendimiento', Icon: AnalyticsIcon },
+  { href: '/control/comunicaciones', label: 'Comunicaciones', description: 'Mensajes al cliente', Icon: CommunicationIcon },
+  { href: '/control/configuracion', label: 'Configuración', description: 'Reglas del negocio', Icon: SettingsIcon },
+];
+
+const allNav = [...serviceNav, ...managementNav];
+
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'LB';
 }
 
-function todayLabel(){
-  const text = new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',weekday:'short',day:'numeric',month:'short'}).format(new Date());
+function todayLabel() {
+  const text = new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date());
   return text.replace('.', '');
 }
 
-export function AdminShell({children,staff}:{children:ReactNode;staff:StaffSession}){
-  const pathname=usePathname();
-  return <div className="admin-app">
-    <aside className="admin-sidebar">
-      <div className="admin-brand"><span className="admin-monogram">LB</span><div><strong>La Bocana</strong><small>Puerto Banús · Operaciones</small></div></div>
-      <nav className="admin-nav" aria-label="Administración">
-        {nav.map(({href,label,Icon})=>{
-          const active=href==='/control'?pathname===href:pathname.startsWith(href);
-          return <Link key={href} href={href} className={active?'active':''}><Icon/><span>{label}</span></Link>
-        })}
+function isActive(pathname: string, href: string) {
+  return href === '/control' ? pathname === href : pathname.startsWith(href);
+}
+
+export function AdminShell({ children, staff }: { children: ReactNode; staff: StaffSession }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const current = allNav.find((item) => isActive(pathname, item.href)) ?? serviceNav[0];
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen((value) => !value);
+      }
+      if (event.key === 'Escape') setPaletteOpen(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (!paletteOpen) return;
+    setQuery('');
+    const timer = window.setTimeout(() => searchRef.current?.focus(), 30);
+    return () => window.clearTimeout(timer);
+  }, [paletteOpen]);
+
+  const commands = useMemo(() => {
+    const navigation = allNav.map((item) => ({
+      id: item.href,
+      label: item.label,
+      description: item.description,
+      href: item.href,
+      Icon: item.Icon,
+      group: 'Ir a',
+    }));
+    const actions = [
+      { id: 'new-reservation', label: 'Nueva reserva', description: 'Crear una reserva manual con disponibilidad real', href: '/control/reservas?new=1', Icon: PlusIcon, group: 'Acciones' },
+      { id: 'unassigned', label: 'Reservas sin mesa', description: 'Abrir reservas que requieren asignación', href: '/control/reservas?unassigned=1', Icon: BookingIcon, group: 'Acciones' },
+      { id: 'floor', label: 'Abrir sala', description: 'Ver ocupación y mover mesas', href: '/control/sala', Icon: FloorIcon, group: 'Acciones' },
+      { id: 'waitlist', label: 'Gestionar lista de espera', description: 'Resolver demanda pendiente', href: '/control/espera', Icon: WaitlistIcon, group: 'Acciones' },
+    ];
+    const normalized = query.trim().toLowerCase();
+    return [...actions, ...navigation].filter((item) => !normalized || `${item.label} ${item.description}`.toLowerCase().includes(normalized));
+  }, [query]);
+
+  function go(href: string) {
+    setPaletteOpen(false);
+    router.push(href);
+  }
+
+  function NavGroup({ label, items }: { label: string; items: typeof serviceNav }) {
+    return <div className="control-nav-group">
+      <span className="control-nav-label">{label}</span>
+      <nav className="admin-nav" aria-label={label}>
+        {items.map(({ href, label: itemLabel, Icon }) => (
+          <Link key={href} href={href} className={isActive(pathname, href) ? 'active' : ''}>
+            <Icon />
+            <span>{itemLabel}</span>
+          </Link>
+        ))}
       </nav>
-      <div className="admin-sidebar-foot"><div className="dev-dot supabase-dot live"/><div><strong>Backend operativo</strong><small>Supabase conectado</small></div></div>
+    </div>;
+  }
+
+  return <div className="admin-app control-app">
+    <aside className="admin-sidebar control-sidebar">
+      <Link href="/control" className="control-brand" aria-label="La Bocana Control · Inicio">
+        <span className="control-monogram">LB</span>
+        <div><strong>La Bocana</strong><small>Control</small></div>
+      </Link>
+
+      <button className="control-new-reservation" onClick={() => router.push('/control/reservas?new=1')}>
+        <PlusIcon />
+        <span>Nueva reserva</span>
+      </button>
+
+      <div className="control-nav-scroll">
+        <NavGroup label="Servicio" items={serviceNav} />
+        <NavGroup label="Gestión" items={managementNav} />
+      </div>
+
+      <div className="control-sidebar-status">
+        <span className="control-live-dot" />
+        <div><strong>Control conectado</strong><small>Datos operativos en vivo</small></div>
+      </div>
     </aside>
-    <div className="admin-main">
-      <header className="admin-topbar"><div className="admin-mobile-brand">LA BOCANA</div><div className="admin-topbar-context"><span>Operaciones</span><strong>La Bocana · Marbella</strong></div><div className="admin-topbar-right"><span className="admin-system-pill live"><i/>Sistema conectado</span><span className="admin-date">{todayLabel()}</span><div className="admin-profile"><span className="admin-avatar">{initials(staff.fullName)}</span><div><strong>{staff.fullName}</strong><small>{staff.role === 'manager' ? 'Manager' : staff.role === 'host' ? 'Host' : staff.role === 'editor' ? 'Editor' : 'Consulta'}</small></div><form action="/auth/signout" method="post"><button type="submit" aria-label="Cerrar sesión">Salir</button></form></div></div></header>
-      <div className="admin-mobile-nav">{nav.filter((item)=>!['/control/calendario','/control/configuracion','/control/analitica','/control/comunicaciones'].includes(item.href)).map(({href,label,Icon})=>{const active=href==='/control'?pathname===href:pathname.startsWith(href);return <Link key={href} href={href} className={active?'active':''}><Icon/><span>{label}</span></Link>})}</div>
-      <main className="admin-content" id="main-content">{children}</main>
+
+    <div className="admin-main control-main">
+      <header className="admin-topbar control-topbar">
+        <div className="control-topbar-context">
+          <span>La Bocana · Puerto Banús</span>
+          <strong>{current.label}</strong>
+        </div>
+
+        <button className="control-command-trigger" onClick={() => setPaletteOpen(true)} aria-label="Abrir búsqueda y comandos">
+          <SearchIcon />
+          <span>Buscar o ejecutar…</span>
+          <kbd>⌘ K</kbd>
+        </button>
+
+        <div className="admin-topbar-right control-topbar-right">
+          <span className="control-system-pill"><i />En vivo</span>
+          <span className="admin-date">{todayLabel()}</span>
+          <div className="admin-profile control-profile">
+            <span className="admin-avatar">{initials(staff.fullName)}</span>
+            <div><strong>{staff.fullName}</strong><small>{staff.role === 'manager' ? 'Manager' : staff.role === 'host' ? 'Host' : staff.role === 'editor' ? 'Editor' : 'Consulta'}</small></div>
+            <form action="/auth/signout" method="post"><button type="submit" aria-label="Cerrar sesión">Salir</button></form>
+          </div>
+        </div>
+      </header>
+
+      <main className="admin-content control-content" id="main-content">{children}</main>
+
+      <nav className="control-mobile-nav" aria-label="Navegación móvil">
+        {serviceNav.slice(0, 4).map(({ href, label, Icon }) => <Link key={href} href={href} className={isActive(pathname, href) ? 'active' : ''}><Icon /><span>{label}</span></Link>)}
+        <button onClick={() => setPaletteOpen(true)}><SearchIcon /><span>Más</span></button>
+      </nav>
     </div>
-  </div>
+
+    {paletteOpen && <div className="control-command-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setPaletteOpen(false); }}>
+      <section className="control-command-palette" role="dialog" aria-modal="true" aria-label="Buscar o ejecutar una acción">
+        <header>
+          <SearchIcon />
+          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Reserva, sala, cliente, configuración…" />
+          <button onClick={() => setPaletteOpen(false)} aria-label="Cerrar"><CloseIcon /></button>
+        </header>
+        <div className="control-command-results">
+          {commands.length ? commands.map(({ id, label, description, href, Icon, group }, index) => (
+            <button key={id} onClick={() => go(href)}>
+              <span className="control-command-icon"><Icon /></span>
+              <div><small>{group}</small><strong>{label}</strong><p>{description}</p></div>
+              {index === 0 && <kbd>↵</kbd>}
+            </button>
+          )) : <div className="control-command-empty">No hay acciones que coincidan con la búsqueda.</div>}
+        </div>
+        <footer><span><kbd>⌘K</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span><span>Control · Archic</span></footer>
+      </section>
+    </div>}
+  </div>;
 }
