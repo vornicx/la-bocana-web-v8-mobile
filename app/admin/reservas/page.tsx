@@ -1,6 +1,6 @@
 import { ReservationsPageClient } from './reservations-page-client';
 import { requireStaffSession } from '@/lib/admin/auth';
-import { loadFloorSnapshot } from '@/lib/admin/floor-data';
+import { loadReservationsSnapshot } from '@/lib/admin/reservations-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +12,6 @@ function todayMadrid() {
 
 export default async function ReservationsPage() {
   const staff = await requireStaffSession();
-  const snapshot = await loadFloorSnapshot(todayMadrid());
+  const snapshot = await loadReservationsSnapshot(todayMadrid());
   return <ReservationsPageClient initialSnapshot={snapshot} canOperate={staff.role === 'manager' || staff.role === 'host'} />;
 }
