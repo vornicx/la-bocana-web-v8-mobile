@@ -8,6 +8,7 @@ import './control-content.css';
 import './control-waitlist.css';
 import './control-customers.css';
 import './control-refinement.css';
+import './control-polish.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
