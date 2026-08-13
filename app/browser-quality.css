@@ -1,5 +1,44 @@
 /* Browser-audit hardening.
    Only measurable interaction/legibility corrections belong here. */
+.check-row{
+  position:relative;
+  min-height:44px;
+  align-items:flex-start;
+  cursor:pointer;
+}
+.check-row input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  margin:0;
+  border:1px solid rgba(16,44,76,.28);
+  border-radius:4px;
+  background:#fbf9f4;
+  display:grid;
+  place-items:center;
+  transition:border-color .14s ease,background-color .14s ease,box-shadow .14s ease;
+}
+.check-row input[type="checkbox"]::after{
+  content:"";
+  width:10px;
+  height:6px;
+  border-left:2px solid #fff;
+  border-bottom:2px solid #fff;
+  transform:translateY(-1px) rotate(-45deg) scale(0);
+  transform-origin:center;
+  transition:transform .12s ease;
+}
+.check-row input[type="checkbox"]:checked{
+  border-color:#102c4c;
+  background:#102c4c;
+}
+.check-row input[type="checkbox"]:checked::after{transform:translateY(-1px) rotate(-45deg) scale(1)}
+.check-row input[type="checkbox"]:focus-visible{outline:2px solid rgba(202,160,126,.72);outline-offset:3px}
+.check-row input[type="checkbox"]:disabled{background:#e8e5df;border-color:rgba(16,44,76,.12);cursor:not-allowed}
+.check-row input[type="checkbox"]:disabled + span{opacity:.55}
+
 @media (max-width: 700px) {
   .booking-page .brand-row > a:first-child,
   .lookup-page .brand-row > a:first-child {
@@ -42,4 +81,9 @@
     display: inline-flex;
     align-items: center;
   }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .check-row input[type="checkbox"],
+  .check-row input[type="checkbox"]::after{transition:none}
 }
