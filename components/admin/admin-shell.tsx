@@ -67,9 +67,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
   const current = allNav.find((item) => isActive(pathname, item.href)) ?? serviceNav[0];
   const routeKey = `${pathname}?${searchParams.toString()}`;
 
-  useEffect(() => {
-    setNavigating(false);
-  }, [routeKey]);
+  useEffect(() => setNavigating(false), [routeKey]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -127,7 +125,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
       <span className="control-nav-label">{label}</span>
       <nav className="admin-nav" aria-label={label}>
         {items.map(({ href, label: itemLabel, Icon }) => (
-          <Link key={href} href={href} prefetch className={isActive(pathname, href) ? 'active' : ''} onNavigate={() => setNavigating(true)}>
+          <Link key={href} href={href} prefetch={false} className={isActive(pathname, href) ? 'active' : ''} onNavigate={() => setNavigating(true)}>
             <Icon />
             <span>{itemLabel}</span>
           </Link>
@@ -138,7 +136,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
 
   return <div className="admin-app control-app">
     <aside className="admin-sidebar control-sidebar">
-      <Link href="/control" prefetch className="control-brand" aria-label="La Bocana Control · Inicio" onNavigate={() => setNavigating(true)}>
+      <Link href="/control" prefetch={false} className="control-brand" aria-label="La Bocana Control · Inicio" onNavigate={() => setNavigating(true)}>
         <span className="control-monogram">LB</span>
         <div><strong>La Bocana</strong><small>Control</small></div>
       </Link>
@@ -187,7 +185,11 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
       <main className={`admin-content control-content ${navigating ? 'is-navigating' : ''}`} id="main-content">{children}</main>
 
       <nav className="control-mobile-nav" aria-label="Navegación móvil">
-        {serviceNav.slice(0, 4).map(({ href, label, Icon }) => <Link key={href} href={href} prefetch onNavigate={() => setNavigating(true)} className={isActive(pathname, href) ? 'active' : ''}><Icon /><span>{label}</span></Link>)}
+        {serviceNav.slice(0, 4).map(({ href, label, Icon }) => (
+          <Link key={href} href={href} prefetch={false} onNavigate={() => setNavigating(true)} className={isActive(pathname, href) ? 'active' : ''}>
+            <Icon /><span>{label}</span>
+          </Link>
+        ))}
         <button onClick={() => setPaletteOpen(true)}><SearchIcon /><span>Más</span></button>
       </nav>
     </div>
