@@ -15,6 +15,7 @@ import './control-calendar-premium.css';
 import './control-operations-premium.css';
 import './control-native-guard.css';
 import './control-layout-system.css';
+import './control-editorial-system.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
