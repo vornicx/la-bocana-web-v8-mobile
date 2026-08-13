@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import type { StaffSession } from '@/lib/admin/types';
 import {
   AnalyticsIcon,
@@ -94,7 +94,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
     }));
     const actions = [
       { id: 'new-reservation', label: 'Nueva reserva', description: 'Crear una reserva manual con disponibilidad real', href: '/control/reservas?new=1', Icon: PlusIcon, group: 'Acciones' },
-      { id: 'unassigned', label: 'Reservas sin mesa', description: 'Abrir reservas que requieren asignación', href: '/control/reservas?unassigned=1', Icon: BookingIcon, group: 'Acciones' },
+      { id: 'unassigned', label: 'Reservas sin mesa', description: 'Asignar reservas pendientes directamente desde el plano', href: '/control/sala', Icon: FloorIcon, group: 'Acciones' },
       { id: 'floor', label: 'Abrir sala', description: 'Ver ocupación y mover mesas', href: '/control/sala', Icon: FloorIcon, group: 'Acciones' },
       { id: 'waitlist', label: 'Gestionar lista de espera', description: 'Resolver demanda pendiente', href: '/control/espera', Icon: WaitlistIcon, group: 'Acciones' },
     ];
@@ -105,6 +105,13 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
   function go(href: string) {
     setPaletteOpen(false);
     router.push(href);
+  }
+
+  function handleCommandKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter' && commands[0]) {
+      event.preventDefault();
+      go(commands[0].href);
+    }
   }
 
   function NavGroup({ label, items }: { label: string; items: typeof serviceNav }) {
@@ -180,7 +187,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
       <section className="control-command-palette" role="dialog" aria-modal="true" aria-label="Buscar o ejecutar una acción">
         <header>
           <SearchIcon />
-          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Reserva, sala, cliente, configuración…" />
+          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleCommandKeyDown} placeholder="Reserva, sala, cliente, configuración…" />
           <button onClick={() => setPaletteOpen(false)} aria-label="Cerrar"><CloseIcon /></button>
         </header>
         <div className="control-command-results">
