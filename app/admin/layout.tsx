@@ -6,6 +6,7 @@ import { getStaffSession } from '@/lib/admin/auth';
 import './control-premium.css';
 import './control-content.css';
 import './control-waitlist.css';
+import './control-customers.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
