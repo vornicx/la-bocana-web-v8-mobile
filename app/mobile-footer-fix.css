@@ -35,6 +35,14 @@
     gap: 8px;
   }
 
+  .public-site .footer-address > a {
+    width: max-content;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-right: 12px;
+  }
+
   .public-site .public-footer > nav {
     gap: 8px 20px !important;
   }
