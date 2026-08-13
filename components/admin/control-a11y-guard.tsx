@@ -23,8 +23,8 @@ function fallbackName(element: HTMLInputElement | HTMLTextAreaElement | HTMLSele
   return element.tagName === 'TEXTAREA' ? 'Campo de texto' : 'Campo de formulario';
 }
 
-function harden(root: ParentNode = document) {
-  const fields = root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input:not([type="hidden"]), textarea, select');
+function harden() {
+  const fields = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input:not([type="hidden"]), textarea, select');
   for (const field of fields) {
     if (!visible(field) || hasAccessibleName(field)) continue;
     field.setAttribute('aria-label', fallbackName(field));
@@ -37,17 +37,12 @@ export function ControlA11yGuard() {
 
   useEffect(() => {
     harden();
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (!(node instanceof HTMLElement)) continue;
-          if (node.matches('input:not([type="hidden"]),textarea,select')) harden(node.parentElement ?? document);
-          else harden(node);
-        }
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    const frame = requestAnimationFrame(harden);
+    const timer = window.setTimeout(harden, 250);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
   }, [pathname]);
 
   return null;
