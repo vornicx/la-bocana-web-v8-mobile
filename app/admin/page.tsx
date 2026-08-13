@@ -28,8 +28,8 @@ export default async function AdminDashboard() {
         <p>El punto de control de La Bocana: llegadas, mesas, capacidad y demanda pendientes en una sola vista.</p>
       </div>
       <div className="control-hero-actions">
-        <Link className="primary" href="/control/reservas?new=1"><PlusIcon />Nueva reserva</Link>
-        <Link className="secondary" href="/control/sala"><FloorIcon />Abrir sala</Link>
+        <Link prefetch={false} className="primary" href="/control/reservas?new=1"><PlusIcon />Nueva reserva</Link>
+        <Link prefetch={false} className="secondary" href="/control/sala"><FloorIcon />Abrir sala</Link>
       </div>
     </section>
 
@@ -41,15 +41,15 @@ export default async function AdminDashboard() {
     </div>
 
     <section className="control-priority-grid" aria-label="Prioridades del servicio">
-      <Link className={`control-priority ${data.metrics.unassigned ? 'attention' : 'clear'}`} href="/control/sala">
+      <Link prefetch={false} className={`control-priority ${data.metrics.unassigned ? 'attention' : 'clear'}`} href="/control/sala">
         <span className="control-priority-icon">{data.metrics.unassigned ? <FloorIcon /> : <CheckIcon />}</span>
         <div><span>Asignación</span><strong>{data.metrics.unassigned ? `${data.metrics.unassigned} sin mesa` : 'Sala preparada'}</strong><small>{data.metrics.unassigned ? 'Asignar directamente desde el plano' : 'No hay reservas activas sin asignar'}</small></div><ChevronRightIcon />
       </Link>
-      <Link className={`control-priority ${data.metrics.waitlist ? 'attention' : 'clear'}`} href="/control/espera">
+      <Link prefetch={false} className={`control-priority ${data.metrics.waitlist ? 'attention' : 'clear'}`} href="/control/espera">
         <span className="control-priority-icon">{data.metrics.waitlist ? <WaitlistIcon /> : <CheckIcon />}</span>
         <div><span>Demanda</span><strong>{data.metrics.waitlist ? `${data.metrics.waitlist} en espera` : 'Sin espera'}</strong><small>{data.metrics.waitlist ? 'Revisar huecos y contactar' : 'No hay solicitudes por resolver'}</small></div><ChevronRightIcon />
       </Link>
-      <Link className={`control-priority ${occupancyAttention ? 'attention' : 'clear'}`} href="/control/calendario">
+      <Link prefetch={false} className={`control-priority ${occupancyAttention ? 'attention' : 'clear'}`} href="/control/calendario">
         <span className="control-priority-icon">{occupancyAttention ? <CalendarIcon /> : <CheckIcon />}</span>
         <div><span>Capacidad</span><strong>{data.metrics.occupancy}% previsto</strong><small>{occupancyAttention ? 'Servicio con presión elevada' : 'Ocupación controlada'}</small></div><ChevronRightIcon />
       </Link>
@@ -57,17 +57,17 @@ export default async function AdminDashboard() {
 
     <div className="dashboard-grid">
       <section className="admin-panel span-2">
-        <div className="panel-head"><div><span className="admin-kicker">Siguiente en sala</span><h2>Próximas llegadas</h2></div><Link href="/control/reservas">Ver todas</Link></div>
-        {data.upcoming.length ? <div className="compact-reservations">{data.upcoming.map((reservation) => <Link className="compact-row compact-row-link" href={`/control/reservas?reservation=${reservation.id}`} key={reservation.id}><time>{reservation.time}</time><div className="compact-person"><strong>{reservation.customer}</strong><small>{dashboardReservationLabel(reservation)}{reservation.allergies ? ' · alergia registrada' : ''}</small></div><StatusPill status={reservation.status} /></Link>)}</div> : <div className="admin-empty">No hay próximas reservas activas para hoy.</div>}
+        <div className="panel-head"><div><span className="admin-kicker">Siguiente en sala</span><h2>Próximas llegadas</h2></div><Link prefetch={false} href="/control/reservas">Ver todas</Link></div>
+        {data.upcoming.length ? <div className="compact-reservations">{data.upcoming.map((reservation) => <Link prefetch={false} className="compact-row compact-row-link" href={`/control/reservas?reservation=${reservation.id}`} key={reservation.id}><time>{reservation.time}</time><div className="compact-person"><strong>{reservation.customer}</strong><small>{dashboardReservationLabel(reservation)}{reservation.allergies ? ' · alergia registrada' : ''}</small></div><StatusPill status={reservation.status} /></Link>)}</div> : <div className="admin-empty">No hay próximas reservas activas para hoy.</div>}
       </section>
 
       <section className="admin-panel">
-        <div className="panel-head"><div><span className="admin-kicker">7 días</span><h2>Presión semanal</h2></div><Link href="/control/calendario">Calendario</Link></div>
+        <div className="panel-head"><div><span className="admin-kicker">7 días</span><h2>Presión semanal</h2></div><Link prefetch={false} href="/control/calendario">Calendario</Link></div>
         <div className="week-strip">{data.week.map((day) => <div key={day.date} className={`${day.active ? 'active' : ''} ${day.closed ? 'closed' : ''}`}><span>{dateLabel(day.date, { weekday: 'short' })}</span><strong>{dateLabel(day.date, { day: 'numeric' })}</strong><small>{day.closed ? 'Cerrado' : `${day.covers} pax`}</small></div>)}</div>
       </section>
 
       <section className="admin-panel">
-        <div className="panel-head"><div><span className="admin-kicker">Demanda pendiente</span><h2>Lista de espera</h2></div><Link href="/control/espera">Gestionar {data.waitlist.length ? `· ${data.waitlist.length}` : ''}</Link></div>
+        <div className="panel-head"><div><span className="admin-kicker">Demanda pendiente</span><h2>Lista de espera</h2></div><Link prefetch={false} href="/control/espera">Gestionar {data.waitlist.length ? `· ${data.waitlist.length}` : ''}</Link></div>
         {data.waitlist.length ? <div className="waitlist-list">{data.waitlist.slice(0, 4).map((item) => <div key={item.id}><time>{item.time}</time><div><strong>{item.name}</strong><small>{item.partySize} pax · {item.flexibility}</small></div></div>)}</div> : <div className="admin-empty compact-empty">Sin solicitudes activas para hoy.</div>}
       </section>
 
