@@ -12,7 +12,7 @@ export function PublicPage({ eyebrow, title, intro, image, mobileImage, imageAlt
     <ExperienceMotion />
     <PublicHeader solid locale={locale} />
     <main id="main-content">
-      <section className="subpage-hero"><div className="subpage-copy" data-reveal><span>{eyebrow}</span><h1>{title}</h1><p>{intro}</p></div><div className="subpage-image"><ArtDirectedImage desktop={image} mobile={mobileImage || image} alt={imageAlt || ''} priority /><span className="image-caption">La Bocana · Puerto Banús</span></div></section>
+      <section className="subpage-hero"><div className="subpage-copy" data-reveal><span>{eyebrow}</span><h1>{title}</h1><p>{intro}</p></div><div className="subpage-image"><ArtDirectedImage desktop={image} mobile={mobileImage || image} alt={imageAlt || ''} priority sizes="(max-width: 700px) 100vw, 52vw" /><span className="image-caption">La Bocana · Puerto Banús</span></div></section>
       <section className="subpage-body">{children}</section>
       <section className="subpage-reserve" data-reveal><span>{copy.table}</span><h2>{copy.reserveTitle}</h2><Link href={localePaths[locale].reserve}>{copy.reserveButton}</Link></section>
     </main>
