@@ -3,8 +3,16 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return [
+      { source: '/admin-login', destination: '/control/login', permanent: false },
+      { source: '/admin', destination: '/control', permanent: false },
+      { source: '/admin/:path*', destination: '/control/:path*', permanent: false },
+    ];
+  },
   async rewrites() {
     return [
+      { source: '/control/login', destination: '/admin-login' },
       { source: '/control', destination: '/admin' },
       { source: '/control/:path*', destination: '/admin/:path*' },
     ];
