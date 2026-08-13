@@ -7,6 +7,7 @@ import './control-premium.css';
 import './control-content.css';
 import './control-waitlist.css';
 import './control-customers.css';
+import './control-refinement.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
