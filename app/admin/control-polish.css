@@ -1,0 +1,12 @@
+/* Final operational polish — density without clutter */
+.control-service-hero{min-height:176px;padding:27px 30px;box-shadow:0 16px 38px rgba(13,41,34,.11)}
+.control-service-hero h1{font-size:45px!important;margin:8px 0 9px!important}.control-service-hero p{font-size:12.5px!important;max-width:680px}.control-service-hero:after{width:270px;height:270px;right:-95px;top:-160px;box-shadow:0 0 0 32px rgba(216,188,138,.022),0 0 0 64px rgba(216,188,138,.014)}
+.control-app .admin-metric>strong,.control-app .reservation-summary strong,.control-app .floor-metrics strong,.control-app .crm-summary strong,.control-app .analytics-metrics strong,.control-app .communication-metrics strong,.control-app time,.control-app .capacity-bars strong{font-variant-numeric:tabular-nums}
+.control-app button,.control-app a{transition-duration:.14s}
+.control-app .admin-panel:hover{border-color:rgba(16,43,39,.145)}
+.control-app .reservation-row:hover{background:#f7f7f3}.control-app .reservation-row:active{background:#f1f2ed}
+.control-app input,.control-app select,.control-app textarea{accent-color:#173b31}
+
+.control-error-page{min-height:55vh;display:grid;place-items:center}.control-error-card{width:min(650px,100%);padding:34px!important}.control-error-card h1{font:400 38px/.98 Georgia,'Times New Roman',serif;letter-spacing:-.035em;margin:10px 0 14px}.control-error-card>p{font-size:13px;line-height:1.65;color:#69766f;max-width:540px}.control-error-actions{display:flex;gap:9px;margin:23px 0 18px}.control-error-actions a{text-decoration:none}.control-error-card>small{display:block;padding-top:15px;border-top:1px solid var(--control-line);font-size:10px;line-height:1.5;color:#829089}
+
+@media(max-width:720px){.control-service-hero{min-height:162px;padding:21px 19px}.control-service-hero h1{font-size:37px!important}.control-service-hero p{font-size:11.5px!important}.control-error-card{padding:24px!important}.control-error-card h1{font-size:31px}.control-error-actions{display:grid;grid-template-columns:1fr}.control-error-actions .admin-primary,.control-error-actions .admin-secondary{width:100%}}
