@@ -8,7 +8,13 @@ function text(value: unknown, max: number, required = false) {
   return parsed || null;
 }
 function order(value: unknown) { const parsed = Number(value); return Number.isInteger(parsed) && parsed >= 0 && parsed <= 10_000 ? parsed : 0; }
-function imagePath(value: unknown) { const parsed = text(value, 500); if (parsed && !parsed.startsWith('/images/')) throw new Error('La fotografía debe pertenecer a la biblioteca oficial de la web.'); return parsed; }
+function imagePath(value: unknown) {
+  const parsed = text(value, 500);
+  if (parsed && !parsed.startsWith('/images/') && !parsed.startsWith('/api/menu-media/')) {
+    throw new Error('La fotografía debe pertenecer a la biblioteca oficial o haberse subido desde Control.');
+  }
+  return parsed;
+}
 
 export async function PATCH(request: Request) {
   try {
