@@ -25,5 +25,5 @@ export async function loginStaff(formData: FormData) {
     redirect('/admin-login?error=access');
   }
 
-  redirect('/admin/sala');
+  redirect('/control/sala');
 }
