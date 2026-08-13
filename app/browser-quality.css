@@ -52,6 +52,7 @@
   .lookup-page .booking-language {
     min-width: 44px;
     min-height: 44px;
+    font-size: 9px;
   }
 
   .booking-page .visual-copy .eyebrow,
@@ -68,10 +69,13 @@
   }
 
   .booking-page .existing-booking.prominent a,
-  .lookup-page .existing-booking.prominent a {
+  .lookup-page .existing-booking.prominent a,
+  .lookup-page .lookup-links a {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
     font-size: 9px;
   }
 
