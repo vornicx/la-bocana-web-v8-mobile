@@ -3,6 +3,12 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  async rewrites() {
+    return [
+      { source: '/control', destination: '/admin' },
+      { source: '/control/:path*', destination: '/admin/:path*' },
+    ];
+  },
   async headers() {
     return [
       {
