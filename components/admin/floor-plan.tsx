@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useMemo, useState } from 'react';
 import type { AdminReservation, DiningTable, FloorSnapshot, ReservationStatus } from '@/lib/admin/types';
 import { CheckIcon, CloseIcon, PlusIcon, TableIcon, UserIcon } from './admin-icons';
+import { ControlSelect, DatePicker, NumberStepper } from './control-fields';
 import { StatusPill } from './status-pill';
 import { useDialogFocus } from './use-dialog-focus';
 
@@ -227,10 +228,11 @@ export function FloorPlan({ initialSnapshot, canOperate }: { initialSnapshot: Fl
   return (
     <>
       <section className="floor-commandbar premium-commandbar">
-        <div className="floor-date-control">
+        <div className="floor-date-control bespoke-floor-date">
           <button aria-label="Día anterior" onClick={() => changeDate(shiftDateValue(snapshot.date, -1))}>‹</button>
           <div><span className="admin-kicker">Día de servicio</span><strong>{dateLabel(snapshot.date)}</strong></div>
           <button aria-label="Día siguiente" onClick={() => changeDate(shiftDateValue(snapshot.date, 1))}>›</button>
+          <div className="floor-date-picker"><DatePicker value={snapshot.date} onChange={(value) => void changeDate(value)} ariaLabel="Ir a una fecha en Sala" /></div>
           {!isToday && <button className="floor-today" onClick={() => changeDate(todayMadrid())}>Hoy</button>}
         </div>
 
@@ -315,7 +317,7 @@ export function FloorPlan({ initialSnapshot, canOperate }: { initialSnapshot: Fl
               {['pending','confirmed'].includes(reservation.status) && <button className="admin-primary" disabled={!canOperate || loading} onClick={() => transition(reservation.id, 'seated', 'Mesa marcada como sentada.')}>Sentar mesa</button>}
               {reservation.status === 'seated' && <button className="admin-primary" disabled={!canOperate || loading} onClick={() => transition(reservation.id, 'completed', 'Visita completada y mesa liberada.')}>Completar y liberar</button>}
               <button className="admin-secondary" disabled={!canOperate || loading} onClick={() => openAssignment(reservation.id)}><TableIcon />Mover / combinar</button>
-              <Link className="admin-quiet floor-open-reservation" href={`/admin/reservas?reservation=${reservation.id}`}>Abrir reserva</Link>
+              <Link className="admin-quiet floor-open-reservation" href={`/control/reservas?reservation=${reservation.id}`}>Abrir reserva</Link>
             </div>}
 
             {!assignment && !reservation && table.state === 'free' && <div className="floor-inspector-actions">
@@ -336,17 +338,20 @@ export function FloorPlan({ initialSnapshot, canOperate }: { initialSnapshot: Fl
 }
 
 function WalkInModal({ table, serviceName, defaultDuration, loading, onClose, onCreate }: { table: DiningTable; serviceName: string; defaultDuration: number; loading: boolean; onClose: () => void; onCreate: (payload: { name: string; partySize: number; duration: number }) => void }) {
+  const [partySize, setPartySize] = useState(Math.min(2, table.seats));
+  const [duration, setDuration] = useState(String(defaultDuration));
   const dialogRef = useDialogFocus<HTMLDivElement>(onClose);
+  const durations = [75, 90, 105, 120, 135, 150].map((value) => ({ value: String(value), label: `${value} min`, description: value === defaultDuration ? 'Duración habitual del servicio' : undefined }));
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    onCreate({ name: String(form.get('name') || 'Walk-in'), partySize: Number(form.get('partySize') || 2), duration: Number(form.get('duration') || defaultDuration) });
+    onCreate({ name: String(form.get('name') || 'Walk-in'), partySize, duration: Number(duration) });
   }
   return <div className="admin-overlay modal-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
     <div ref={dialogRef} className="walkin-modal premium-walkin" role="dialog" aria-modal="true" aria-labelledby="walkin-title" tabIndex={-1}>
       <header className="drawer-topbar"><div><span className="admin-kicker">Entrada sin reserva</span><p>{table.label} · {table.area} · {serviceName}</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header>
       <form onSubmit={submit}><div className="walkin-hero"><i><UserIcon/></i><div><h2 id="walkin-title">Sentar walk-in</h2><p>Se crea una reserva real, queda sentada y ocupa la mesa inmediatamente.</p></div></div>
-        <div className="create-form-grid walkin-fields"><label className="span-2"><span>Nombre / referencia</span><input name="name" defaultValue="Walk-in" required /></label><label><span>Personas</span><input name="partySize" type="number" min="1" max={table.seats} defaultValue={Math.min(2, table.seats)} required /></label><label><span>Duración estimada</span><select name="duration" defaultValue={String(defaultDuration)}><option value="75">75 min</option><option value="90">90 min</option><option value="105">105 min</option><option value="120">120 min</option><option value="135">135 min</option></select></label></div>
+        <div className="create-form-grid walkin-fields bespoke-walkin-fields"><label className="span-2"><span>Nombre / referencia</span><input name="name" defaultValue="Walk-in" required /></label><label><span>Personas</span><NumberStepper value={partySize} min={1} max={table.seats} onChange={setPartySize} ariaLabel="Personas del walk-in" /></label><label><span>Duración estimada</span><ControlSelect value={duration} options={durations} onChange={setDuration} ariaLabel="Duración del walk-in" /></label></div>
         <div className="walkin-table-summary"><TableIcon/><span><strong>{table.label}</strong>{table.seats} plazas · {table.area}</span></div>
         <footer className="create-actions"><button type="button" className="admin-secondary" onClick={onClose}>Cancelar</button><button className="admin-primary" type="submit" disabled={loading}>{loading ? 'Guardando…' : 'Sentar ahora'}</button></footer>
       </form>
