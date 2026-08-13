@@ -1,0 +1,59 @@
+name: Playwright production audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-production-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Browser audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: https://labocana.vercel.app
+      AUDIT_OUT: artifacts/playwright-audit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts
+      - name: Install Playwright runner
+        run: npm install --no-save --package-lock=false playwright@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Wait for production commit
+        shell: bash
+        run: |
+          for attempt in {1..24}; do
+            BODY="$(curl -fsS -H 'cache-control: no-cache' "${BASE_URL}/?audit=${GITHUB_SHA}" || true)"
+            if [ -n "$BODY" ]; then
+              echo "Production is responding."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production did not become reachable in time."
+          exit 1
+      - name: Run Playwright audit
+        run: node scripts/playwright-audit.mjs
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-audit-${{ github.run_number }}
+          path: artifacts/playwright-audit
+          if-no-files-found: warn
+          retention-days: 14
