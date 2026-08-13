@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { requireStaffSession } from '@/lib/admin/auth';
-import { dateLabel, loadCustomersData } from '@/lib/admin/overview-data';
+import { loadCustomerSummaries } from '@/lib/admin/customer-data';
+import { dateLabel } from '@/lib/admin/overview-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ function initials(name: string) {
 
 export default async function CustomersPage() {
   await requireStaffSession();
-  const customers = await loadCustomersData();
+  const customers = await loadCustomerSummaries();
   const totals = customers.reduce((acc, customer) => ({
     visits: acc.visits + customer.completedVisits,
     active: acc.active + customer.activeReservations,
