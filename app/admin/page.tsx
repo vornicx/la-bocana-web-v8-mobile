@@ -1,5 +1,13 @@
 import Link from 'next/link';
-import { PlusIcon } from '@/components/admin/admin-icons';
+import {
+  BookingIcon,
+  CalendarIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  FloorIcon,
+  PlusIcon,
+  WaitlistIcon,
+} from '@/components/admin/admin-icons';
 import { StatusPill } from '@/components/admin/status-pill';
 import { requireStaffSession } from '@/lib/admin/auth';
 import { dashboardReservationLabel, dateLabel, loadDashboardData, todayMadrid } from '@/lib/admin/overview-data';
@@ -10,20 +18,63 @@ export default async function AdminDashboard() {
   await requireStaffSession();
   const data = await loadDashboardData(todayMadrid());
   const fullDate = dateLabel(data.date, { weekday: 'long', day: 'numeric', month: 'long' });
+  const occupancyAttention = data.metrics.occupancy >= 80;
 
-  return <div className="admin-page">
-    <div className="admin-page-head"><div><span className="admin-kicker">{fullDate}</span><h1>Servicio de hoy</h1><p>Reservas, ocupación y sala calculadas con datos reales.</p></div><Link href="/admin/reservas" className="admin-primary"><PlusIcon/>Gestionar reservas</Link></div>
+  return <div className="admin-page control-dashboard">
+    <section className="control-service-hero">
+      <div>
+        <span className="admin-kicker">{fullDate} · operación en vivo</span>
+        <h1>Servicio de hoy</h1>
+        <p>El punto de control de La Bocana: llegadas, mesas, capacidad y demanda pendientes en una sola vista.</p>
+      </div>
+      <div className="control-hero-actions">
+        <Link className="primary" href="/control/reservas?new=1"><PlusIcon />Nueva reserva</Link>
+        <Link className="secondary" href="/control/sala"><FloorIcon />Abrir sala</Link>
+      </div>
+    </section>
+
     <div className="metric-grid">
-      <article className="admin-metric"><span>Comensales previstos</span><strong>{data.metrics.covers}</strong><small>{data.metrics.unassigned ? `${data.metrics.unassigned} reservas sin mesa` : 'Todas las reservas tienen mesa'}</small></article>
-      <article className="admin-metric"><span>Reservas activas</span><strong>{data.metrics.reservations}</strong><small>Incluye pendientes, confirmadas y servicio</small></article>
-      <article className="admin-metric"><span>Ocupación prevista</span><strong>{data.metrics.occupancy}%</strong><div className="metric-track"><i style={{ width: `${data.metrics.occupancy}%` }}/></div></article>
-      <article className="admin-metric"><span>Lista de espera</span><strong>{data.metrics.waitlist}</strong><small>Solicitudes activas para hoy</small></article>
+      <article className="admin-metric"><span>Comensales previstos</span><strong>{data.metrics.covers}</strong><small>{data.metrics.unassigned ? `${data.metrics.unassigned} reservas todavía sin mesa` : 'Todas las reservas tienen mesa'}</small></article>
+      <article className="admin-metric"><span>Reservas activas</span><strong>{data.metrics.reservations}</strong><small>Pendientes, confirmadas y en servicio</small></article>
+      <article className={`admin-metric ${occupancyAttention ? 'control-metric-attention' : ''}`}><span>Ocupación prevista</span><strong>{data.metrics.occupancy}%</strong><div className="metric-track"><i style={{ width: `${Math.min(100, data.metrics.occupancy)}%` }} /></div><small>{occupancyAttention ? 'Presión alta: revisar capacidad' : 'Capacidad dentro del rango previsto'}</small></article>
+      <article className={`admin-metric ${data.metrics.waitlist ? 'control-metric-attention' : ''}`}><span>Lista de espera</span><strong>{data.metrics.waitlist}</strong><small>{data.metrics.waitlist ? 'Hay demanda pendiente de resolver' : 'Sin solicitudes activas para hoy'}</small></article>
     </div>
+
+    <section className="control-priority-grid" aria-label="Prioridades del servicio">
+      <Link className={`control-priority ${data.metrics.unassigned ? 'attention' : 'clear'}`} href="/control/reservas?unassigned=1">
+        <span className="control-priority-icon">{data.metrics.unassigned ? <BookingIcon /> : <CheckIcon />}</span>
+        <div><span>Asignación</span><strong>{data.metrics.unassigned ? `${data.metrics.unassigned} sin mesa` : 'Sala preparada'}</strong><small>{data.metrics.unassigned ? 'Asignar antes de la llegada' : 'No hay reservas activas sin asignar'}</small></div><ChevronRightIcon />
+      </Link>
+      <Link className={`control-priority ${data.metrics.waitlist ? 'attention' : 'clear'}`} href="/control/espera">
+        <span className="control-priority-icon">{data.metrics.waitlist ? <WaitlistIcon /> : <CheckIcon />}</span>
+        <div><span>Demanda</span><strong>{data.metrics.waitlist ? `${data.metrics.waitlist} en espera` : 'Sin espera'}</strong><small>{data.metrics.waitlist ? 'Revisar huecos y contactar' : 'No hay solicitudes por resolver'}</small></div><ChevronRightIcon />
+      </Link>
+      <Link className={`control-priority ${occupancyAttention ? 'attention' : 'clear'}`} href="/control/calendario">
+        <span className="control-priority-icon">{occupancyAttention ? <CalendarIcon /> : <CheckIcon />}</span>
+        <div><span>Capacidad</span><strong>{data.metrics.occupancy}% previsto</strong><small>{occupancyAttention ? 'Servicio con presión elevada' : 'Ocupación controlada'}</small></div><ChevronRightIcon />
+      </Link>
+    </section>
+
     <div className="dashboard-grid">
-      <section className="admin-panel span-2"><div className="panel-head"><div><span className="admin-kicker">Próximas</span><h2>Reservas</h2></div><Link href="/admin/reservas">Ver todas</Link></div>{data.upcoming.length ? <div className="compact-reservations">{data.upcoming.map((reservation) => <div className="compact-row" key={reservation.id}><time>{reservation.time}</time><div className="compact-person"><strong>{reservation.customer}</strong><small>{dashboardReservationLabel(reservation)}{reservation.allergies ? ' · alergia registrada' : ''}</small></div><StatusPill status={reservation.status}/></div>)}</div> : <div className="admin-empty">No hay próximas reservas activas para hoy.</div>}</section>
-      <section className="admin-panel"><div className="panel-head"><div><span className="admin-kicker">Semana</span><h2>Ocupación</h2></div><Link href="/admin/calendario">Calendario</Link></div><div className="week-strip">{data.week.map((day) => <div key={day.date} className={`${day.active ? 'active' : ''} ${day.closed ? 'closed' : ''}`}><span>{dateLabel(day.date, { weekday: 'short' })}</span><strong>{dateLabel(day.date, { day: 'numeric' })}</strong><small>{day.closed ? 'Cerrado' : `${day.covers} pax`}</small></div>)}</div></section>
-      <section className="admin-panel"><div className="panel-head"><div><span className="admin-kicker">Demanda</span><h2>Lista de espera</h2></div><Link href="/admin/espera">Gestionar {data.waitlist.length ? `· ${data.waitlist.length}` : ''}</Link></div>{data.waitlist.length ? <div className="waitlist-list">{data.waitlist.slice(0, 4).map((item) => <div key={item.id}><time>{item.time}</time><div><strong>{item.name}</strong><small>{item.partySize} pax · {item.flexibility}</small></div></div>)}</div> : <div className="admin-empty compact-empty">Sin solicitudes activas para hoy.</div>}</section>
-      <section className="admin-panel span-2 service-balance"><div><span className="admin-kicker">Servicio</span><h2>Balance de capacidad</h2><p>Ocupación calculada sobre el aforo configurado en Supabase para cada servicio.</p></div><div className="capacity-bars">{data.services.map((service) => <div key={service.id}><span>{service.name}</span><strong>{service.occupancy}%</strong><i><b style={{ width: `${service.occupancy}%` }}/></i><small>{service.covers} de {service.capacity || '—'} pax</small></div>)}</div></section>
+      <section className="admin-panel span-2">
+        <div className="panel-head"><div><span className="admin-kicker">Siguiente en sala</span><h2>Próximas llegadas</h2></div><Link href="/control/reservas">Ver todas</Link></div>
+        {data.upcoming.length ? <div className="compact-reservations">{data.upcoming.map((reservation) => <Link className="compact-row compact-row-link" href={`/control/reservas?reservation=${reservation.id}`} key={reservation.id}><time>{reservation.time}</time><div className="compact-person"><strong>{reservation.customer}</strong><small>{dashboardReservationLabel(reservation)}{reservation.allergies ? ' · alergia registrada' : ''}</small></div><StatusPill status={reservation.status} /></Link>)}</div> : <div className="admin-empty">No hay próximas reservas activas para hoy.</div>}
+      </section>
+
+      <section className="admin-panel">
+        <div className="panel-head"><div><span className="admin-kicker">7 días</span><h2>Presión semanal</h2></div><Link href="/control/calendario">Calendario</Link></div>
+        <div className="week-strip">{data.week.map((day) => <div key={day.date} className={`${day.active ? 'active' : ''} ${day.closed ? 'closed' : ''}`}><span>{dateLabel(day.date, { weekday: 'short' })}</span><strong>{dateLabel(day.date, { day: 'numeric' })}</strong><small>{day.closed ? 'Cerrado' : `${day.covers} pax`}</small></div>)}</div>
+      </section>
+
+      <section className="admin-panel">
+        <div className="panel-head"><div><span className="admin-kicker">Demanda pendiente</span><h2>Lista de espera</h2></div><Link href="/control/espera">Gestionar {data.waitlist.length ? `· ${data.waitlist.length}` : ''}</Link></div>
+        {data.waitlist.length ? <div className="waitlist-list">{data.waitlist.slice(0, 4).map((item) => <div key={item.id}><time>{item.time}</time><div><strong>{item.name}</strong><small>{item.partySize} pax · {item.flexibility}</small></div></div>)}</div> : <div className="admin-empty compact-empty">Sin solicitudes activas para hoy.</div>}
+      </section>
+
+      <section className="admin-panel span-2 service-balance">
+        <div><span className="admin-kicker">Capacidad por servicio</span><h2>Balance de sala</h2><p>Lectura de ocupación sobre el aforo configurado para cada servicio. Úsala para anticipar presión antes de que llegue a recepción.</p></div>
+        <div className="capacity-bars">{data.services.map((service) => <div key={service.id}><span>{service.name}</span><strong>{service.occupancy}%</strong><i><b style={{ width: `${Math.min(100, service.occupancy)}%` }} /></i><small>{service.covers} / {service.capacity || '—'} pax</small></div>)}</div>
+      </section>
     </div>
   </div>;
 }
