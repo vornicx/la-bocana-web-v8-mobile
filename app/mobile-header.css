@@ -73,11 +73,10 @@
     display: none;
   }
 
-  /* Language stays easy to tap, but stops reading as a second CTA. */
   .public-site .public-language {
-    width: 40px;
+    width: 44px;
     height: 44px;
-    flex: 0 0 40px;
+    flex: 0 0 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -95,10 +94,9 @@
     transition: opacity .18s ease, transform .18s ease;
   }
 
-  /* Booking is the only visually filled control in the header. */
   .public-site .public-book {
     min-width: 96px;
-    min-height: 42px;
+    min-height: 44px;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -123,7 +121,6 @@
     color: #f6f2e9 !important;
   }
 
-  /* Menu keeps a full 44px touch target without another large circular frame. */
   .public-site .public-menu-button {
     width: 44px;
     height: 44px;
@@ -157,9 +154,9 @@
   .public-site .public-header {
     height: 70px;
     min-height: 70px;
-    gap: 4px;
+    gap: 2px;
     padding-left: 12px;
-    padding-right: 8px;
+    padding-right: 6px;
   }
 
   .public-site .public-header .brand-lockup.compact {
@@ -178,20 +175,23 @@
   }
 
   .public-site .public-language {
-    width: 34px;
-    flex-basis: 34px;
+    width: 40px;
+    min-width: 40px;
+    height: 44px;
+    flex-basis: 40px;
   }
 
   .public-site .public-book {
     min-width: 86px;
-    min-height: 40px;
-    padding: 0 11px;
-    font-size: 8px;
-    letter-spacing: .13em;
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 9px;
+    letter-spacing: .12em;
   }
 
   .public-site .public-menu-button {
     width: 40px;
+    min-width: 40px;
     height: 44px;
     flex-basis: 40px;
   }
