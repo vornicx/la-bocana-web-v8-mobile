@@ -1,0 +1,45 @@
+/* Browser-audit hardening.
+   Only measurable interaction/legibility corrections belong here. */
+@media (max-width: 700px) {
+  .booking-page .brand-row > a:first-child,
+  .lookup-page .brand-row > a:first-child {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .booking-page .booking-language,
+  .lookup-page .booking-language {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .booking-page .visual-copy .eyebrow,
+  .lookup-page .visual-copy .eyebrow,
+  .booking-page .brand-row > span,
+  .lookup-page .brand-row > span,
+  .booking-page .progress-row,
+  .booking-page .flow-step > .eyebrow,
+  .lookup-page .lookup-flow > .eyebrow,
+  .booking-page .calendar-kicker,
+  .booking-page .calendar-weekdays span,
+  .booking-page .calendar-foot {
+    font-size: 9px;
+  }
+
+  .booking-page .existing-booking.prominent a,
+  .lookup-page .existing-booking.prominent a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 9px;
+  }
+
+  .contact-grid a,
+  .visit-panel > a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
