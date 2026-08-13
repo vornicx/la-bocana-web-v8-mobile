@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { getStaffSession } from '@/lib/admin/auth';
 import './control-premium.css';
+import './control-content.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
