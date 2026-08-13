@@ -89,6 +89,9 @@ jobs:
       - name: Run authenticated Control audit
         if: always()
         run: node scripts/playwright-control-auth-audit.mjs
+      - name: Continue authenticated mobile audit
+        if: always()
+        run: node scripts/playwright-control-mobile-continuation.mjs
       - name: Upload audit report
         if: always()
         uses: actions/upload-artifact@v4
