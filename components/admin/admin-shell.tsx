@@ -7,16 +7,16 @@ import type { StaffSession } from '@/lib/admin/types';
 import { AnalyticsIcon, BookingIcon, CalendarIcon, CommunicationIcon, FloorIcon, HomeIcon, MenuIcon, SettingsIcon, UsersIcon, WaitlistIcon } from './admin-icons';
 
 const nav = [
-  {href:'/admin',label:'Resumen',Icon:HomeIcon},
-  {href:'/admin/reservas',label:'Reservas',Icon:BookingIcon},
-  {href:'/admin/calendario',label:'Calendario',Icon:CalendarIcon},
-  {href:'/admin/sala',label:'Sala',Icon:FloorIcon},
-  {href:'/admin/espera',label:'Espera',Icon:WaitlistIcon},
-  {href:'/admin/clientes',label:'Clientes',Icon:UsersIcon},
-  {href:'/admin/carta',label:'Carta',Icon:MenuIcon},
-  {href:'/admin/analitica',label:'Analítica',Icon:AnalyticsIcon},
-  {href:'/admin/comunicaciones',label:'Comunicaciones',Icon:CommunicationIcon},
-  {href:'/admin/configuracion',label:'Configuración',Icon:SettingsIcon},
+  {href:'/control',label:'Resumen',Icon:HomeIcon},
+  {href:'/control/reservas',label:'Reservas',Icon:BookingIcon},
+  {href:'/control/calendario',label:'Calendario',Icon:CalendarIcon},
+  {href:'/control/sala',label:'Sala',Icon:FloorIcon},
+  {href:'/control/espera',label:'Espera',Icon:WaitlistIcon},
+  {href:'/control/clientes',label:'Clientes',Icon:UsersIcon},
+  {href:'/control/carta',label:'Carta',Icon:MenuIcon},
+  {href:'/control/analitica',label:'Analítica',Icon:AnalyticsIcon},
+  {href:'/control/comunicaciones',label:'Comunicaciones',Icon:CommunicationIcon},
+  {href:'/control/configuracion',label:'Configuración',Icon:SettingsIcon},
 ];
 
 function initials(name:string){
@@ -35,7 +35,7 @@ export function AdminShell({children,staff}:{children:ReactNode;staff:StaffSessi
       <div className="admin-brand"><span className="admin-monogram">LB</span><div><strong>La Bocana</strong><small>Puerto Banús · Operaciones</small></div></div>
       <nav className="admin-nav" aria-label="Administración">
         {nav.map(({href,label,Icon})=>{
-          const active=href==='/admin'?pathname===href:pathname.startsWith(href);
+          const active=href==='/control'?pathname===href:pathname.startsWith(href);
           return <Link key={href} href={href} className={active?'active':''}><Icon/><span>{label}</span></Link>
         })}
       </nav>
@@ -43,7 +43,7 @@ export function AdminShell({children,staff}:{children:ReactNode;staff:StaffSessi
     </aside>
     <div className="admin-main">
       <header className="admin-topbar"><div className="admin-mobile-brand">LA BOCANA</div><div className="admin-topbar-context"><span>Operaciones</span><strong>La Bocana · Marbella</strong></div><div className="admin-topbar-right"><span className="admin-system-pill live"><i/>Sistema conectado</span><span className="admin-date">{todayLabel()}</span><div className="admin-profile"><span className="admin-avatar">{initials(staff.fullName)}</span><div><strong>{staff.fullName}</strong><small>{staff.role === 'manager' ? 'Manager' : staff.role === 'host' ? 'Host' : staff.role === 'editor' ? 'Editor' : 'Consulta'}</small></div><form action="/auth/signout" method="post"><button type="submit" aria-label="Cerrar sesión">Salir</button></form></div></div></header>
-      <div className="admin-mobile-nav">{nav.filter((item)=>!['/admin/calendario','/admin/configuracion','/admin/analitica','/admin/comunicaciones'].includes(item.href)).map(({href,label,Icon})=>{const active=href==='/admin'?pathname===href:pathname.startsWith(href);return <Link key={href} href={href} className={active?'active':''}><Icon/><span>{label}</span></Link>})}</div>
+      <div className="admin-mobile-nav">{nav.filter((item)=>!['/control/calendario','/control/configuracion','/control/analitica','/control/comunicaciones'].includes(item.href)).map(({href,label,Icon})=>{const active=href==='/control'?pathname===href:pathname.startsWith(href);return <Link key={href} href={href} className={active?'active':''}><Icon/><span>{label}</span></Link>})}</div>
       <main className="admin-content" id="main-content">{children}</main>
     </div>
   </div>
