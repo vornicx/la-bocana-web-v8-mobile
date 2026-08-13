@@ -30,7 +30,7 @@ export function ArtDirectedImage({ desktop, mobile, alt, className, priority = f
   });
 
   const {
-    props: { srcSet: mobileSrcSet, ...mobileProps },
+    props: { srcSet: mobileSrcSet, sizes: mobileSizes, ...mobileProps },
   } = getImageProps({
     ...common,
     src: mobile,
@@ -43,8 +43,8 @@ export function ArtDirectedImage({ desktop, mobile, alt, className, priority = f
   return (
     <picture className={className}>
       <source media="(min-width: 701px)" srcSet={desktopSrcSet} sizes={sizes} />
-      <source media="(max-width: 700px)" srcSet={mobileSrcSet} sizes="100vw" />
-      <img {...mobileProps} alt={alt} />
+      <source media="(max-width: 700px)" srcSet={mobileSrcSet} sizes={mobileSizes ?? '100vw'} />
+      <img {...mobileProps} srcSet={mobileSrcSet} sizes={mobileSizes ?? '100vw'} alt={alt} />
     </picture>
   );
 }
