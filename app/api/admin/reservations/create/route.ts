@@ -49,12 +49,15 @@ export async function POST(request: Request) {
 
     if (waitlistId) {
       const { data: waitlist, error: waitlistError } = await supabase.from('waitlist')
-        .select('id, status, desired_date, party_size, converted_reservation_id')
+        .select('id, status, desired_date, party_size, converted_reservation_id, offer_expires_at')
         .eq('id', waitlistId).maybeSingle();
       if (waitlistError) throw new Error(waitlistError.message);
       if (!waitlist) throw new Error('La solicitud de lista de espera ya no existe.');
       if (waitlist.status !== 'offered') throw new Error('El hueco debe estar marcado como ofrecido antes de convertirlo.');
       if (waitlist.converted_reservation_id) throw new Error('Esta solicitud ya está vinculada a una reserva.');
+      if (waitlist.offer_expires_at && new Date(waitlist.offer_expires_at).getTime() <= Date.now()) {
+        throw new Error('La oferta ha caducado. Retírala y vuelve a ofrecer un hueco antes de convertirla.');
+      }
       if (String(waitlist.desired_date) !== date) throw new Error('La fecha no coincide con la solicitud de espera.');
       if (Number(waitlist.party_size) !== adults + children) throw new Error('El número de comensales no coincide con la solicitud de espera.');
     }
