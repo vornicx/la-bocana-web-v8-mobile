@@ -1,9 +1,22 @@
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/proxy';
 
 export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-lb-locale', request.nextUrl.pathname === '/en' || request.nextUrl.pathname.startsWith('/en/') ? 'en' : 'es');
+  const pathname = request.nextUrl.pathname;
+  requestHeaders.set('x-lb-locale', pathname === '/en' || pathname.startsWith('/en/') ? 'en' : 'es');
+
+  const needsAuthSession = pathname === '/control'
+    || pathname.startsWith('/control/')
+    || pathname === '/admin'
+    || pathname.startsWith('/admin/')
+    || pathname === '/admin-login'
+    || pathname.startsWith('/auth/');
+
+  if (!needsAuthSession) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   return updateSession(request, requestHeaders);
 }
 
