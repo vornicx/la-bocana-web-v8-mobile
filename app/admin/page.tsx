@@ -9,7 +9,8 @@ import {
 } from '@/components/admin/admin-icons';
 import { StatusPill } from '@/components/admin/status-pill';
 import { requireStaffSession } from '@/lib/admin/auth';
-import { dashboardReservationLabel, dateLabel, loadDashboardData, todayMadrid } from '@/lib/admin/overview-data';
+import { loadDashboardData } from '@/lib/admin/dashboard-data';
+import { dashboardReservationLabel, dateLabel, todayMadrid } from '@/lib/admin/overview-data';
 
 export const dynamic = 'force-dynamic';
 
