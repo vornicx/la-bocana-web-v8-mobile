@@ -7,7 +7,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
         <path d="M34 17v24h14c-3-8-8-16-14-24Z" fill="currentColor" opacity=".72" />
         <path d="M14 45c10 3 25 3 36 0M19 50c8 2 19 2 27 0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
-      <span><strong>LA BOCANA</strong><small>PUERTO BANÚS</small></span>
+      <span><strong>LA BOCANA</strong><small style={{ fontSize: 9 }}>PUERTO BANÚS</small></span>
     </span>
   );
 }
