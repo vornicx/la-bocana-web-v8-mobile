@@ -97,7 +97,16 @@
     padding-block: 8px !important;
   }
 
-  /* The visual switch can stay refined while its button remains a safe hit area. */
+  /* Keep the switch visual refined; the surrounding row is the actual touch surface. */
+  .control-app .toggle-label,
+  .control-app label.switch {
+    min-height: 44px !important;
+    padding-block: 8px !important;
+    cursor: pointer;
+  }
+  .control-app .toggle-label input[type="checkbox"] {
+    flex: 0 0 auto;
+  }
   .control-app .lb-toggle-track {
     flex: 0 0 auto;
   }
