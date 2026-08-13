@@ -11,7 +11,6 @@ type CombinationRow = { id: string; name: string; min_capacity: number; max_capa
 type MemberRow = { combination_id: string; table_id: string };
 type ClosureRow = { table_id: string | null; service_id: string | null; reason: string | null; starts_at: string; ends_at: string };
 type AssignmentRow = { reservation_id: string; table_id: string };
-type VisitRow = { customer_id: string | null };
 
 function asArea(value: string | null | undefined): DiningTable['area'] {
   const normalized = (value ?? '').toLowerCase();
@@ -68,18 +67,10 @@ export async function loadFloorSnapshot(date: string): Promise<FloorSnapshot> {
 
   const reservationRows = (reservationsResult.data ?? []) as ReservationRow[];
   const reservationIds = reservationRows.map((row) => String(row.id));
-  const customerIds = [...new Set(reservationRows.map((row) => row.customer_id ? String(row.customer_id) : null).filter(Boolean))] as string[];
-
-  const [assignmentsResult, visitsResult] = await Promise.all([
-    reservationIds.length
-      ? supabase.from('reservation_tables').select('reservation_id, table_id').in('reservation_id', reservationIds)
-      : Promise.resolve({ data: [], error: null }),
-    customerIds.length
-      ? supabase.from('reservations').select('customer_id').in('customer_id', customerIds)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
+  const assignmentsResult = reservationIds.length
+    ? await supabase.from('reservation_tables').select('reservation_id, table_id').in('reservation_id', reservationIds)
+    : { data: [], error: null };
   if (assignmentsResult.error) throw new Error(`No se pudieron cargar las asignaciones: ${assignmentsResult.error.message}`);
-  if (visitsResult.error) throw new Error(`No se pudo cargar el historial de clientes: ${visitsResult.error.message}`);
 
   const tableRows = (tablesResult.data ?? []) as TableRow[];
   const tableById = new Map(tableRows.map((row) => [String(row.id), row]));
@@ -87,13 +78,6 @@ export async function loadFloorSnapshot(date: string): Promise<FloorSnapshot> {
   for (const row of (assignmentsResult.data ?? []) as AssignmentRow[]) {
     const reservationId = String(row.reservation_id);
     assignments.set(reservationId, [...(assignments.get(reservationId) ?? []), String(row.table_id)]);
-  }
-
-  const visitCount = new Map<string, number>();
-  for (const row of (visitsResult.data ?? []) as VisitRow[]) {
-    if (!row.customer_id) continue;
-    const id = String(row.customer_id);
-    visitCount.set(id, (visitCount.get(id) ?? 0) + 1);
   }
 
   const rulesByService = new Map<string, { openTime: string | null; closeTime: string | null }>();
@@ -193,7 +177,7 @@ export async function loadFloorSnapshot(date: string): Promise<FloorSnapshot> {
       preferences: row.preferences ? String(row.preferences) : undefined,
       internalNotes: row.internal_notes ? String(row.internal_notes) : undefined,
       allergies: row.allergies ? String(row.allergies) : undefined,
-      visits: customerId ? (visitCount.get(customerId) ?? 1) : 0,
+      visits: 0,
     };
   });
 
