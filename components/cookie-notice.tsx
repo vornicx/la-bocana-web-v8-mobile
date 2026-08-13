@@ -14,8 +14,13 @@ function rememberNotice() {
   document.cookie = `${NOTICE_COOKIE}=acknowledged; Max-Age=${NOTICE_MAX_AGE}; Path=/; SameSite=Lax${secure}`;
 }
 
+function isPrivateControlPath(pathname: string) {
+  return pathname === '/control' || pathname.startsWith('/control/') || pathname === '/admin-login' || pathname === '/admin' || pathname.startsWith('/admin/');
+}
+
 export function CookieNotice() {
   const pathname = usePathname();
+  const privateControl = isPrivateControlPath(pathname);
   const locale: PublicLocale = pathname.startsWith('/en') ? 'en' : 'es';
   const copy = locale === 'es' ? {
     privacy: 'Privacidad', close: 'Cerrar', closeLabel: 'Cerrar información sobre cookies', title: 'Solo lo necesario.', description: 'Usamos cookies técnicas para las reservas, el acceso privado y recordar este aviso. Sin analítica, publicidad ni seguimiento.', active: 'Siempre activas', technical: 'Cookies técnicas', technicalText: 'Permiten mantener la sesión del área privada, proteger el servicio y recordar este aviso.', inactive: 'No instaladas', analytics: 'Analítica y publicidad', analyticsText: 'No hay herramientas de seguimiento, perfiles publicitarios ni cookies de marketing configuradas.', understood: 'Entendido', hide: 'Ocultar detalle', show: 'Ver detalle', policy: 'Política de cookies',
@@ -28,12 +33,17 @@ export function CookieNotice() {
   const [details, setDetails] = useState(false);
 
   useEffect(() => {
+    if (privateControl) {
+      setOpen(false);
+      setDetails(false);
+      return;
+    }
     const hasAcknowledged = document.cookie.split('; ').some((entry) => entry.startsWith(`${NOTICE_COOKIE}=`));
     if (!hasAcknowledged) setOpen(true);
     const showSettings = () => { setDetails(true); setOpen(true); };
     window.addEventListener(OPEN_EVENT, showSettings);
     return () => window.removeEventListener(OPEN_EVENT, showSettings);
-  }, []);
+  }, [privateControl]);
 
   function close() {
     rememberNotice();
@@ -41,7 +51,7 @@ export function CookieNotice() {
     setDetails(false);
   }
 
-  if (!open) return null;
+  if (privateControl || !open) return null;
 
   return (
     <section className="cookie-notice" role="region" aria-labelledby={titleId} aria-live="polite">
