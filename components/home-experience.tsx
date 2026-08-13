@@ -58,10 +58,14 @@ export function HomeExperience({ locale = 'es' }: { locale?: PublicLocale }) {
       <PublicHeader locale={locale} />
       <main id="main-content">
         <section className="experience-hero">
-          <picture className="experience-hero-picture">
-            <source media="(max-width: 700px)" srcSet="/images/photo-6.jpg" />
-            <img src="/images/mesa-frente-al-mar.jpg" alt={locale === 'es' ? 'Terraza de La Bocana preparada frente al Mediterráneo' : 'La Bocana terrace set overlooking the Mediterranean'} width="1600" height="1140" fetchPriority="high" />
-          </picture>
+          <ArtDirectedImage
+            className="experience-hero-picture"
+            desktop="/images/mesa-frente-al-mar.jpg"
+            mobile="/images/photo-6.jpg"
+            alt={locale === 'es' ? 'Terraza de La Bocana preparada frente al Mediterráneo' : 'La Bocana terrace set overlooking the Mediterranean'}
+            priority
+            sizes="100vw"
+          />
           <div className="experience-hero-overlay" />
           <div className="experience-hero-copy">
             <span>{t.heroEyebrow}</span>
@@ -84,7 +88,7 @@ export function HomeExperience({ locale = 'es' }: { locale?: PublicLocale }) {
           {t.chapters.map((chapter, index) => (
             <article className={`experience-chapter${index % 2 ? ' reverse' : ''}`} key={chapter.number}>
               <div className="experience-chapter-media" data-reveal>
-                <ArtDirectedImage desktop={chapter.desktop} mobile={chapter.mobile} alt={chapter.alt} />
+                <ArtDirectedImage desktop={chapter.desktop} mobile={chapter.mobile} alt={chapter.alt} sizes="(max-width: 700px) 100vw, 58vw" />
                 <span>{chapter.number} / 03</span>
               </div>
               <div className="experience-chapter-copy" data-reveal>
@@ -108,7 +112,7 @@ export function HomeExperience({ locale = 'es' }: { locale?: PublicLocale }) {
         </section>
 
         <section className="experience-pause">
-          <ArtDirectedImage desktop="/images/gallery-official/mesa-vista.webp" mobile="/images/curated/mesa-vista-mobile.webp" alt={locale === 'es' ? 'Mesa preparada con vistas al mar en La Bocana' : 'A table set with sea views at La Bocana'} />
+          <ArtDirectedImage desktop="/images/gallery-official/mesa-vista.webp" mobile="/images/curated/mesa-vista-mobile.webp" alt={locale === 'es' ? 'Mesa preparada con vistas al mar en La Bocana' : 'A table set with sea views at La Bocana'} sizes="100vw" />
           <div className="experience-pause-shade" />
           <div data-reveal><span>{t.pauseEyebrow}</span><p>{t.pauseText}</p><h2>{t.pauseTitle}</h2><Link href={paths.gallery}>{t.gallery}</Link></div>
         </section>
