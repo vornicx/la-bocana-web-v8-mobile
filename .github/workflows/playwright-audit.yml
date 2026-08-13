@@ -34,7 +34,7 @@ jobs:
       - name: Install project dependencies
         run: npm ci --ignore-scripts
       - name: Install Playwright runner
-        run: npm install --no-save --package-lock=false playwright@1.55.0
+        run: npm install --no-save --package-lock=false playwright@1.62.1
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Wait for this commit on Vercel
