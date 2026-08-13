@@ -11,6 +11,7 @@ import './control-refinement.css';
 import './control-polish.css';
 import './control-fields.css';
 import './control-settings-premium.css';
+import './control-calendar-premium.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
