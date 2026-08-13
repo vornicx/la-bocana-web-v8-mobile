@@ -44,6 +44,20 @@ export async function POST(request: Request) {
     const preferences = optionalString(body.preferences, 1000);
     const notes = optionalString(body.notes, 1500);
     const internalNotes = optionalString(body.internalNotes, 2000);
+    const waitlistId = optionalString(body.waitlistId, 80);
+    const supabase = createAdminClient();
+
+    if (waitlistId) {
+      const { data: waitlist, error: waitlistError } = await supabase.from('waitlist')
+        .select('id, status, desired_date, party_size, converted_reservation_id')
+        .eq('id', waitlistId).maybeSingle();
+      if (waitlistError) throw new Error(waitlistError.message);
+      if (!waitlist) throw new Error('La solicitud de lista de espera ya no existe.');
+      if (waitlist.status !== 'offered') throw new Error('El hueco debe estar marcado como ofrecido antes de convertirlo.');
+      if (waitlist.converted_reservation_id) throw new Error('Esta solicitud ya está vinculada a una reserva.');
+      if (String(waitlist.desired_date) !== date) throw new Error('La fecha no coincide con la solicitud de espera.');
+      if (Number(waitlist.party_size) !== adults + children) throw new Error('El número de comensales no coincide con la solicitud de espera.');
+    }
 
     sessionId = `admin:${staff.id}:${randomBytes(10).toString('hex')}`;
     const hold = await createHold({ date, serviceId, startsAt, adults, children, sessionId });
@@ -51,7 +65,6 @@ export async function POST(request: Request) {
 
     const managementToken = randomBytes(32).toString('base64url');
     const confirmationCode = `LB-${randomBytes(6).toString('hex').toUpperCase()}`;
-    const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('confirm_reservation_from_hold_atomic', {
       p_hold_id: hold.holdId,
       p_first_name: firstName,
@@ -77,13 +90,27 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     }).eq('id', reservationId);
 
+    let waitlistWarning: string | null = null;
+    if (waitlistId) {
+      const { data: converted, error: conversionError } = await supabase.from('waitlist').update({
+        status: 'converted',
+        converted_reservation_id: reservationId,
+      }).eq('id', waitlistId).eq('status', 'offered').is('converted_reservation_id', null).select('id').maybeSingle();
+      if (conversionError || !converted) waitlistWarning = 'La reserva se creó, pero la solicitud de espera no pudo cerrarse automáticamente.';
+      else await supabase.from('activity_logs').insert({
+        actor_type: 'staff', actor_user_id: staff.id, action: 'waitlist_converted', entity_type: 'waitlist', entity_id: waitlistId,
+        metadata: { reservation_id: reservationId },
+      });
+    }
+
     await supabase.from('activity_logs').insert({
       actor_type: 'staff', actor_user_id: staff.id, action: 'reservation.admin_create',
       entity_type: 'reservation', entity_id: reservationId,
-      metadata: { source, created_from: 'admin_reservations' },
+      metadata: { source, created_from: waitlistId ? 'waitlist' : 'admin_reservations', waitlist_id: waitlistId || null },
     });
 
-    return NextResponse.json({ ok: true, reservationId, confirmationCode, warning: update.error ? 'La reserva se creó, pero la nota interna no pudo guardarse.' : null }, { status: 201 });
+    const warnings = [update.error ? 'La reserva se creó, pero la nota interna no pudo guardarse.' : null, waitlistWarning].filter(Boolean);
+    return NextResponse.json({ ok: true, reservationId, confirmationCode, warning: warnings.length ? warnings.join(' ') : null }, { status: 201 });
   } catch (error) {
     if (holdId && sessionId) {
       try { await releaseHold(holdId, sessionId); } catch { /* best effort */ }
