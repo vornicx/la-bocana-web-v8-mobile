@@ -15,7 +15,7 @@ const messages: Record<string, string> = {
 
 export default async function AdminLoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const staff = await getStaffSession();
-  if (staff) redirect('/admin/sala');
+  if (staff) redirect('/control/sala');
   const params = await searchParams;
   const message = params.error ? messages[params.error] : null;
 
