@@ -1,0 +1,212 @@
+/* La Bocana Control — operational legibility contract.
+   Premium does not mean microscopic. No operational copy may depend on 6–8px text. */
+
+.control-app{
+  --control-micro:10px;
+  --control-meta:10.5px;
+  --control-body:12px;
+}
+
+/* Shell */
+.control-app .control-brand small,
+.control-app .control-nav-label,
+.control-app .control-sidebar-status small,
+.control-app .control-topbar-context span,
+.control-app .control-system-pill,
+.control-app .control-profile small,
+.control-app .control-profile form button,
+.control-app .admin-date,
+.control-app .control-command-palette small,
+.control-app .control-command-palette footer span,
+.control-app .control-mobile-nav span{
+  font-size:var(--control-micro)!important;
+  line-height:1.3!important;
+}
+.control-app .control-nav-label{letter-spacing:.12em!important}
+.control-app .control-nav-group .admin-nav a{font-size:11.5px!important;line-height:1.25!important}
+.control-app .control-command-trigger span{font-size:11px!important}
+
+/* Universal semantic microcopy. */
+.control-app small{
+  font-size:var(--control-micro)!important;
+  line-height:1.4!important;
+}
+.control-app label{
+  font-size:var(--control-meta)!important;
+  line-height:1.35!important;
+}
+.control-app .admin-kicker,
+.control-app .section-label,
+.control-app .panel-label{
+  font-size:var(--control-micro)!important;
+  line-height:1.3!important;
+  letter-spacing:.11em!important;
+}
+
+/* Dashboard and operational summaries. */
+.control-app .admin-metric > span,
+.control-app .reservation-summary span,
+.control-app .floor-metrics span,
+.control-app .crm-summary span,
+.control-app .analytics-metrics span,
+.control-app .communication-metrics span,
+.control-app .control-priority > span,
+.control-app .control-priority-copy > span,
+.control-app .control-service-hero .admin-kicker,
+.control-app .week-strip span,
+.control-app .capacity-bars span,
+.control-app .metric-track span{
+  font-size:var(--control-meta)!important;
+  line-height:1.3!important;
+}
+.control-app .control-priority p,
+.control-app .control-service-hero p,
+.control-app .admin-page-head p,
+.control-app .panel-head p,
+.control-app .empty-state p,
+.control-app .reservation-empty p{
+  font-size:var(--control-body)!important;
+  line-height:1.55!important;
+}
+
+/* Reservas */
+.control-app .reservation-date-control span,
+.control-app .reservation-live span,
+.control-app .reservation-status-tabs button,
+.control-app .source-label,
+.control-app .reservation-card-time,
+.control-app .reservation-card small,
+.control-app .reservation-table th,
+.control-app .reservation-table td small,
+.control-app .reservation-identity small,
+.control-app .memory-grid small,
+.control-app .communication-state small{
+  font-size:var(--control-micro)!important;
+  line-height:1.35!important;
+}
+.control-app .reservation-status-tabs button{min-height:40px!important}
+.control-app .admin-search input{font-size:12px!important}
+
+/* Sala */
+.control-app .floor-legend span,
+.control-app .floor-commandbar span,
+.control-app .floor-service-tabs button,
+.control-app .floor-status,
+.control-app .floor-table small,
+.control-app .table-card small,
+.control-app .floor-side-panel small,
+.control-app .floor-inspector small,
+.control-app .floor-unassigned small{
+  font-size:var(--control-micro)!important;
+  line-height:1.35!important;
+}
+
+/* Lista de espera */
+.control-app .waitlist-summary span,
+.control-app .waitlist-metrics span,
+.control-app .waitlist-card small,
+.control-app .waitlist-card .meta,
+.control-app .waitlist-status,
+.control-app .waitlist-tabs button,
+.control-app .waitlist-empty span{
+  font-size:var(--control-micro)!important;
+  line-height:1.35!important;
+}
+
+/* Calendario */
+.control-app .calendar-range span,
+.control-app .real-calendar-week .calendar-day header span,
+.control-app .calendar-day-total span,
+.control-app .calendar-day-total small,
+.control-app .calendar-service span,
+.control-app .calendar-service small,
+.control-app .calendar-service > div > span,
+.control-app .calendar-service > div > small,
+.control-app .calendar-canvas small,
+.control-app .closed-card span,
+.control-app .closed-card small{
+  font-size:var(--control-micro)!important;
+  line-height:1.3!important;
+}
+.control-app .calendar-service > div > strong{font-size:11px!important;line-height:1.3!important}
+
+/* CRM */
+.control-app .crm-summary span,
+.control-app .customer-card small,
+.control-app .customer-card a,
+.control-app .customer-meta span,
+.control-app .customer-stats span,
+.control-app .customer-stats small,
+.control-app .customer-row small,
+.control-app .customer-row a,
+.control-app .customer-lifecycle span,
+.control-app .customer-memory-editor small{
+  font-size:var(--control-micro)!important;
+  line-height:1.4!important;
+}
+
+/* Carta */
+.control-app .menu-manager label,
+.control-app .menu-manager small,
+.control-app .menu-manager .menu-meta,
+.control-app .menu-manager .menu-media-label,
+.control-app .menu-manager .menu-media-format,
+.control-app .menu-manager-category > header span,
+.control-app .menu-item-primary > span,
+.control-app .menu-item-secondary > span,
+.control-app .menu-media-manager span,
+.control-app .menu-media-manager small{
+  font-size:var(--control-micro)!important;
+  line-height:1.4!important;
+}
+.control-app .menu-manager input,
+.control-app .menu-manager textarea{font-size:11.5px!important;line-height:1.45!important}
+
+/* Analítica + comunicaciones */
+.control-app .analytics-metrics span,
+.control-app .analytics-metrics small,
+.control-app .analytics-grid span,
+.control-app .analytics-grid small,
+.control-app .analytics-bar-label,
+.control-app .communication-metrics span,
+.control-app .communication-metrics small,
+.control-app .communications-layout span,
+.control-app .communications-layout small,
+.control-app .communication-row span,
+.control-app .communication-row small,
+.control-app .template-row span,
+.control-app .template-row small{
+  font-size:var(--control-micro)!important;
+  line-height:1.4!important;
+}
+
+/* Configuración */
+.control-app .settings-grid span,
+.control-app .settings-grid small,
+.control-app .settings-service span,
+.control-app .settings-service small,
+.control-app .service-rule span,
+.control-app .service-rule small,
+.control-app .service-day span,
+.control-app .service-day small,
+.control-app .settings-meta,
+.control-app .closure-list span,
+.control-app .closure-list small,
+.control-app .closure-empty span,
+.control-app .lb-field-trigger,
+.control-app .lb-popover button,
+.control-app .lb-popover small,
+.control-app .lb-stepper,
+.control-app .lb-toggle-copy strong,
+.control-app .lb-toggle-copy small{
+  font-size:var(--control-micro)!important;
+  line-height:1.35!important;
+}
+.control-app .lb-field-trigger{font-size:11px!important}
+
+/* Preserve compactness on mobile while staying readable. */
+@media(max-width:760px){
+  .control-app{--control-micro:10px;--control-meta:10.5px;--control-body:12px}
+  .control-app .control-nav-group .admin-nav a{font-size:11px!important}
+  .control-app .admin-page-head p{font-size:12px!important}
+}
