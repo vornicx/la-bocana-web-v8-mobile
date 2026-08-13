@@ -86,6 +86,9 @@ jobs:
           echo 'AUDIT_DEPLOYMENT_MODE=current-production-timeout' >> "$GITHUB_ENV"
       - name: Run Playwright audit v2
         run: node scripts/playwright-audit-v2.mjs
+      - name: Run authenticated Control audit
+        if: always()
+        run: node scripts/playwright-control-auth-audit.mjs
       - name: Upload audit report
         if: always()
         uses: actions/upload-artifact@v4
