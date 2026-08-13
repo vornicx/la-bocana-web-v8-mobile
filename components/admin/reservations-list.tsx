@@ -224,7 +224,7 @@ export function ReservationsList({ initialSnapshot, canOperate, openCreateSignal
     </section>
 
     <div className="admin-toolbar reservation-toolbar premium-reservation-toolbar">
-      <label className="admin-search"><SearchIcon/><span className="sr-only">Buscar reservas</span><input aria-label="Buscar reservas por cliente, teléfono, código o mesa" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, teléfono, código o mesa"/></label>
+      <label className="admin-search"><SearchIcon/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, teléfono, código o mesa"/></label>
       <div className="toolbar-groups">
         <div className="segmented reservation-services" aria-label="Servicio">
           <button className={serviceId === 'all' ? 'active' : ''} onClick={() => setServiceId('all')}>Todo</button>
@@ -238,81 +238,148 @@ export function ReservationsList({ initialSnapshot, canOperate, openCreateSignal
       {statusOptions.map((option) => <button key={option.value} className={status === option.value ? 'active' : ''} onClick={() => setStatus(option.value)}>{option.label}{option.value !== 'all' && <span>{snapshot.reservations.filter((item) => item.status === option.value).length}</span>}</button>)}
     </div>
 
-    {filtered.length === 0 ? (
-      <section className="admin-panel reservation-empty"><strong>Sin reservas en esta vista</strong><p>Ajusta los filtros o crea una nueva reserva para este servicio.</p></section>
-    ) : (
-      <>
-        <div className="reservation-table-wrap desktop-reservations"><table className="reservation-table"><thead><tr><th>Hora</th><th>Cliente</th><th>Pax</th><th>Origen</th><th>Mesa</th><th>Estado</th><th aria-label="Acciones" /></tr></thead><tbody>{filtered.map((reservation) => <ReservationRow key={reservation.id} reservation={reservation} onOpen={() => setSelectedId(reservation.id)} />)}</tbody></table></div>
-        <div className="mobile-reservations">{filtered.map((reservation) => <ReservationCard key={reservation.id} reservation={reservation} onOpen={() => setSelectedId(reservation.id)} />)}</div>
-      </>
-    )}
+    <div className="reservation-table-wrap desktop-reservations premium-reservation-table-wrap">
+      <table className="reservation-table premium-reservation-table"><thead><tr><th>Hora</th><th>Cliente</th><th>Mesa</th><th>Pax</th><th>Estado</th><th>Origen</th><th/></tr></thead><tbody>
+        {filtered.map((reservation) => <tr key={reservation.id} onClick={() => setSelectedId(reservation.id)} className="reservation-row">
+          <td><strong>{reservation.time}</strong><small>hasta {reservationEnd(reservation.time, reservation.duration)}</small></td>
+          <td><strong>{reservation.customer}</strong><small>{reservation.phone}{reservation.allergies ? ' · alergia registrada' : ''}</small></td>
+          <td><strong className={!reservation.table ? 'unassigned-text' : ''}>{reservation.table ?? 'Sin asignar'}</strong><small>{reservation.area}</small></td>
+          <td><strong>{reservation.partySize}</strong><small>{reservation.children ? `${reservation.adults} ad. · ${reservation.children} ni.` : `${reservation.adults} adultos`}</small></td>
+          <td><StatusPill status={reservation.status}/></td><td><span className="source-label">{sourceLabel[reservation.source]}</span></td>
+          <td><button className="icon-button" onClick={(event) => { event.stopPropagation(); setSelectedId(reservation.id); }} aria-label="Abrir reserva"><MoreIcon/></button></td>
+        </tr>)}
+      </tbody></table>
+      {!filtered.length && <div className="admin-empty premium-empty">No hay reservas que coincidan con esta vista.</div>}
+    </div>
 
-    {selected && <ReservationDrawer reservation={selected} tableChoices={tableChoices} canOperate={canOperate} loading={loading} onClose={() => setSelectedId(null)} onTransition={transition} onAssign={assign} onSaveNotes={saveNotes} />}
-    {createOpen && <CreateReservationModal date={snapshot.date} canOperate={canOperate} loading={loading} onClose={() => setCreateOpen(false)} onCreated={created} />}
+    <div className="mobile-reservations">
+      {filtered.map((reservation) => <button className="mobile-reservation-card premium-mobile-reservation" key={reservation.id} onClick={() => setSelectedId(reservation.id)}><div className="mobile-reservation-time"><strong>{reservation.time}</strong><small>{reservation.duration} min</small></div><div className="mobile-reservation-body"><div className="mobile-reservation-title"><strong>{reservation.customer}</strong><StatusPill status={reservation.status}/></div><p>{reservation.partySize} pax · {reservation.table ?? 'Sin mesa'} · {sourceLabel[reservation.source]}</p>{(reservation.allergies || reservation.internalNotes) && <small>{reservation.allergies ? 'Alergia registrada' : 'Nota interna registrada'}</small>}</div><ChevronRightIcon/></button>)}
+      {!filtered.length && <div className="admin-empty">No hay reservas que coincidan con esta vista.</div>}
+    </div>
+
+    <section className="reservation-footnote"><span><i/>Datos reales</span><p>La disponibilidad, asignación y estados comparten el mismo motor que Sala. Las capacidades y distribución física siguen siendo QA hasta validar el plano definitivo del restaurante.</p></section>
+
+    {selected && <ReservationDrawer key={`${selected.id}:${selected.status}:${selected.table ?? ''}:${selected.internalNotes ?? ''}`} reservation={selected} choices={tableChoices} canOperate={canOperate} loading={loading} onClose={() => setSelectedId(null)} onTransition={transition} onAssign={assign} onSaveNotes={saveNotes}/>}
+    {createOpen && <CreateReservationModal date={snapshot.date} loading={loading} onClose={() => setCreateOpen(false)} onCreated={created}/>}
     {toast && <div className="admin-toast" role="status">{toast}</div>}
   </>;
 }
 
-function ReservationRow({ reservation, onOpen }: { reservation: AdminReservation; onOpen: () => void }) {
-  return <tr onClick={onOpen} tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}>
-    <td><strong>{reservation.time}</strong><small>{reservationEnd(reservation.time, reservation.durationMinutes)}</small></td>
-    <td><strong>{reservation.customer}</strong><small>{reservation.confirmationCode}</small></td>
-    <td>{reservation.partySize}</td><td><span className="source-label">{sourceLabel[reservation.source]}</span></td>
-    <td>{reservation.table ?? <span className="unassigned">Sin mesa</span>}</td><td><StatusPill status={reservation.status}/></td><td><button className="icon-button" aria-label={`Abrir reserva de ${reservation.customer}`} onClick={(event) => { event.stopPropagation(); onOpen(); }}><ChevronRightIcon/></button></td>
-  </tr>;
-}
-
-function ReservationCard({ reservation, onOpen }: { reservation: AdminReservation; onOpen: () => void }) {
-  return <button className="reservation-card" onClick={onOpen}><span className="reservation-card-time">{reservation.time}</span><span><strong>{reservation.customer}</strong><small>{reservation.partySize} pax · {reservation.table ?? 'Sin mesa'}</small></span><StatusPill status={reservation.status}/><ChevronRightIcon/></button>;
-}
-
-function ReservationDrawer({ reservation, tableChoices, canOperate, loading, onClose, onTransition, onAssign, onSaveNotes }: { reservation: AdminReservation; tableChoices: TableChoice[]; canOperate: boolean; loading: boolean; onClose: () => void; onTransition: (id: string, status: ReservationStatus) => Promise<void>; onAssign: (id: string, tableId: string) => Promise<void>; onSaveNotes: (reservation: AdminReservation, values: { notes: string; preferences: string; allergies: string; internalNotes: string }) => Promise<void> }) {
+function ReservationDrawer({ reservation, choices, canOperate, loading, onClose, onTransition, onAssign, onSaveNotes }: {
+  reservation: AdminReservation; choices: TableChoice[]; canOperate: boolean; loading: boolean; onClose: () => void;
+  onTransition: (id: string, status: ReservationStatus) => Promise<void>; onAssign: (id: string, key: string) => Promise<void>;
+  onSaveNotes: (reservation: AdminReservation, values: { notes: string; preferences: string; allergies: string; internalNotes: string }) => Promise<void>;
+}) {
+  const [cancelMode, setCancelMode] = useState(false);
   const [notes, setNotes] = useState(reservation.notes ?? '');
   const [preferences, setPreferences] = useState(reservation.preferences ?? '');
   const [allergies, setAllergies] = useState(reservation.allergies ?? '');
   const [internalNotes, setInternalNotes] = useState(reservation.internalNotes ?? '');
-  const [dirty, setDirty] = useState(false);
-  const dialogRef = useDialogFocus<HTMLDivElement>(onClose);
-  const next = nextPrimaryStatus(reservation.status);
-  const currentTableKey = reservation.tableIds?.length === 1 ? `table:${reservation.tableIds[0]}` : tableChoices.find((item) => item.tableIds.length > 1 && item.tableIds.every((id) => reservation.tableIds?.includes(id)))?.key ?? '';
-  const communication = reservation.communication;
-  useEffect(() => { setNotes(reservation.notes ?? ''); setPreferences(reservation.preferences ?? ''); setAllergies(reservation.allergies ?? ''); setInternalNotes(reservation.internalNotes ?? ''); setDirty(false); }, [reservation]);
+  const dialogRef = useDialogFocus<HTMLElement>(onClose);
+  const primaryNext = nextPrimaryStatus(reservation.status);
+  const currentChoice = choices.find((choice) => {
+    const current = [...(reservation.tableIds ?? [])].sort().join('|');
+    return [...choice.tableIds].sort().join('|') === current;
+  })?.key ?? '';
+  const assignable = [{ value: '', label: 'Sin asignar', description: 'Mantener la reserva sin mesa' }, ...choices.filter((choice) => choice.capacity >= reservation.partySize).map((choice) => ({ value: choice.key, label: choice.name, description: `${choice.area} · ${choice.capacity} pax` }))];
 
-  return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><aside ref={dialogRef} className="reservation-drawer" role="dialog" aria-modal="true" aria-label={`Reserva de ${reservation.customer}`}>
-    <header><div><span className="admin-kicker">Reserva {reservation.confirmationCode}</span><h2>{reservation.customer}</h2><p>{reservation.service} · {reservation.time}–{reservationEnd(reservation.time, reservation.durationMinutes)}</p></div><button className="icon-button" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header>
-    <section className="reservation-identity"><div><small>Comensales</small><strong>{reservation.partySize}</strong></div><div><small>Estado</small><StatusPill status={reservation.status}/></div><div><small>Mesa</small><strong>{reservation.table ?? 'Sin mesa'}</strong></div><div><small>Origen</small><strong>{sourceLabel[reservation.source]}</strong></div></section>
-    <section className="drawer-section"><span className="section-label">Contacto</span><div className="contact-actions"><a href={`tel:${reservation.phone}`}><PhoneIcon/>Llamar</a>{reservation.phone && <a href={`https://wa.me/${reservation.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"><PhoneIcon/>WhatsApp</a>}<a href={`mailto:${reservation.email}`}><MailIcon/>Email</a></div><p>{reservation.phone || 'Sin teléfono'} · {reservation.email || 'Sin email'}</p></section>
-    <section className="drawer-section"><span className="section-label">Mesa y operación</span><label>Mesa asignada<ControlSelect value={currentTableKey} ariaLabel="Mesa asignada" options={[{ value: '', label: 'Sin mesa asignada' }, ...tableChoices.map((choice) => ({ value: choice.key, label: choice.name, description: `${choice.area} · ${choice.capacity} pax` }))]} disabled={!canOperate || loading} onChange={(value) => onAssign(reservation.id, value)} /></label>{!reservation.table && <Link prefetch={false} href="/control/sala" className="text-action"><TableIcon/>Abrir en Sala</Link>}</section>
-    {(reservation.allergies || reservation.preferences) && <section className="drawer-alerts">{reservation.allergies && <div><strong>Alergias / restricciones</strong><p>{reservation.allergies}</p></div>}{reservation.preferences && <div><strong>Preferencias</strong><p>{reservation.preferences}</p></div>}</section>}
-    <section className="drawer-section"><span className="section-label">Notas de servicio</span><label>Observaciones del cliente<textarea value={notes} maxLength={1500} onChange={(event) => { setNotes(event.target.value); setDirty(true); }}/></label><label>Preferencias<textarea value={preferences} maxLength={1000} onChange={(event) => { setPreferences(event.target.value); setDirty(true); }}/></label><label>Alergias<textarea value={allergies} maxLength={1000} onChange={(event) => { setAllergies(event.target.value); setDirty(true); }}/></label><label>Nota interna<textarea value={internalNotes} maxLength={1500} onChange={(event) => { setInternalNotes(event.target.value); setDirty(true); }}/></label><button className="admin-secondary" disabled={!dirty || loading || !canOperate} onClick={async () => { await onSaveNotes(reservation, { notes, preferences, allergies, internalNotes }); setDirty(false); }}>Guardar notas</button></section>
-    <section className="drawer-section customer-memory"><span className="section-label">Memoria de cliente</span><div className="memory-grid"><div><strong>{reservation.visits}</strong><small>visitas completadas</small></div><div><strong>{reservation.cancellations}</strong><small>cancelaciones</small></div><div><strong>{reservation.noShows}</strong><small>no-shows</small></div><div><strong>{reservation.preferredPartySize ?? reservation.partySize}</strong><small>pax habitual</small></div></div>{reservation.lastVisit && <p>Última visita · {new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(reservation.lastVisit))}</p>}</section>
-    {communication && <section className="drawer-section communication-state"><span className="section-label">Comunicaciones</span><p>{communication.status === 'failed' ? 'La última comunicación falló.' : communication.status === 'pending' ? 'Hay una comunicación pendiente de envío.' : communication.status === 'sent' ? 'Última comunicación enviada.' : 'Sin comunicaciones recientes.'}</p><small>{communication.template ?? 'Sin plantilla'} · {communication.channel ?? 'sin canal'}{communication.createdAt ? ` · ${new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(communication.createdAt))}` : ''}</small></section>}
-    {canOperate && <footer>{next && <button className="admin-primary" disabled={loading} onClick={() => onTransition(reservation.id, next)}><CheckIcon/>{nextPrimaryLabel(reservation.status)}</button>}{['pending','confirmed'].includes(reservation.status) && <button className="admin-secondary" disabled={loading} onClick={() => onTransition(reservation.id, 'no_show')}>No-show</button>}{!['cancelled','completed','no_show'].includes(reservation.status) && <button className="danger-button" disabled={loading} onClick={() => onTransition(reservation.id, 'cancelled')}>Cancelar reserva</button>}</footer>}
-  </aside></div>;
+  return <div className="admin-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
+    <aside ref={dialogRef} className="reservation-drawer premium-reservation-drawer" role="dialog" aria-modal="true" aria-labelledby="reservation-title" tabIndex={-1}>
+      <header className="drawer-topbar"><div><span className="admin-kicker">{reservation.confirmationCode ?? 'Reserva'}</span><p>{sourceLabel[reservation.source]} · {reservation.visits ? `${Math.max(0, reservation.visits - 1)} visitas previas` : 'Primera visita'}</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header>
+      <div className="drawer-scroll">
+        <section className="reservation-hero-card premium-reservation-hero"><div className="reservation-hero-time"><strong>{reservation.time}</strong><span>hasta {reservationEnd(reservation.time, reservation.duration)}</span></div><div className="reservation-hero-person"><StatusPill status={reservation.status}/><h2 id="reservation-title">{reservation.customer}</h2><p>{reservation.partySize} personas · {reservation.adults} adultos{reservation.children ? ` · ${reservation.children} niños` : ''}</p></div></section>
+
+        <div className="reservation-contact-actions">
+          {reservation.phone !== 'Sin teléfono' ? <a href={`tel:${reservation.phone.replace(/\s/g, '')}`}><PhoneIcon/><span>Llamar</span></a> : <span className="contact-disabled"><PhoneIcon/><small>Sin teléfono</small></span>}
+          {reservation.email ? <a href={`mailto:${reservation.email}`}><MailIcon/><span>Email</span></a> : <span className="contact-disabled"><MailIcon/><small>Sin email</small></span>}
+          <Link href="/control/sala"><TableIcon/><span>Ver sala</span></Link>
+        </div>
+
+        {reservation.allergies && <section className="reservation-alert"><div><strong>Atención · alergia registrada</strong><p>{reservation.allergies}</p></div><span aria-hidden="true">AL</span></section>}
+
+        <section className="drawer-section premium-drawer-section"><div className="drawer-section-head"><div><span className="admin-kicker">Servicio</span><h3>Mesa y operación</h3></div></div><div className="reservation-field-grid">
+          <label><span>Mesa asignada</span><ControlSelect disabled={!canOperate || loading || ['completed','cancelled','no_show'].includes(reservation.status)} value={currentChoice} options={assignable} onChange={(value) => void onAssign(reservation.id, value)} ariaLabel="Mesa asignada" /></label>
+          <label><span>Zona</span><div className="readonly-value">{reservation.table ? reservation.area : 'Pendiente de asignación'}</div></label>
+          <label><span>Duración estimada</span><div className="readonly-value">{reservation.duration} min</div></label>
+          <label><span>Origen</span><div className="readonly-value">{sourceLabel[reservation.source]}</div></label>
+        </div></section>
+
+        <section className="drawer-section premium-drawer-section"><div className="drawer-section-head"><div><span className="admin-kicker">Cliente</span><h3>Información de la visita</h3></div>{reservation.customerId && <span className="private-label">CRM</span>}</div><dl className="reservation-details-list">
+          <div><dt>Teléfono</dt><dd>{reservation.phone}</dd></div><div><dt>Email</dt><dd>{reservation.email ?? 'No indicado'}</dd></div><div><dt>Código</dt><dd>{reservation.confirmationCode ?? '—'}</dd></div><div><dt>Historial</dt><dd>{reservation.visits > 1 ? `${reservation.visits - 1} visitas anteriores` : 'Primera visita'}</dd></div>
+        </dl></section>
+
+        <section className="drawer-section premium-drawer-section reservation-edit-section"><div className="drawer-section-head"><div><span className="admin-kicker">Contexto</span><h3>Notas de reserva</h3></div><span className="private-label">Equipo</span></div><div className="reservation-editor-grid">
+          <label><span>Preferencias</span><textarea disabled={!canOperate} value={preferences} onChange={(event) => setPreferences(event.target.value)} placeholder="Terraza, trona, mesa tranquila…"/></label>
+          <label><span>Alergias</span><textarea disabled={!canOperate} value={allergies} onChange={(event) => setAllergies(event.target.value)} placeholder="Alergias o intolerancias"/></label>
+          <label className="span-2"><span>Notas del cliente</span><textarea disabled={!canOperate} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Ocasión, petición o contexto de la reserva"/></label>
+          <label className="span-2"><span>Nota interna</span><textarea disabled={!canOperate} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} placeholder="Información solo visible para el equipo"/></label>
+        </div>{canOperate && <button className="text-action" disabled={loading} onClick={() => void onSaveNotes(reservation, { notes, preferences, allergies, internalNotes })}>Guardar información</button>}</section>
+
+        <section className="drawer-section premium-drawer-section status-section"><div className="drawer-section-head"><div><span className="admin-kicker">Flujo</span><h3>Estado de la reserva</h3></div></div><div className="status-timeline">{(['confirmed','seated','completed'] as ReservationStatus[]).map((item, index) => { const order = ['pending','confirmed','seated','completed']; const active = order.indexOf(reservation.status) >= order.indexOf(item); return <div key={item} className={active ? 'done' : ''}><i>{active ? <CheckIcon/> : index + 1}</i><span>{item === 'confirmed' ? 'Confirmada' : item === 'seated' ? 'Sentada' : 'Completada'}</span></div>; })}</div></section>
+      </div>
+
+      <footer className="drawer-actions">
+        {!cancelMode ? <>{primaryNext && <button className="admin-primary drawer-primary" disabled={!canOperate || loading} onClick={() => void onTransition(reservation.id, primaryNext)}>{nextPrimaryLabel(reservation.status)}</button>}{reservation.status === 'confirmed' && <button className="admin-secondary" disabled={!canOperate || loading} onClick={() => void onTransition(reservation.id, 'no_show')}>No-show</button>}{!['cancelled','completed','no_show'].includes(reservation.status) && <button className="danger-link" disabled={!canOperate || loading} onClick={() => setCancelMode(true)}>Cancelar</button>}</> : <div className="cancel-confirmation"><p><strong>¿Cancelar esta reserva?</strong><span>La mesa volverá a estar disponible y la reserva quedará en el historial.</span></p><div><button className="admin-secondary" onClick={() => setCancelMode(false)}>Volver</button><button className="danger-button" disabled={loading} onClick={() => { void onTransition(reservation.id, 'cancelled'); setCancelMode(false); }}>Confirmar</button></div></div>}
+      </footer>
+    </aside>
+  </div>;
 }
 
-function CreateReservationModal({ date, canOperate, loading, onClose, onCreated }: { date: string; canOperate: boolean; loading: boolean; onClose: () => void; onCreated: (reservationId: string) => Promise<void> }) {
+function CreateReservationModal({ date, loading, onClose, onCreated }: { date: string; loading: boolean; onClose: () => void; onCreated: (reservationId: string) => Promise<void> }) {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [source, setSource] = useState('phone');
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-  const [slot, setSlot] = useState('');
-  const [availabilityError, setAvailabilityError] = useState('');
-  const [checking, setChecking] = useState(false);
-  const dialogRef = useDialogFocus<HTMLDivElement>(onClose);
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const dialogRef = useDialogFocus<HTMLElement>(onClose);
 
-  useEffect(() => { let active = true; async function load() { setChecking(true); setAvailabilityError(''); try { const response = await fetch(`/api/reservations/availability?date=${date}&adults=${adults}&children=${children}`); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'No se pudo consultar disponibilidad.'); if (!active) return; setSlots(body.slots || []); setSlot((current) => body.slots?.some((item: AvailabilitySlot) => item.startsAt === current) ? current : body.slots?.[0]?.startsAt ?? ''); } catch (error) { if (active) { setAvailabilityError((error as Error).message); setSlots([]); setSlot(''); } } finally { if (active) setChecking(false); } } void load(); return () => { active = false; }; }, [date, adults, children]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setAvailabilityLoading(true); setAvailabilityError(null); setSelectedSlot(null);
+      try {
+        const response = await fetch(`/api/reservations/availability?date=${encodeURIComponent(date)}&adults=${adults}&children=${children}`, { cache: 'no-store', signal: controller.signal });
+        const body = await parseResponse(response);
+        setSlots(body.slots ?? []);
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') setAvailabilityError((error as Error).message);
+      } finally { if (!controller.signal.aborted) setAvailabilityLoading(false); }
+    }, 180);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [date, adults, children]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, AvailabilitySlot[]>();
+    for (const slot of slots) map.set(slot.serviceName, [...(map.get(slot.serviceName) ?? []), slot]);
+    return [...map.entries()];
+  }, [slots]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canOperate || loading || !slot) return;
-    const data = new FormData(event.currentTarget);
-    const selected = slots.find((item) => item.startsAt === slot);
-    if (!selected) return;
-    const response = await fetch('/api/admin/reservations/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceId: selected.serviceId, startsAt: selected.startsAt, adults, children, source, firstName: data.get('firstName'), lastName: data.get('lastName'), phone: data.get('phone'), email: data.get('email'), allergies: data.get('allergies'), preferences: data.get('preferences'), notes: data.get('notes') }) });
-    const body = await parseResponse(response);
-    await onCreated(body.reservation.id);
+    if (!selectedSlot) return setAvailabilityError('Selecciona primero una hora disponible.');
+    const form = new FormData(event.currentTarget);
+    setSubmitting(true); setAvailabilityError(null);
+    try {
+      const result = await parseResponse(await fetch('/api/admin/reservations/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        date, serviceId: selectedSlot.serviceId, startsAt: selectedSlot.startsAt, adults, children,
+        firstName: form.get('firstName'), lastName: form.get('lastName'), phone: form.get('phone'), email: form.get('email'), source,
+        allergies: form.get('allergies'), preferences: form.get('preferences'), notes: form.get('notes'), internalNotes: form.get('internalNotes'),
+      }) }));
+      await onCreated(String(result.reservationId));
+    } catch (error) { setAvailabilityError((error as Error).message); }
+    finally { setSubmitting(false); }
   }
 
-  return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div ref={dialogRef} className="admin-modal new-reservation-modal" role="dialog" aria-modal="true" aria-label="Nueva reserva"><header><div><span className="admin-kicker">Alta manual</span><h2>Nueva reserva</h2><p>{dateLabel(date)}</p></div><button className="icon-button" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header><form onSubmit={submit}><div className="form-grid two"><label>Adultos<NumberStepper value={adults} onChange={setAdults} min={1} max={20} ariaLabel="Adultos" /></label><label>Niños<NumberStepper value={children} onChange={setChildren} min={0} max={12} ariaLabel="Niños" /></label></div><label>Origen<ControlSelect value={source} onChange={setSource} options={sourceOptions} ariaLabel="Origen de la reserva" /></label><div className="form-grid two"><label>Nombre<input name="firstName" required maxLength={120}/></label><label>Apellidos<input name="lastName" required maxLength={120}/></label></div><div className="form-grid two"><label>Teléfono<input name="phone" required maxLength={40}/></label><label>Email<input name="email" type="email" maxLength={254}/></label></div><label>Hora disponible<ControlSelect value={slot} onChange={setSlot} disabled={checking} ariaLabel="Hora disponible" options={slots.map((item) => ({ value: item.startsAt, label: `${item.serviceName} · ${localTime(item.startsAt)}`, description: `${item.durationMinutes} min` }))} placeholder={checking ? 'Consultando disponibilidad…' : 'Sin huecos disponibles'} /></label>{availabilityError && <p className="form-error" role="alert">{availabilityError}</p>}<label>Alergias<input name="allergies" maxLength={1000}/></label><label>Preferencias<input name="preferences" maxLength={1000}/></label><label>Notas<textarea name="notes" rows={3} maxLength={1500}/></label><footer><button type="button" className="admin-secondary" onClick={onClose}>Cancelar</button><button className="admin-primary" disabled={!slot || checking || loading || !canOperate}>{loading ? 'Creando…' : 'Crear reserva'}</button></footer></form></div></div>;
+  return <div className="admin-overlay modal-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}><section ref={dialogRef} className="create-reservation-modal premium-create-reservation" role="dialog" aria-modal="true" aria-labelledby="create-reservation-title" tabIndex={-1}><header className="drawer-topbar"><div><span className="admin-kicker">Nueva reserva</span><p>{dateLabel(date)} · disponibilidad real</p></div><button className="drawer-close" onClick={onClose} aria-label="Cerrar"><CloseIcon/></button></header><form onSubmit={submit}><div className="create-scroll">
+    <div className="create-intro"><h2 id="create-reservation-title">Reserva manual, sin atajos.</h2><p>El horario se valida contra el mismo motor que utiliza la web y la mesa se bloquea atómicamente al confirmar.</p></div>
+    <div className="create-form-section"><span className="admin-kicker">1 · Comensales y hora</span><div className="create-form-grid bespoke-guest-counts"><label><span>Adultos</span><NumberStepper value={adults} min={1} max={30} onChange={setAdults} ariaLabel="Número de adultos" /></label><label><span>Niños</span><NumberStepper value={children} min={0} max={20} onChange={setChildren} ariaLabel="Número de niños" /></label></div>
+      <div className="admin-slot-selector">{availabilityLoading ? <p className="slot-loading">Calculando disponibilidad real…</p> : grouped.length ? grouped.map(([serviceName, serviceSlots]) => <div key={serviceName}><div className="slot-service-head"><strong>{serviceName}</strong><span>{serviceSlots.length} horas</span></div><div className="admin-slots">{serviceSlots.map((slot) => <button type="button" key={`${slot.serviceId}:${slot.startsAt}`} className={selectedSlot?.startsAt === slot.startsAt && selectedSlot.serviceId === slot.serviceId ? 'active' : ''} onClick={() => setSelectedSlot(slot)}>{localTime(slot.startsAt)}</button>)}</div></div>) : <p className="slot-loading">No hay huecos disponibles para {adults + children} personas.</p>}</div>
+    </div>
+    <div className="create-form-section"><span className="admin-kicker">2 · Cliente</span><div className="create-form-grid"><label><span>Nombre</span><input name="firstName" required placeholder="Nombre"/></label><label><span>Apellidos</span><input name="lastName" required placeholder="Apellidos"/></label><label><span>Teléfono</span><input name="phone" type="tel" required placeholder="+34"/></label><label><span>Email</span><input name="email" type="email" placeholder="Opcional"/></label><label><span>Origen</span><ControlSelect value={source} options={sourceOptions} onChange={setSource} ariaLabel="Origen de la reserva" /></label><label><span>Preferencias</span><input name="preferences" placeholder="Terraza, trona…"/></label><label className="span-2"><span>Alergias</span><input name="allergies" placeholder="Alergias o intolerancias"/></label><label className="span-2"><span>Notas del cliente</span><textarea name="notes" placeholder="Ocasión o petición especial"/></label><label className="span-2"><span>Nota interna</span><textarea name="internalNotes" placeholder="Contexto solo para el equipo"/></label></div></div>
+    {availabilityError && <div className="staff-login-error create-error" role="alert">{availabilityError}</div>}
+    {selectedSlot && <div className="selected-admin-slot" role="status"><CheckIcon/><div><span>Hora seleccionada</span><strong>{selectedSlot.serviceName} · {localTime(selectedSlot.startsAt)} · {adults + children} pax</strong></div></div>}
+  </div><footer className="create-actions"><button type="button" className="admin-secondary" onClick={onClose}>Cancelar</button><button className="admin-primary" type="submit" disabled={loading || submitting || !selectedSlot}>{submitting ? 'Reservando…' : 'Crear reserva'}</button></footer></form></section></div>;
 }
