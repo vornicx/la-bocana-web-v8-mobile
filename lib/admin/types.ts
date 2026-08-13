@@ -124,11 +124,11 @@ export type AdminWaitlistItem = {
   id: string;
   customerId: string | null;
   customerName: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   phone: string | null;
   email: string | null;
-  serviceId: string | null;
+  serviceId?: string | null;
   serviceName: string | null;
   desiredDate: string;
   adults: number;
