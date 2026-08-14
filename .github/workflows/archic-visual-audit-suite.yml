@@ -21,7 +21,7 @@ jobs:
       BASE_URL: https://labocana-git-fix-design-hardening-aa4079-vornicx-7872s-projects.vercel.app
       VERCEL_SHARE_TOKEN: h0LSTlO6tSAbgJzmuwjau6x4u59Blb8H
       MFS_BASE_URL: https://marbellaforsale-git-fix-design-ha-5a3e8d-vornicx-7872s-projects.vercel.app
-      MFS_SHARE_TOKEN: tKiRqX5whFDNL5sXBtQfZZcV6vPnFyln
+      MFS_SHARE_TOKEN: FwWgG2nkwOJxsQ8e8lCH9OavIumze3PD
       QA_BROKER_URL: https://rjaeqcrtxzonxqhzfxtq.supabase.co/functions/v1/qa-auth-broker
       AUDIT_DEPLOYMENT_MODE: pull-request-preview
     steps:
