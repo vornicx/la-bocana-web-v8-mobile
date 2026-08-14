@@ -67,12 +67,12 @@ jobs:
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaboatcharter.git audit-workspace/marbella-boat-charter
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/zusto-cafe-v2-final.git audit-workspace/zusto-cafe
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/amer-samer-phase11.git audit-workspace/samer-barber-shop
-          git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaforsale.git audit-workspace/marbella-for-sale
+          git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaforsale.git /tmp/marbella-for-sale-audit
       - name: Start Marbella For Sale preview locally
         shell: bash
         run: |
           set -euo pipefail
-          cd audit-workspace/marbella-for-sale
+          cd /tmp/marbella-for-sale-audit
           npm ci --ignore-scripts
           ./node_modules/.bin/next dev -p 4105 > /tmp/mfs-audit.log 2>&1 &
           echo $! > /tmp/mfs-audit.pid
