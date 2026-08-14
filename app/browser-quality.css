@@ -39,6 +39,75 @@
 .check-row input[type="checkbox"]:disabled{background:#e8e5df;border-color:rgba(16,44,76,.12);cursor:not-allowed}
 .check-row input[type="checkbox"]:disabled + span{opacity:.55}
 
+/* Public experience: keep the editorial microcopy refined without making it microscopic. */
+.public-site .public-nav a,
+.public-site .public-actions a,
+.public-site .experience-hero-copy>span,
+.public-site .experience-opening>span,
+.public-site .experience-section-head>span,
+.public-site .experience-chapter-copy>span,
+.public-site .experience-menu-head>span,
+.public-site .experience-pause>div>span,
+.public-site .experience-reviews header>span,
+.public-site .experience-end>span,
+.public-site .experience-primary,
+.public-site .experience-hero-proof span,
+.public-site .experience-scroll span,
+.public-site .experience-chapter-media>span,
+.public-site .experience-dish>div>span,
+.public-site .experience-dish>p,
+.public-site .experience-dish small,
+.public-site .experience-text-link,
+.public-site .experience-pause a,
+.public-site .experience-review-grid article>span,
+.public-site .experience-review-grid strong,
+.public-site .experience-review-grid small,
+.public-site .footer-address>span,
+.public-site .public-footer>nav a,
+.public-site .footer-cookie-button,
+.public-site .footer-signature,
+.public-site .brand-lockup small{
+  font-size:12px !important;
+}
+
+/* A refined visual can still expose a full 44×44 interaction surface. */
+.public-site a[href],
+.public-site button{
+  min-width:44px;
+  min-height:44px;
+}
+.public-site .public-language,
+.public-site .public-menu-button{
+  width:44px !important;
+  min-width:44px !important;
+  height:44px !important;
+  min-height:44px !important;
+  flex-basis:44px !important;
+}
+.public-site .public-brand{
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+}
+.public-site .public-nav a,
+.public-site .experience-scroll,
+.public-site .experience-text-link,
+.public-site .experience-pause a,
+.public-site .public-footer>nav a,
+.public-site .footer-cookie-button,
+.public-site .footer-address>a{
+  min-width:44px;
+  min-height:44px;
+  align-items:center;
+}
+.public-site .public-nav a,
+.public-site .experience-pause a,
+.public-site .public-footer>nav a,
+.public-site .footer-cookie-button,
+.public-site .footer-address>a{
+  display:inline-flex;
+}
+
 @media (max-width: 700px) {
   .booking-page .brand-row > a:first-child,
   .lookup-page .brand-row > a:first-child {
@@ -52,7 +121,7 @@
   .lookup-page .booking-language {
     min-width: 44px;
     min-height: 44px;
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .booking-page .visual-copy .eyebrow,
@@ -65,7 +134,7 @@
   .booking-page .calendar-kicker,
   .booking-page .calendar-weekdays span,
   .booking-page .calendar-foot {
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .booking-page .existing-booking.prominent a,
@@ -76,7 +145,7 @@
     align-items: center;
     padding-top: 8px;
     padding-bottom: 8px;
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .contact-grid a,
@@ -84,6 +153,10 @@
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+  }
+
+  .public-site .public-header .brand-lockup.compact strong{
+    font-size:12px;
   }
 
   /* Control fields become a predictable bottom sheet on small screens.
