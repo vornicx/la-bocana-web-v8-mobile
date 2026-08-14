@@ -19,6 +19,8 @@ jobs:
       SUITE_WORKSPACE: audit-workspace
       BASE_URL: https://labocana-git-fix-design-hardening-aa4079-vornicx-7872s-projects.vercel.app
       VERCEL_SHARE_TOKEN: h0LSTlO6tSAbgJzmuwjau6x4u59Blb8H
+      MFS_BASE_URL: https://marbellaforsale-git-fix-design-ha-5a3e8d-vornicx-7872s-projects.vercel.app
+      MFS_SHARE_TOKEN: tKiRqX5whFDNL5sXBtQfZZcV6vPnFyln
       QA_BROKER_URL: https://rjaeqcrtxzonxqhzfxtq.supabase.co/functions/v1/qa-auth-broker
       AUDIT_DEPLOYMENT_MODE: pull-request-preview
     steps:
@@ -67,24 +69,16 @@ jobs:
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaboatcharter.git audit-workspace/marbella-boat-charter
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/zusto-cafe-v2-final.git audit-workspace/zusto-cafe
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/amer-samer-phase11.git audit-workspace/samer-barber-shop
-          git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaforsale.git /tmp/marbella-for-sale-audit
-      - name: Start Marbella For Sale preview locally
+      - name: Wait for Marbella For Sale protected preview
         shell: bash
         run: |
           set -euo pipefail
-          cd /tmp/marbella-for-sale-audit
-          npm ci --ignore-scripts
-          ./node_modules/.bin/next dev -p 4105 > /tmp/mfs-audit.log 2>&1 &
-          echo $! > /tmp/mfs-audit.pid
-          for attempt in {1..60}; do
-            if curl -fsS -o /dev/null http://127.0.0.1:4105/studio; then exit 0; fi
+          for attempt in {1..36}; do
+            if curl -fsSL -o /dev/null "${MFS_BASE_URL}/studio?_vercel_share=${MFS_SHARE_TOKEN}"; then exit 0; fi
             sleep 2
           done
-          cat /tmp/mfs-audit.log
           exit 1
       - name: Capture before and after for public projects
-        env:
-          MFS_BASE_URL: http://127.0.0.1:4105
         run: node scripts/archic-public-visual-audit.mjs
       - name: Invalidate La Bocana QA login
         if: always() && steps.qa_login.outcome == 'success'
