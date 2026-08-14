@@ -39,7 +39,8 @@ async function inspect(page) {
     const visible = (element) => {
       const box = element.getBoundingClientRect();
       const style = getComputedStyle(element);
-      return box.width > 0 && box.height > 0 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0;
+      const intersectsViewport = box.right > 0 && box.left < width && box.bottom > 0 && box.top < height;
+      return box.width > 0 && box.height > 0 && intersectsViewport && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0;
     };
     const elements = [...document.querySelectorAll('body *')].filter(visible);
     const overflowers = elements.map((element) => {
@@ -53,7 +54,7 @@ async function inspect(page) {
     const brokenImages = [...document.images].filter((image) => visible(image) && image.complete && image.naturalWidth === 0).map((image) => image.currentSrc || image.src);
     const smallTargets = [...document.querySelectorAll('button,a,input,select,textarea,[role="button"]')].filter(visible).map((element) => { const box = element.getBoundingClientRect(); return { label: (element.getAttribute('aria-label') || element.textContent || element.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim().slice(0, 70), width: Math.round(box.width), height: Math.round(box.height) }; }).filter((item) => item.width < 40 || item.height < 40).slice(0, 40);
     const overlays = [...document.querySelectorAll('[role="dialog"],dialog,.detail-drawer,.studio-drawer,.drawer')].filter(visible).map((element) => { const box = element.getBoundingClientRect(); return { className: String(element.className || '').slice(0, 100), left: Math.round(box.left), right: Math.round(box.right), top: Math.round(box.top), bottom: Math.round(box.bottom), insideViewport: box.left >= -1 && box.right <= width + 1 && box.top >= -1 && box.bottom <= height + 1 }; });
-    return { viewport: { width, height }, documentWidth: document.documentElement.scrollWidth, documentHeight: document.documentElement.scrollHeight, overflowers, clipped, brokenImages, smallTargets, overlays };
+    return { viewportDimensions: { width, height }, documentWidth: document.documentElement.scrollWidth, documentHeight: document.documentElement.scrollHeight, overflowers, clipped, brokenImages, smallTargets, overlays };
   });
 }
 
