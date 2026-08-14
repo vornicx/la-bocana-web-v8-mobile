@@ -52,6 +52,7 @@
 .public-site .experience-end>span,
 .public-site .experience-primary,
 .public-site .experience-hero-proof span,
+.public-site .experience-hero-proof strong,
 .public-site .experience-scroll span,
 .public-site .experience-chapter-media>span,
 .public-site .experience-dish>div>span,
@@ -62,6 +63,8 @@
 .public-site .experience-review-grid article>span,
 .public-site .experience-review-grid strong,
 .public-site .experience-review-grid small,
+.public-site .experience-end .reserve-main,
+.public-site .experience-end .reserve-secondary,
 .public-site .footer-address>span,
 .public-site .public-footer>nav a,
 .public-site .footer-cookie-button,
@@ -106,6 +109,34 @@
 .public-site .footer-cookie-button,
 .public-site .footer-address>a{
   display:inline-flex;
+}
+
+/* Global accessibility entry point and privacy controls live outside .public-site. */
+.skip-link{
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+}
+.cookie-notice .cookie-notice-head>span,
+.cookie-notice .cookie-notice-head>button,
+.cookie-notice .cookie-notice-copy p,
+.cookie-notice .cookie-primary,
+.cookie-notice .cookie-secondary,
+.cookie-notice .cookie-notice-actions>a{
+  font-size:12px !important;
+}
+.cookie-notice .cookie-notice-head>button,
+.cookie-notice .cookie-primary,
+.cookie-notice .cookie-secondary,
+.cookie-notice .cookie-notice-actions>a{
+  min-height:44px !important;
+}
+.cookie-notice .cookie-primary,
+.cookie-notice .cookie-secondary,
+.cookie-notice .cookie-notice-actions>a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
 }
 
 @media (max-width: 700px) {
