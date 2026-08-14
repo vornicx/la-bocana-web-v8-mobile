@@ -31,6 +31,8 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - name: Acquire ephemeral La Bocana QA login
+        id: qa_login
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -44,6 +46,7 @@ jobs:
           printf 'CONTROL_EMAIL=%s\n' "$EMAIL" >> "$GITHUB_ENV"
           printf 'CONTROL_PASSWORD=%s\n' "$PASSWORD" >> "$GITHUB_ENV"
       - name: Wait for protected preview
+        if: steps.qa_login.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -53,6 +56,7 @@ jobs:
           done
           exit 1
       - name: Capture La Bocana Control preview
+        if: steps.qa_login.outcome == 'success'
         run: node scripts/playwright-control-auth-audit.mjs
       - name: Clone corrected public projects
         shell: bash
@@ -83,7 +87,7 @@ jobs:
           MFS_BASE_URL: http://127.0.0.1:4105
         run: node scripts/archic-public-visual-audit.mjs
       - name: Invalidate La Bocana QA login
-        if: always()
+        if: always() && steps.qa_login.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
