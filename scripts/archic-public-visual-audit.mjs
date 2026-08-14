@@ -155,7 +155,7 @@ async function auditStudio(browser, phase, base, viewportName, viewport) {
       if (await lead.count()) {
         await lead.click();
         await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-enquiry-drawer', 'open', false);
-        await page.keyboard.press('Escape');
+        await page.getByRole('button', { name: 'Close enquiry' }).last().click();
       }
       const search = page.locator('.pipeline-search input');
       if (await search.count()) {
@@ -169,7 +169,7 @@ async function auditStudio(browser, phase, base, viewportName, viewport) {
       if (await candidates.count()) {
         await candidates.first().click();
         await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-property-editor', 'open', false);
-        await page.keyboard.press('Escape');
+        await page.getByRole('button', { name: 'Close property editor' }).last().click();
       }
       const search = page.locator('.property-manager-search input');
       if (await search.count()) {
@@ -199,6 +199,13 @@ const production = {
 const local = { mfinity: 'http://127.0.0.1:4101', boat: 'http://127.0.0.1:4102', zusto: 'http://127.0.0.1:4103', samer: 'http://127.0.0.1:4104', studio: process.env.MFS_BASE_URL || 'http://127.0.0.1:4105' };
 const servers = [];
 let browser;
+async function runAudit(label, task) {
+  try {
+    await task();
+  } catch (error) {
+    report.push({ project: 'audit-runner', phase: label, screen: 'capture-error', errors: [error instanceof Error ? error.message : String(error)] });
+  }
+}
 try {
   servers.push(await serve('mfinity', 4101));
   servers.push(await serve('marbella-boat-charter', 4102));
@@ -206,16 +213,16 @@ try {
   servers.push(await serve('samer-barber-shop', 4104));
   browser = await chromium.launch({ headless: true });
   for (const [viewportName, viewport] of Object.entries({ desktop: { width: 1440, height: 1000 }, mobile: { width: 390, height: 844 } })) {
-    await auditMfinity(browser, 'before', production.mfinity, viewportName, viewport);
-    await auditMfinity(browser, 'after', local.mfinity, viewportName, viewport);
-    await auditBoat(browser, 'before', production.boat, viewportName, viewport);
-    await auditBoat(browser, 'after', local.boat, viewportName, viewport);
-    await auditPublic(browser, 'zusto-cafe', 'before', production.zusto, viewportName, viewport);
-    await auditPublic(browser, 'zusto-cafe', 'after', local.zusto, viewportName, viewport);
-    await auditPublic(browser, 'samer-barber-shop', 'before', production.samer, viewportName, viewport);
-    await auditPublic(browser, 'samer-barber-shop', 'after', local.samer, viewportName, viewport);
-    await auditStudio(browser, 'before', production.studio, viewportName, viewport);
-    await auditStudio(browser, 'after', local.studio, viewportName, viewport);
+    await runAudit(`mfinity-before-${viewportName}`, () => auditMfinity(browser, 'before', production.mfinity, viewportName, viewport));
+    await runAudit(`mfinity-after-${viewportName}`, () => auditMfinity(browser, 'after', local.mfinity, viewportName, viewport));
+    await runAudit(`boat-before-${viewportName}`, () => auditBoat(browser, 'before', production.boat, viewportName, viewport));
+    await runAudit(`boat-after-${viewportName}`, () => auditBoat(browser, 'after', local.boat, viewportName, viewport));
+    await runAudit(`zusto-before-${viewportName}`, () => auditPublic(browser, 'zusto-cafe', 'before', production.zusto, viewportName, viewport));
+    await runAudit(`zusto-after-${viewportName}`, () => auditPublic(browser, 'zusto-cafe', 'after', local.zusto, viewportName, viewport));
+    await runAudit(`samer-before-${viewportName}`, () => auditPublic(browser, 'samer-barber-shop', 'before', production.samer, viewportName, viewport));
+    await runAudit(`samer-after-${viewportName}`, () => auditPublic(browser, 'samer-barber-shop', 'after', local.samer, viewportName, viewport));
+    await runAudit(`studio-before-${viewportName}`, () => auditStudio(browser, 'before', production.studio, viewportName, viewport));
+    await runAudit(`studio-after-${viewportName}`, () => auditStudio(browser, 'after', local.studio, viewportName, viewport));
   }
 } finally {
   if (browser) await browser.close();
