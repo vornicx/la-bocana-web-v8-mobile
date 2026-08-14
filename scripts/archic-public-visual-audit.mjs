@@ -86,6 +86,12 @@ async function auditMfinity(browser, phase, base, viewportName, viewport) {
     await firstRequest.click();
     await shot(page, 'mfinity', phase, viewportName, 'control-request-drawer', 'open', false);
     await page.locator('[data-drawer-close]').last().click();
+  } else {
+    const promptAnswers = ['Visual Audit Client', '+34 600 000 000'];
+    page.on('dialog', async (dialog) => dialog.accept(promptAnswers.shift() || 'Visual audit'));
+    await page.locator('[data-new-request]').click();
+    await shot(page, 'mfinity', phase, viewportName, 'control-request-drawer', 'created', false);
+    await page.locator('[data-drawer-close]').last().click();
   }
   for (const [label, screen] of [['Availability', 'control-availability'], ['Fleet', 'control-fleet'], ['Clients', 'control-clients']]) {
     const navigationButton = page.getByRole('button', { name: new RegExp(label, 'i') }).first();
@@ -151,16 +157,29 @@ async function auditStudio(browser, phase, base, viewportName, viewport) {
         await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-enquiry-drawer', 'open', false);
         await page.keyboard.press('Escape');
       }
+      const search = page.locator('.pipeline-search input');
+      if (await search.count()) {
+        await search.fill('NO-RESULT-VISUAL-AUDIT');
+        await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-enquiries', 'empty');
+        await search.fill('');
+      }
     }
     if (label === 'Properties') {
-      const candidates = page.locator('button').filter({ hasText: /Edit|Open|Manage/ });
+      const candidates = page.locator('.managed-property-card');
       if (await candidates.count()) {
         await candidates.first().click();
         await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-property-editor', 'open', false);
         await page.keyboard.press('Escape');
       }
+      const search = page.locator('.property-manager-search input');
+      if (await search.count()) {
+        await search.fill('NO-RESULT-VISUAL-AUDIT');
+        await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-properties', 'empty');
+        await search.fill('');
+      }
     }
   }
+  await clickTab(page, 'Enquiries');
   const newEnquiry = page.getByRole('button', { name: /New enquiry/i }).first();
   if (await newEnquiry.count()) {
     await newEnquiry.click();
