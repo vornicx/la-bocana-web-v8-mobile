@@ -1,4 +1,5 @@
 name: Archic visual audit suite
+# Final pass uses the deployed, protected Owner Studio preview.
 
 on:
   push:
