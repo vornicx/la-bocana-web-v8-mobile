@@ -74,7 +74,7 @@ jobs:
           set -euo pipefail
           cd audit-workspace/marbella-for-sale
           npm ci --ignore-scripts
-          VERCEL=1 npm run dev -- --port 4105 > /tmp/mfs-audit.log 2>&1 &
+          ./node_modules/.bin/next dev -p 4105 > /tmp/mfs-audit.log 2>&1 &
           echo $! > /tmp/mfs-audit.pid
           for attempt in {1..60}; do
             if curl -fsS -o /dev/null http://127.0.0.1:4105/studio; then exit 0; fi
