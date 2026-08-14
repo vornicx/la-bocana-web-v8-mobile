@@ -22,6 +22,7 @@ jobs:
       VERCEL_SHARE_TOKEN: h0LSTlO6tSAbgJzmuwjau6x4u59Blb8H
       MFS_BASE_URL: https://marbellaforsale-git-fix-design-ha-5a3e8d-vornicx-7872s-projects.vercel.app
       MFS_SHARE_TOKEN: FwWgG2nkwOJxsQ8e8lCH9OavIumze3PD
+      MFS_CSS_OVERRIDE: audit-workspace/marbella-for-sale/app/design-hardening.css
       QA_BROKER_URL: https://rjaeqcrtxzonxqhzfxtq.supabase.co/functions/v1/qa-auth-broker
       AUDIT_DEPLOYMENT_MODE: pull-request-preview
     steps:
@@ -68,6 +69,7 @@ jobs:
           mkdir -p audit-workspace
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/mfinity-premium.git audit-workspace/mfinity
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaboatcharter.git audit-workspace/marbella-boat-charter
+          git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/marbellaforsale.git audit-workspace/marbella-for-sale
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/zusto-cafe-v2-final.git audit-workspace/zusto-cafe
           git clone --depth 1 --branch fix/design-hardening-20260814 https://github.com/vornicx/amer-samer-phase11.git audit-workspace/samer-barber-shop
       - name: Wait for Marbella For Sale protected preview
