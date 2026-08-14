@@ -92,6 +92,7 @@ async function auditMfinity(browser, phase, base, viewportName, viewport) {
     await page.locator('[data-new-request]').click();
     await shot(page, 'mfinity', phase, viewportName, 'control-request-drawer', 'created', false);
     await page.locator('[data-drawer-close]').last().click();
+    await page.waitForTimeout(2800);
   }
   for (const [label, screen] of [['Availability', 'control-availability'], ['Fleet', 'control-fleet'], ['Clients', 'control-clients']]) {
     const navigationButton = page.getByRole('button', { name: new RegExp(label, 'i') }).first();
@@ -139,6 +140,7 @@ async function clickTab(page, label) {
   const button = page.getByRole('button', { name: new RegExp(`^${label}`, 'i') }).first();
   if (!await button.count()) return false;
   await button.click();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(120);
   return true;
 }
@@ -148,6 +150,10 @@ async function auditStudio(browser, phase, base, viewportName, viewport) {
   const studioUrl = new URL('/studio', base);
   if (phase === 'after' && process.env.MFS_SHARE_TOKEN) studioUrl.searchParams.set('_vercel_share', process.env.MFS_SHARE_TOKEN);
   await page.goto(studioUrl.toString(), { waitUntil: 'networkidle' });
+  if (phase === 'after' && process.env.MFS_CSS_OVERRIDE) {
+    const css = await readFile(resolve(process.env.MFS_CSS_OVERRIDE), 'utf8');
+    await page.addStyleTag({ content: css });
+  }
   await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-overview');
   for (const [label, screen] of [['Enquiries', 'studio-enquiries'], ['Viewings', 'studio-viewings'], ['Properties', 'studio-properties'], ['Insights', 'studio-insights'], ['Content & SEO', 'studio-content-seo']]) {
     if (!await clickTab(page, label)) continue;
