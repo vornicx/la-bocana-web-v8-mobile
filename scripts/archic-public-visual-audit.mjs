@@ -87,10 +87,11 @@ async function auditMfinity(browser, phase, base, viewportName, viewport) {
     await page.locator('[data-drawer-close]').last().click();
   }
   for (const [label, screen] of [['Availability', 'control-availability'], ['Fleet', 'control-fleet'], ['Clients', 'control-clients']]) {
-    await page.getByRole('button', { name: new RegExp(label, 'i') }).click();
+    const navigationButton = page.getByRole('button', { name: new RegExp(label, 'i') }).first();
+    await navigationButton.evaluate((button) => button.click());
     await shot(page, 'mfinity', phase, viewportName, screen);
   }
-  await page.getByRole('button', { name: /Requests/i }).click();
+  await page.getByRole('button', { name: /Requests/i }).first().evaluate((button) => button.click());
   await page.locator('[data-search]').fill('NO-RESULT-VISUAL-AUDIT');
   await shot(page, 'mfinity', phase, viewportName, 'control-requests', 'empty');
   if (viewportName === 'mobile') {
