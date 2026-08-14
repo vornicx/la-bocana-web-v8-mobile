@@ -145,7 +145,9 @@ async function clickTab(page, label) {
 
 async function auditStudio(browser, phase, base, viewportName, viewport) {
   const { context, page, errors } = await pageFor(browser, viewport);
-  await page.goto(`${base}/studio`, { waitUntil: 'networkidle' });
+  const studioUrl = new URL('/studio', base);
+  if (phase === 'after' && process.env.MFS_SHARE_TOKEN) studioUrl.searchParams.set('_vercel_share', process.env.MFS_SHARE_TOKEN);
+  await page.goto(studioUrl.toString(), { waitUntil: 'networkidle' });
   await shot(page, 'marbella-for-sale', phase, viewportName, 'studio-overview');
   for (const [label, screen] of [['Enquiries', 'studio-enquiries'], ['Viewings', 'studio-viewings'], ['Properties', 'studio-properties'], ['Insights', 'studio-insights'], ['Content & SEO', 'studio-content-seo']]) {
     if (!await clickTab(page, label)) continue;
