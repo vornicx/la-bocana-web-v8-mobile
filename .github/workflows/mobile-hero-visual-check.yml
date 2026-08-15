@@ -1,0 +1,95 @@
+name: Mobile hero visual check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-hero:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Start La Bocana
+        shell: bash
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/la-bocana-dev.log 2>&1 &
+          echo $! > /tmp/la-bocana-dev.pid
+          for attempt in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/la-bocana-dev.log
+          exit 1
+      - name: Capture and measure 390x844
+        shell: bash
+        run: |
+          mkdir -p artifacts/la-bocana/mobile
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({
+            viewport: { width: 390, height: 844 },
+            deviceScaleFactor: 1,
+            isMobile: true,
+            hasTouch: true,
+            reducedMotion: 'reduce'
+          });
+          await context.addCookies([{ name: 'lb_privacy_notice', value: 'acknowledged', url: 'http://127.0.0.1:3000/' }]);
+          const page = await context.newPage();
+          const errors = [];
+          page.on('pageerror', error => errors.push(error.message));
+          page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+          await page.goto('http://127.0.0.1:3000/', { waitUntil: 'networkidle' });
+          await page.evaluate(() => document.fonts.ready);
+          await page.screenshot({ path: 'artifacts/la-bocana/mobile/la-bocana-home-hero-mobile-after.png', fullPage: false, animations: 'disabled' });
+          await page.screenshot({ path: 'artifacts/la-bocana/mobile/la-bocana-home-mobile-after-full.png', fullPage: true, animations: 'disabled' });
+          const metrics = await page.evaluate(() => {
+            const rect = selector => {
+              const element = document.querySelector(selector);
+              if (!element) return null;
+              const box = element.getBoundingClientRect();
+              return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height };
+            };
+            const intersects = (a, b) => Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
+            const title = rect('.experience-hero-copy h1');
+            const proof = rect('.experience-hero-proof');
+            const cta = rect('.experience-primary');
+            const header = rect('.public-header');
+            const hero = rect('.experience-hero');
+            return {
+              viewport: { width: innerWidth, height: innerHeight },
+              documentWidth: document.documentElement.scrollWidth,
+              title, proof, cta, header, hero,
+              titleProofOverlap: intersects(title, proof),
+              ctaInsideViewport: Boolean(cta && cta.left >= 0 && cta.right <= innerWidth && cta.top >= 0 && cta.bottom <= innerHeight),
+              proofInsideViewport: Boolean(proof && proof.left >= 0 && proof.right <= innerWidth && proof.top >= 0 && proof.bottom <= innerHeight),
+              titleFontSize: getComputedStyle(document.querySelector('.experience-hero-copy h1')).fontSize,
+              horizontalOverflow: document.documentElement.scrollWidth > innerWidth
+            };
+          });
+          metrics.errors = errors;
+          await writeFile('artifacts/la-bocana/mobile/la-bocana-home-hero-mobile-metrics.json', JSON.stringify(metrics, null, 2));
+          console.log(JSON.stringify(metrics));
+          if (metrics.horizontalOverflow || metrics.titleProofOverlap || !metrics.proofInsideViewport) process.exitCode = 1;
+          await browser.close();
+          NODE
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: la-bocana-mobile-hero-${{ github.run_number }}
+          path: artifacts/la-bocana/mobile
+          retention-days: 14
