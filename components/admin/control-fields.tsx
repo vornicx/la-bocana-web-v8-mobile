@@ -5,11 +5,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Option = { value: string; label: string; description?: string };
 
-type FloatingPosition = { top: number; left: number; width: number };
+type FloatingPosition = { top: number; left: number; width: number; maxHeight: number };
 
 function useFloating(open: boolean, width = 280) {
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const [position, setPosition] = useState<FloatingPosition>({ top: 0, left: 0, width });
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<FloatingPosition>({ top: 0, left: 0, width, maxHeight: 360 });
   useEffect(() => {
     if (!open) return;
     const update = () => {
@@ -17,17 +18,26 @@ function useFloating(open: boolean, width = 280) {
       if (!rect) return;
       const panelWidth = Math.min(width, window.innerWidth - 24);
       const left = Math.min(Math.max(12, rect.left), window.innerWidth - panelWidth - 12);
-      setPosition({ top: rect.bottom + 8, left, width: panelWidth });
+      const measuredHeight = panelRef.current?.getBoundingClientRect().height ?? 360;
+      const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - 12);
+      const spaceAbove = Math.max(0, rect.top - 12);
+      const openAbove = measuredHeight > spaceBelow && spaceAbove > spaceBelow;
+      const maxHeight = Math.max(120, openAbove ? spaceAbove : spaceBelow);
+      const visibleHeight = Math.min(measuredHeight, maxHeight);
+      const top = openAbove ? Math.max(12, rect.top - visibleHeight - 8) : rect.bottom + 8;
+      setPosition({ top, left, width: panelWidth, maxHeight });
     };
     update();
+    const frame = window.requestAnimationFrame(update);
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, true);
     return () => {
+      window.cancelAnimationFrame(frame);
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update, true);
     };
   }, [open, width]);
-  return { triggerRef, position };
+  return { triggerRef, panelRef, position };
 }
 
 function Chevron({ open = false }: { open?: boolean }) {
@@ -52,9 +62,8 @@ export function ControlSelect({ value, options, onChange, disabled = false, plac
   ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { triggerRef, position } = useFloating(open, 320);
+  const { triggerRef, panelRef: listRef, position } = useFloating(open, 320);
   const selected = options.find((option) => option.value === value);
-  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -104,8 +113,7 @@ export function TimePicker({ value, onChange, disabled = false, step = 15, min =
   ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { triggerRef, position } = useFloating(open, 280);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const { triggerRef, panelRef, position } = useFloating(open, 280);
   const options = useMemo(() => timeOptions(step, min, max), [step, min, max]);
 
   useEffect(() => {
@@ -187,8 +195,7 @@ export function DateTimePicker({ value, onChange, disabled = false, ariaLabel }:
   const [cursor, setCursor] = useState(() => new Date(parsed.year, parsed.month, 1));
   const [draftDate, setDraftDate] = useState(() => value ? value.split('T')[0] : '');
   const [draftTime, setDraftTime] = useState(() => parsed.time);
-  const { triggerRef, position } = useFloating(open, 390);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const { triggerRef, panelRef, position } = useFloating(open, 390);
 
   useEffect(() => {
     if (!open) return;
@@ -257,8 +264,7 @@ export function DatePicker({ value, onChange, disabled = false, ariaLabel }: {
   const parsed = value ? new Date(`${value}T12:00:00`) : new Date();
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(() => new Date(parsed.getFullYear(), parsed.getMonth(), 1));
-  const { triggerRef, position } = useFloating(open, 330);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const { triggerRef, panelRef, position } = useFloating(open, 330);
 
   useEffect(() => {
     if (!open) return;

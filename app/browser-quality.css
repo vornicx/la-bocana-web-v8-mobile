@@ -204,6 +204,114 @@
   }
 }
 
+/* Mobile homepage hero: keep the award, title and booking action in separate
+   visual zones. This intentionally comes after the global legibility rules. */
+@media (max-width: 700px) {
+  .experience-home .experience-hero {
+    height: 100svh !important;
+    min-height: 640px !important;
+    max-height: 820px;
+  }
+
+  .experience-home .experience-hero-picture img {
+    object-position: center 50% !important;
+  }
+
+  .experience-home .experience-hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(4,19,35,.2) 0%, rgba(4,19,35,.06) 34%, rgba(4,19,35,.48) 62%, rgba(4,19,35,.92) 100%) !important;
+  }
+
+  .experience-home .experience-hero-copy {
+    left: max(20px, calc(env(safe-area-inset-left) + 16px)) !important;
+    right: max(20px, calc(env(safe-area-inset-right) + 16px)) !important;
+    bottom: max(24px, calc(env(safe-area-inset-bottom) + 18px)) !important;
+    max-width: none !important;
+  }
+
+  .experience-home .experience-hero-copy > span {
+    font-size: 10px !important;
+    letter-spacing: .2em;
+  }
+
+  .experience-home .experience-hero-copy h1 {
+    max-width: 6.8ch;
+    margin: 12px 0 16px !important;
+    font-size: clamp(60px, 17.7vw, 70px) !important;
+    line-height: .88 !important;
+    letter-spacing: -.05em !important;
+    text-wrap: balance;
+  }
+
+  .experience-home .experience-hero-copy p {
+    max-width: 34ch !important;
+    margin: 0 0 20px !important;
+    font-size: 16.5px !important;
+    line-height: 1.48 !important;
+    text-wrap: pretty;
+  }
+
+  .experience-home .experience-primary {
+    width: 100%;
+    min-height: 52px;
+    font-size: 11px !important;
+  }
+
+  .experience-home .experience-hero-proof {
+    top: 88px !important;
+    right: max(20px, calc(env(safe-area-inset-right) + 16px)) !important;
+    bottom: auto !important;
+    width: max-content;
+    max-width: calc(100% - 40px);
+    height: auto;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding-right: 10px;
+    border-right-color: rgba(255,255,255,.46);
+    opacity: .88;
+  }
+
+  .experience-home .experience-hero-proof span {
+    font-size: 8px !important;
+    line-height: 1.2;
+    letter-spacing: .12em;
+    white-space: nowrap;
+  }
+
+  .experience-home .experience-hero-proof strong {
+    font-family: var(--font-bocana-sans), Arial, sans-serif !important;
+    font-size: 9px !important;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .public-site .public-language {
+    font-size: 10px !important;
+  }
+
+  .public-site .public-book {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .experience-home .experience-hero-copy h1 {
+    font-size: 58px !important;
+  }
+
+  .experience-home .experience-hero-copy p {
+    font-size: 16px !important;
+  }
+
+  .experience-home .experience-hero-proof span {
+    display: none;
+  }
+}
+
 @media(prefers-reduced-motion:reduce){
   .check-row input[type="checkbox"],
   .check-row input[type="checkbox"]::after{transition:none}

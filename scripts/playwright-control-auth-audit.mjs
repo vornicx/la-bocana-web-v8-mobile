@@ -7,6 +7,7 @@ const OUT_DIR = process.env.AUDIT_OUT || 'artifacts/playwright-audit';
 const EMAIL = process.env.CONTROL_EMAIL || '';
 const PASSWORD = process.env.CONTROL_PASSWORD || '';
 const DEPLOYMENT_MODE = process.env.AUDIT_DEPLOYMENT_MODE || 'unknown';
+const VERCEL_SHARE_TOKEN = process.env.VERCEL_SHARE_TOKEN || '';
 
 if (!EMAIL || !PASSWORD) throw new Error('Dedicated QA credentials are required for authenticated Control audit.');
 
@@ -31,6 +32,11 @@ const issue = (kind, message, detail = null) => ({ kind, severity: criticalKinds
 const records = [];
 const interactions = [];
 const safeName = (route) => route.replace(/^\//, '').replaceAll('/', '-') || 'control';
+const auditUrl = (route) => {
+  const url = new URL(route, `${BASE_URL}/`);
+  if (VERCEL_SHARE_TOKEN) url.searchParams.set('_vercel_share', VERCEL_SHARE_TOKEN);
+  return url.toString();
+};
 
 function signalsFor(page) {
   const signals = { consoleErrors: [], pageErrors: [], requestFailures: [], serverErrors: [] };
@@ -129,7 +135,7 @@ async function login(context, viewportName) {
   const page = await context.newPage();
   const issues = [];
   try {
-    await page.goto(`${BASE_URL}/control/login`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(auditUrl('/control/login'), { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.locator('input[name="email"]').fill(EMAIL);
     await page.locator('input[name="password"]').fill(PASSWORD);
     await page.getByRole('button', { name: /Entrar a Control/i }).click();
@@ -152,7 +158,7 @@ async function auditViewport(browser, viewport) {
     process.stdout.write(`AUTH_AUDIT ${viewport.name} ${route}\n`);
     const page = await context.newPage();
     const signals = signalsFor(page);
-    try { await page.goto(`${BASE_URL}${route}`, { waitUntil: 'domcontentloaded', timeout: 30000 }); }
+    try { await page.goto(auditUrl(route), { waitUntil: 'domcontentloaded', timeout: 30000 }); }
     catch (error) { signals.pageErrors.push(`Navigation: ${error.message}`); }
     const record = await inspect(page, route, viewport, signals);
     records.push(record);
@@ -170,14 +176,14 @@ async function runSafeInteractions(context, viewport) {
   const page = await context.newPage();
   const issues = [];
   try {
-    await page.goto(`${BASE_URL}/control`, { waitUntil: 'domcontentloaded' });
+    await page.goto(auditUrl('/control'), { waitUntil: 'domcontentloaded' });
     await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
     await page.waitForTimeout(180);
     const paletteVisible = await page.locator('.control-command-palette,.command-palette,[role="dialog"]').filter({ visible: true }).count().catch(() => 0);
     if (!paletteVisible) issues.push(issue('interaction', 'Cmd/Ctrl+K no abrió un command palette visible.'));
     await page.keyboard.press('Escape');
 
-    await page.goto(`${BASE_URL}/control/configuracion`, { waitUntil: 'domcontentloaded' });
+    await page.goto(auditUrl('/control/configuracion'), { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
     const trigger = page.locator('.lb-field-trigger').first();
     if (await trigger.isVisible().catch(() => false)) {
@@ -197,7 +203,7 @@ async function runSafeInteractions(context, viewport) {
       issues.push(issue('interaction', 'Configuración no expone ningún selector custom visible para comprobar.'));
     }
 
-    await page.goto(`${BASE_URL}/control/reservas?new=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(auditUrl('/control/reservas?new=1'), { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
     const body = (await page.locator('body').innerText()).toLowerCase();
     if (!body.includes('nueva reserva')) issues.push(issue('interaction', 'El deep-link ?new=1 no muestra el flujo de nueva reserva.'));

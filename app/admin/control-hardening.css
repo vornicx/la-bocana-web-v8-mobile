@@ -1,0 +1,273 @@
+/* La Bocana Control — responsive hardening pass
+   Loaded last on purpose: this layer resolves layout/cropping failure modes
+   without changing the visual language defined by the premium layers. */
+
+.control-app,
+.control-app .control-main,
+.control-app .control-content,
+.control-app .admin-page,
+.control-app .admin-panel,
+.control-app .reservation-table-wrap,
+.control-app .premium-reservation-table-wrap,
+.control-app .floor-canvas-shell,
+.control-app .settings-grid,
+.control-app .customer-grid,
+.control-app .dashboard-grid,
+.control-app .control-service-hero,
+.control-app .control-command-palette {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.control-app img,
+.control-app video,
+.control-app canvas {
+  max-width: 100%;
+}
+
+/* Native controls are a common source of grid overflow on Safari/iOS. */
+.control-app input,
+.control-app select,
+.control-app textarea,
+.control-app button {
+  min-width: 0;
+}
+
+.control-app input,
+.control-app select,
+.control-app textarea {
+  max-width: 100%;
+}
+
+/* Tables keep their information instead of being clipped by rounded shells. */
+.control-app .reservation-table-wrap,
+.control-app .premium-reservation-table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+}
+
+.control-app .premium-reservation-table,
+.control-app .reservation-table {
+  width: 100%;
+}
+
+/* Long customer/property notes and identifiers must wrap instead of widening cards. */
+.control-app .admin-panel,
+.control-app .customer-card,
+.control-app .compact-person,
+.control-app .reservation-summary > div,
+.control-app .detail-field,
+.control-app .readonly-value {
+  overflow-wrap: anywhere;
+}
+
+/* Drawers and dialogs always remain inside the usable viewport. */
+.control-app .premium-reservation-drawer,
+.control-app .premium-create-reservation,
+.control-app .reservation-drawer,
+.control-app .create-reservation-modal {
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+
+.control-command-overlay {
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  overflow: auto;
+}
+
+.control-command-palette {
+  width: min(680px, calc(100vw - 24px));
+  max-height: min(760px, calc(100dvh - 24px));
+  overflow: hidden;
+}
+
+.control-command-results {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The top bar must shrink gracefully before the mobile shell takes over. */
+.control-topbar,
+.control-topbar-context,
+.control-topbar-right,
+.control-profile,
+.control-command-trigger {
+  min-width: 0;
+}
+
+.control-topbar-context strong,
+.control-profile strong,
+.control-profile small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1240px) {
+  .control-command-trigger {
+    width: min(260px, 27vw);
+  }
+
+  .control-system-pill {
+    display: none;
+  }
+
+  .control-content {
+    padding-inline: clamp(20px, 3vw, 36px);
+  }
+}
+
+@media (max-width: 1080px) {
+  .control-profile > div,
+  .control-profile form,
+  .admin-date {
+    display: none;
+  }
+
+  .control-profile {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .control-service-hero {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .control-hero-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .control-priority-grid,
+  .control-app .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .control-topbar {
+    gap: 12px;
+  }
+
+  .control-command-trigger {
+    width: 40px;
+    flex: 0 0 40px;
+    justify-content: center;
+  }
+
+  .control-command-trigger span,
+  .control-command-trigger kbd {
+    display: none;
+  }
+
+  .control-content {
+    padding-inline: 18px;
+  }
+
+  .control-app .admin-page-head {
+    align-items: flex-start;
+  }
+
+  .control-app .admin-page-head,
+  .control-app .admin-toolbar,
+  .control-app .reservation-commandbar,
+  .control-app .floor-commandbar,
+  .control-app .detail-section-title {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .control-app .settings-grid,
+  .control-app .dashboard-grid,
+  .control-app .customer-grid,
+  .control-app .control-priority-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .control-content {
+    padding: 24px 14px calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .control-app .admin-page {
+    gap: 16px;
+  }
+
+  .control-app .admin-page-head h1,
+  .control-service-hero h1 {
+    font-size: clamp(32px, 10vw, 42px) !important;
+    line-height: .98;
+    overflow-wrap: anywhere;
+  }
+
+  .control-app .admin-panel {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .control-priority-grid,
+  .control-app .metric-grid,
+  .control-app .reservation-summary,
+  .control-app .detail-grid,
+  .control-app .reservation-editor-grid,
+  .control-app .create-form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .control-app .control-service-hero {
+    min-height: 0;
+    padding: 22px 18px;
+    gap: 20px;
+  }
+
+  .control-hero-actions,
+  .control-hero-actions a,
+  .control-app .admin-primary,
+  .control-app .admin-secondary {
+    max-width: 100%;
+  }
+
+  .control-hero-actions a {
+    flex: 1 1 160px;
+  }
+
+  .control-app .premium-reservation-drawer,
+  .control-app .premium-create-reservation,
+  .control-app .reservation-drawer,
+  .control-app .create-reservation-modal {
+    width: 100vw !important;
+    border-radius: 0 !important;
+  }
+
+  .control-command-palette {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+  }
+
+  .control-command-palette header input {
+    min-width: 0;
+  }
+
+  .control-mobile-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (max-width: 390px) {
+  .control-topbar-context span {
+    display: none;
+  }
+
+  .control-topbar-context {
+    min-width: 0;
+  }
+
+  .control-topbar-context strong {
+    font-size: 15px;
+  }
+}
