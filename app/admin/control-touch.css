@@ -1,5 +1,6 @@
 /* La Bocana Control — touch contract.
-   Mobile controls must be easy to hit without turning the interface into oversized cards. */
+   Mobile controls must be easy to hit and comfortably readable without turning
+   the interface into oversized cards. */
 
 @media (max-width: 760px) {
   .control-app .control-command-trigger,
@@ -22,7 +23,7 @@
   .control-app .closure-create button,
   .control-app .lb-field-trigger,
   .control-app .lb-toggle-card {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .control-app .control-command-trigger,
@@ -30,40 +31,46 @@
   .control-app .drawer-close,
   .control-app .reservation-date-control > button,
   .control-app .floor-date-control > button {
-    min-width: 40px !important;
+    min-width: 44px !important;
   }
 
   .control-app .control-command-trigger {
     min-height: 44px !important;
   }
 
+  /* 16px also prevents unwanted Safari/iOS zoom when a field receives focus. */
   .control-app input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  .control-app select,
   .control-app textarea,
   .control-app .admin-search input,
   .control-app .menu-manager input,
+  .control-app .menu-manager select,
   .control-app .menu-manager textarea {
-    min-height: 44px !important;
-    font-size: 12px !important;
+    min-height: 46px !important;
+    font-size: 16px !important;
+    line-height: 1.4 !important;
   }
 
   .control-app textarea {
-    min-height: 88px !important;
+    min-height: 96px !important;
   }
 
   .control-app .lb-field-trigger {
-    min-height: 44px !important;
-    padding-block: 10px !important;
+    min-height: 46px !important;
+    padding-block: 11px !important;
+    font-size: 13px !important;
   }
 
   .control-app .lb-stepper {
-    min-height: 44px !important;
+    min-height: 46px !important;
+    font-size: 13px !important;
   }
 
   .control-app .lb-stepper button {
-    min-width: 40px !important;
-    width: 40px !important;
-    min-height: 40px !important;
-    height: 40px !important;
+    min-width: 42px !important;
+    width: 42px !important;
+    min-height: 42px !important;
+    height: 42px !important;
   }
 
   .control-app .reservation-status-tabs button,
@@ -71,37 +78,41 @@
   .control-app .floor-service-tabs button,
   .control-app .waitlist-tabs button,
   .control-app .menu-manager .segmented button {
-    min-height: 40px !important;
-    padding-block: 10px !important;
+    min-height: 44px !important;
+    padding-block: 11px !important;
+    font-size: 12.5px !important;
+    line-height: 1.25 !important;
   }
 
   .control-app .panel-head a,
   .control-app .text-action,
   .control-app .floor-open-reservation,
   .control-app .menu-manager a {
-    min-height: 40px;
+    min-height: 42px;
     display: inline-flex;
     align-items: center;
     padding-block: 8px;
+    font-size: 12.5px !important;
   }
 
   .control-app .menu-manager button {
-    min-width: 40px;
+    min-width: 42px;
+    font-size: 12.5px !important;
   }
 
   .control-app .menu-manager input[type="file"] {
-    min-height: 44px !important;
+    min-height: 46px !important;
   }
 
   .control-app .lb-toggle-card {
-    padding-block: 8px !important;
+    padding-block: 10px !important;
   }
 
   /* Keep the switch visual refined; the surrounding row is the actual touch surface. */
   .control-app .toggle-label,
   .control-app label.switch {
-    min-height: 44px !important;
-    padding-block: 8px !important;
+    min-height: 46px !important;
+    padding-block: 9px !important;
     cursor: pointer;
   }
   .control-app .toggle-label input[type="checkbox"] {
@@ -111,18 +122,18 @@
     flex: 0 0 auto;
   }
 
-  /* Physical floor-plan labels must remain readable after the board scales down. */
+  /* Physical floor-plan labels stay compact but no longer microscopic. */
   .control-app .floor-table .table-label {
-    font-size: 9px !important;
-    line-height: 1.05 !important;
+    font-size: 11px !important;
+    line-height: 1.08 !important;
   }
   .control-app .floor-table > strong {
-    font-size: 11px !important;
-    line-height: 1 !important;
+    font-size: 13px !important;
+    line-height: 1.05 !important;
   }
   .control-app .floor-table > small {
-    font-size: 9px !important;
-    line-height: 1 !important;
+    font-size: 10.5px !important;
+    line-height: 1.1 !important;
   }
 
   /* Calendar and summary text are operational data, not decorative captions. */
@@ -131,19 +142,20 @@
   .control-app .week-strip small,
   .control-app .capacity-bars small,
   .control-app .metric-track small {
-    font-size: 10px !important;
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
   }
 }
 
 @media (max-width: 420px) {
   .control-app .control-content {
-    padding-inline: 12px !important;
+    padding-inline: 14px !important;
   }
 
   .control-app .reservation-status-tabs,
   .control-app .floor-service-tabs,
   .control-app .segmented,
   .control-app .waitlist-tabs {
-    gap: 6px !important;
+    gap: 7px !important;
   }
 }
