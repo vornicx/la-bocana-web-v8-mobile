@@ -1,10 +1,31 @@
 /* La Bocana Control — operational legibility contract.
-   Premium does not mean microscopic. No operational copy may depend on 6–8px text. */
+   Premium does not mean microscopic. Operational UI must remain comfortably
+   readable at normal viewing distance without sacrificing hierarchy. */
 
 .control-app{
-  --control-micro:10px;
-  --control-meta:10.5px;
-  --control-body:12px;
+  --control-micro:12px;
+  --control-meta:13px;
+  --control-body:14.5px;
+  --control-control:13px;
+}
+
+/* Baseline reading comfort. Keep decorative hierarchy compact, never the data. */
+.control-app p,
+.control-app td,
+.control-app li{
+  line-height:1.5;
+}
+.control-app td{
+  font-size:13px!important;
+}
+.control-app input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.control-app select,
+.control-app textarea{
+  font-size:14px!important;
+  line-height:1.45!important;
+}
+.control-app button{
+  font-size:var(--control-control);
 }
 
 /* Shell */
@@ -20,27 +41,45 @@
 .control-app .control-command-palette footer span,
 .control-app .control-mobile-nav span{
   font-size:var(--control-micro)!important;
-  line-height:1.3!important;
+  line-height:1.35!important;
 }
-.control-app .control-nav-label{letter-spacing:.12em!important}
-.control-app .control-nav-group .admin-nav a{font-size:11.5px!important;line-height:1.25!important}
-.control-app .control-command-trigger span{font-size:11px!important}
+.control-app .control-nav-label{letter-spacing:.11em!important}
+.control-app .control-nav-group .admin-nav a{font-size:13.5px!important;line-height:1.3!important}
+.control-app .control-command-trigger span{font-size:13px!important}
+.control-app .control-profile > div strong,
+.control-app .control-sidebar-status strong{font-size:12.5px!important;line-height:1.3!important}
+.control-app .control-new-reservation{font-size:13px!important}
+.control-app .control-command-trigger kbd,
+.control-app .control-command-palette kbd{font-size:10.5px!important}
+
+/* Buttons and textual actions need to read as controls, not captions. */
+.control-app .admin-primary,
+.control-app .admin-secondary,
+.control-app .admin-quiet,
+.control-app .danger-button,
+.control-app .control-hero-actions a,
+.control-app .panel-head a,
+.control-app .text-action,
+.control-app .floor-open-reservation{
+  font-size:12.5px!important;
+  line-height:1.25!important;
+}
 
 /* Universal semantic microcopy. */
 .control-app small{
   font-size:var(--control-micro)!important;
-  line-height:1.4!important;
+  line-height:1.45!important;
 }
 .control-app label{
   font-size:var(--control-meta)!important;
-  line-height:1.35!important;
+  line-height:1.4!important;
 }
 .control-app .admin-kicker,
 .control-app .section-label,
 .control-app .panel-label{
-  font-size:var(--control-micro)!important;
-  line-height:1.3!important;
-  letter-spacing:.11em!important;
+  font-size:11.5px!important;
+  line-height:1.35!important;
+  letter-spacing:.1em!important;
 }
 
 /* Dashboard and operational summaries. */
@@ -57,7 +96,7 @@
 .control-app .capacity-bars span,
 .control-app .metric-track span{
   font-size:var(--control-meta)!important;
-  line-height:1.3!important;
+  line-height:1.35!important;
 }
 .control-app .control-priority p,
 .control-app .control-service-hero p,
@@ -66,8 +105,11 @@
 .control-app .empty-state p,
 .control-app .reservation-empty p{
   font-size:var(--control-body)!important;
-  line-height:1.55!important;
+  line-height:1.6!important;
 }
+.control-app .control-priority strong{font-size:19px!important;line-height:1.2!important}
+.control-app .compact-person strong{font-size:13.5px!important;line-height:1.3!important}
+.control-app .compact-row time{font-size:12.5px!important}
 
 /* Reservas */
 .control-app .reservation-date-control span,
@@ -82,10 +124,13 @@
 .control-app .memory-grid small,
 .control-app .communication-state small{
   font-size:var(--control-micro)!important;
-  line-height:1.35!important;
+  line-height:1.4!important;
 }
-.control-app .reservation-status-tabs button{min-height:40px!important}
-.control-app .admin-search input{font-size:12px!important}
+.control-app .reservation-table th{font-size:11.5px!important;letter-spacing:.055em!important}
+.control-app .reservation-status-tabs button{min-height:42px!important;font-size:12.5px!important}
+.control-app .admin-search input{font-size:14px!important}
+.control-app .reservation-identity strong,
+.control-app .reservation-card strong{font-size:13.5px!important;line-height:1.35!important}
 
 /* Sala */
 .control-app .floor-legend span,
@@ -98,8 +143,9 @@
 .control-app .floor-inspector small,
 .control-app .floor-unassigned small{
   font-size:var(--control-micro)!important;
-  line-height:1.35!important;
+  line-height:1.4!important;
 }
+.control-app .floor-service-tabs button{font-size:12.5px!important}
 
 /* Lista de espera */
 .control-app .waitlist-summary span,
@@ -110,8 +156,9 @@
 .control-app .waitlist-tabs button,
 .control-app .waitlist-empty span{
   font-size:var(--control-micro)!important;
-  line-height:1.35!important;
+  line-height:1.4!important;
 }
+.control-app .waitlist-tabs button{font-size:12.5px!important}
 
 /* Calendario */
 .control-app .calendar-range span,
@@ -126,9 +173,9 @@
 .control-app .closed-card span,
 .control-app .closed-card small{
   font-size:var(--control-micro)!important;
-  line-height:1.3!important;
+  line-height:1.35!important;
 }
-.control-app .calendar-service > div > strong{font-size:11px!important;line-height:1.3!important}
+.control-app .calendar-service > div > strong{font-size:13px!important;line-height:1.35!important}
 
 /* CRM */
 .control-app .crm-summary span,
@@ -142,8 +189,10 @@
 .control-app .customer-lifecycle span,
 .control-app .customer-memory-editor small{
   font-size:var(--control-micro)!important;
-  line-height:1.4!important;
+  line-height:1.45!important;
 }
+.control-app .customer-card strong,
+.control-app .customer-row strong{font-size:13.5px!important;line-height:1.35!important}
 
 /* Carta */
 .control-app .menu-manager label,
@@ -157,10 +206,12 @@
 .control-app .menu-media-manager span,
 .control-app .menu-media-manager small{
   font-size:var(--control-micro)!important;
-  line-height:1.4!important;
+  line-height:1.45!important;
 }
 .control-app .menu-manager input,
-.control-app .menu-manager textarea{font-size:11.5px!important;line-height:1.45!important}
+.control-app .menu-manager select,
+.control-app .menu-manager textarea{font-size:14px!important;line-height:1.5!important}
+.control-app .menu-manager button{font-size:12.5px!important}
 
 /* Analítica + comunicaciones */
 .control-app .analytics-metrics span,
@@ -177,7 +228,7 @@
 .control-app .template-row span,
 .control-app .template-row small{
   font-size:var(--control-micro)!important;
-  line-height:1.4!important;
+  line-height:1.45!important;
 }
 
 /* Configuración */
@@ -200,13 +251,29 @@
 .control-app .lb-toggle-copy strong,
 .control-app .lb-toggle-copy small{
   font-size:var(--control-micro)!important;
-  line-height:1.35!important;
+  line-height:1.4!important;
 }
-.control-app .lb-field-trigger{font-size:11px!important}
+.control-app .lb-field-trigger,
+.control-app .lb-popover button{font-size:13px!important}
 
-/* Preserve compactness on mobile while staying readable. */
+/* Slightly roomier rows/cards absorb the larger type without cramped wrapping. */
+.control-app .compact-row{min-height:58px!important}
+.control-app .control-priority{min-height:104px!important}
+.control-app .admin-metric{min-height:136px!important}
+.control-app .reservation-card,
+.control-app .customer-card,
+.control-app .waitlist-card{overflow-wrap:anywhere}
+
+/* Mobile is not a miniaturised desktop. Preserve readable text and usable controls. */
 @media(max-width:760px){
-  .control-app{--control-micro:10px;--control-meta:10.5px;--control-body:12px}
-  .control-app .control-nav-group .admin-nav a{font-size:11px!important}
-  .control-app .admin-page-head p{font-size:12px!important}
+  .control-app{
+    --control-micro:12px;
+    --control-meta:12.5px;
+    --control-body:14.5px;
+    --control-control:13px;
+  }
+  .control-app .control-nav-group .admin-nav a{font-size:13px!important}
+  .control-app .admin-page-head p{font-size:14px!important}
+  .control-app .admin-panel{line-height:1.5}
+  .control-app td{font-size:12.5px!important}
 }
