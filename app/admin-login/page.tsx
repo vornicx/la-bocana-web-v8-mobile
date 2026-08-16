@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { LoginForm } from './login-form';
 import './control-login.css';
 import './control-login-brand.css';
+import './demo-access.css';
 
 export const metadata: Metadata = {
   title: 'La Bocana Control · Acceso',
