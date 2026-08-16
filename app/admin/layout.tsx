@@ -18,6 +18,7 @@ import './control-refinement.css';
 import './control-legibility.css';
 import './control-touch.css';
 import './control-hardening.css';
+import './control-demo.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
