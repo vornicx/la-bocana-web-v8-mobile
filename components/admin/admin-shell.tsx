@@ -66,6 +66,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
   const searchRef = useRef<HTMLInputElement>(null);
   const current = allNav.find((item) => isActive(pathname, item.href)) ?? serviceNav[0];
   const routeKey = `${pathname}?${searchParams.toString()}`;
+  const readOnly = staff.role === 'viewer';
 
   useEffect(() => setNavigating(false), [routeKey]);
 
@@ -97,7 +98,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
       Icon: item.Icon,
       group: 'Ir a',
     }));
-    const actions = [
+    const actions = readOnly ? [] : [
       { id: 'new-reservation', label: 'Nueva reserva', description: 'Crear una reserva manual con disponibilidad real', href: '/control/reservas?new=1', Icon: PlusIcon, group: 'Acciones' },
       { id: 'unassigned', label: 'Reservas sin mesa', description: 'Asignar reservas pendientes directamente desde el plano', href: '/control/sala', Icon: FloorIcon, group: 'Acciones' },
       { id: 'floor', label: 'Abrir sala', description: 'Ver ocupación y mover mesas', href: '/control/sala', Icon: FloorIcon, group: 'Acciones' },
@@ -105,7 +106,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
     ];
     const normalized = query.trim().toLowerCase();
     return [...actions, ...navigation].filter((item) => !normalized || `${item.label} ${item.description}`.toLowerCase().includes(normalized));
-  }, [query]);
+  }, [query, readOnly]);
 
   function go(href: string) {
     setPaletteOpen(false);
@@ -134,17 +135,23 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
     </div>;
   }
 
-  return <div className="admin-app control-app">
+  return <div className={`admin-app control-app ${readOnly ? 'is-read-only-demo' : ''}`}>
     <aside className="admin-sidebar control-sidebar">
       <Link href="/control" prefetch={false} className="control-brand" aria-label="La Bocana Control · Inicio" onNavigate={() => setNavigating(true)}>
         <span className="control-monogram">LB</span>
         <div><strong>La Bocana</strong><small>Control</small></div>
       </Link>
 
-      <button className="control-new-reservation" onClick={() => go('/control/reservas?new=1')}>
+      {!readOnly && <button className="control-new-reservation" onClick={() => go('/control/reservas?new=1')}>
         <PlusIcon />
         <span>Nueva reserva</span>
-      </button>
+      </button>}
+
+      {readOnly && <div className="control-demo-mode-card" role="status">
+        <span>Demostración</span>
+        <strong>Modo solo lectura</strong>
+        <small>Puedes recorrer todo Control sin alterar datos operativos.</small>
+      </div>}
 
       <div className="control-nav-scroll">
         <NavGroup label="Servicio" items={serviceNav} />
@@ -153,7 +160,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
 
       <div className="control-sidebar-status">
         <span className="control-live-dot" />
-        <div><strong>Control conectado</strong><small>Datos operativos en vivo</small></div>
+        <div><strong>{readOnly ? 'Demo protegida' : 'Control conectado'}</strong><small>{readOnly ? 'Datos en modo consulta' : 'Datos operativos en vivo'}</small></div>
       </div>
     </aside>
 
@@ -167,12 +174,12 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
 
         <button className="control-command-trigger" onClick={() => setPaletteOpen(true)} aria-label="Abrir búsqueda y comandos">
           <SearchIcon />
-          <span>Buscar o ejecutar…</span>
+          <span>{readOnly ? 'Buscar una sección…' : 'Buscar o ejecutar…'}</span>
           <kbd>⌘ K</kbd>
         </button>
 
         <div className="admin-topbar-right control-topbar-right">
-          <span className="control-system-pill"><i />En vivo</span>
+          <span className={`control-system-pill ${readOnly ? 'is-demo' : ''}`}><i />{readOnly ? 'Demo · solo lectura' : 'En vivo'}</span>
           <span className="admin-date">{todayLabel()}</span>
           <div className="admin-profile control-profile">
             <span className="admin-avatar">{initials(staff.fullName)}</span>
@@ -198,7 +205,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
       <section className="control-command-palette" role="dialog" aria-modal="true" aria-label="Buscar o ejecutar una acción">
         <header>
           <SearchIcon />
-          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleCommandKeyDown} placeholder="Reserva, sala, cliente, configuración…" />
+          <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleCommandKeyDown} placeholder={readOnly ? 'Reservas, sala, clientes, carta…' : 'Reserva, sala, cliente, configuración…'} />
           <button onClick={() => setPaletteOpen(false)} aria-label="Cerrar"><CloseIcon /></button>
         </header>
         <div className="control-command-results">
@@ -210,7 +217,7 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
             </button>
           )) : <div className="control-command-empty">No hay acciones que coincidan con la búsqueda.</div>}
         </div>
-        <footer><span><kbd>⌘K</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span><span>Control · Archic</span></footer>
+        <footer><span><kbd>⌘K</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span><span>{readOnly ? 'Demo segura · Archic' : 'Control · Archic'}</span></footer>
       </section>
     </div>}
   </div>;
