@@ -20,6 +20,7 @@ import './control-touch.css';
 import './control-hardening.css';
 import './control-demo.css';
 import './control-mobile.css';
+import './control-mobile-guard.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
