@@ -13,6 +13,7 @@ import {
   FloorIcon,
   HomeIcon,
   MenuIcon,
+  MoreIcon,
   PlusIcon,
   SearchIcon,
   SettingsIcon,
@@ -37,6 +38,8 @@ const managementNav = [
 ];
 
 const allNav = [...serviceNav, ...managementNav];
+const mobilePrimaryNav = [serviceNav[0], serviceNav[1], serviceNav[2], managementNav[0]];
+const mobileMoreNav = [serviceNav[3], serviceNav[4], ...managementNav.slice(1)];
 
 function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'LB';
@@ -61,22 +64,31 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
   const searchParams = useSearchParams();
   const router = useRouter();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [navigating, setNavigating] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const current = allNav.find((item) => isActive(pathname, item.href)) ?? serviceNav[0];
   const routeKey = `${pathname}?${searchParams.toString()}`;
   const readOnly = staff.role === 'viewer';
+  const mobileMoreActive = mobileMoreNav.some((item) => isActive(pathname, item.href));
 
-  useEffect(() => setNavigating(false), [routeKey]);
+  useEffect(() => {
+    setNavigating(false);
+    setMobileMenuOpen(false);
+  }, [routeKey]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
+        setMobileMenuOpen(false);
         setPaletteOpen((value) => !value);
       }
-      if (event.key === 'Escape') setPaletteOpen(false);
+      if (event.key === 'Escape') {
+        setPaletteOpen(false);
+        setMobileMenuOpen(false);
+      }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -88,6 +100,13 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
     const timer = window.setTimeout(() => searchRef.current?.focus(), 30);
     return () => window.clearTimeout(timer);
   }, [paletteOpen]);
+
+  useEffect(() => {
+    if (!paletteOpen && !mobileMenuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [paletteOpen, mobileMenuOpen]);
 
   const commands = useMemo(() => {
     const navigation = allNav.map((item) => ({
@@ -110,8 +129,14 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
 
   function go(href: string) {
     setPaletteOpen(false);
+    setMobileMenuOpen(false);
     setNavigating(true);
     router.push(href);
+  }
+
+  function openSearch() {
+    setMobileMenuOpen(false);
+    setPaletteOpen(true);
   }
 
   function handleCommandKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
@@ -172,10 +197,14 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
           <strong>{current.label}</strong>
         </div>
 
-        <button className="control-command-trigger" onClick={() => setPaletteOpen(true)} aria-label="Abrir búsqueda y comandos">
+        <button className="control-command-trigger" onClick={openSearch} aria-label="Abrir búsqueda y comandos">
           <SearchIcon />
           <span>{readOnly ? 'Buscar una sección…' : 'Buscar o ejecutar…'}</span>
           <kbd>⌘ K</kbd>
+        </button>
+
+        <button className="control-mobile-profile-trigger" onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menú de Control">
+          {initials(staff.fullName)}
         </button>
 
         <div className="admin-topbar-right control-topbar-right">
@@ -192,14 +221,44 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
       <main className={`admin-content control-content ${navigating ? 'is-navigating' : ''}`} id="main-content">{children}</main>
 
       <nav className="control-mobile-nav" aria-label="Navegación móvil">
-        {serviceNav.slice(0, 4).map(({ href, label, Icon }) => (
+        {mobilePrimaryNav.map(({ href, label, Icon }) => (
           <Link key={href} href={href} prefetch={false} onNavigate={() => setNavigating(true)} className={isActive(pathname, href) ? 'active' : ''}>
             <Icon /><span>{label}</span>
           </Link>
         ))}
-        <button onClick={() => setPaletteOpen(true)}><SearchIcon /><span>Más</span></button>
+        <button type="button" onClick={() => setMobileMenuOpen(true)} className={mobileMenuOpen || mobileMoreActive ? 'active' : ''} aria-label="Abrir más secciones">
+          <MoreIcon /><span>Más</span>
+        </button>
       </nav>
     </div>
+
+    {mobileMenuOpen && <>
+      <button type="button" className="control-mobile-more-overlay" aria-label="Cerrar menú" onClick={() => setMobileMenuOpen(false)} />
+      <section className="control-mobile-more-sheet" role="dialog" aria-modal="true" aria-label="Más secciones de Control">
+        <div className="control-mobile-more-handle" aria-hidden="true" />
+        <header className="control-mobile-more-head">
+          <div><span>La Bocana Control</span><strong>Más herramientas</strong></div>
+          <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar"><CloseIcon /></button>
+        </header>
+
+        <button type="button" className="control-mobile-more-search" onClick={openSearch}><SearchIcon /><span>Buscar sección o acción</span></button>
+
+        {readOnly && <div className="control-mobile-more-demo" role="status"><strong>Demo protegida.</strong> Puedes recorrer Control y consultar datos sin modificar la operación.</div>}
+
+        <nav className="control-mobile-more-grid" aria-label="Secciones adicionales">
+          {mobileMoreNav.map(({ href, label, description, Icon }) => <Link key={href} href={href} prefetch={false} className={isActive(pathname, href) ? 'active' : ''} onNavigate={() => setNavigating(true)}>
+            <Icon /><span><strong>{label}</strong><small>{description}</small></span>
+          </Link>)}
+        </nav>
+
+        <div className="control-mobile-more-actions">
+          {readOnly
+            ? <Link href="/" prefetch={false}>Ver web de La Bocana</Link>
+            : <Link href="/control/reservas?new=1" prefetch={false} onNavigate={() => setNavigating(true)}><PlusIcon />Nueva reserva</Link>}
+          <form action="/auth/signout" method="post"><button type="submit">Cerrar sesión</button></form>
+        </div>
+      </section>
+    </>}
 
     {paletteOpen && <div className="control-command-overlay" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setPaletteOpen(false); }}>
       <section className="control-command-palette" role="dialog" aria-modal="true" aria-label="Buscar o ejecutar una acción">
