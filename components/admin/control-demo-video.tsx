@@ -16,6 +16,7 @@ export function ControlDemoVideo() {
           controls
           playsInline
           preload="metadata"
+          aria-label="Demostración de La Bocana Control"
         >
           Tu navegador no puede reproducir este vídeo.
         </video>
