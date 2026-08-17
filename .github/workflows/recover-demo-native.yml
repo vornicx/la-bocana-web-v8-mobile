@@ -27,7 +27,7 @@ jobs:
 
       - name: Download and validate the real demo from Drive
         run: |
-          gdown --id 1LUoNF926uCtsJ6PMYQhcAYcI8Jx9Miho -O /tmp/demo-la-bocana.mp4
+          gdown 1LUoNF926uCtsJ6PMYQhcAYcI8Jx9Miho -O /tmp/demo-la-bocana.mp4
           python - <<'PY'
           import json
           import subprocess
