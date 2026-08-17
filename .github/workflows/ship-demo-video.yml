@@ -19,285 +19,243 @@ jobs:
           ref: agent/la-bocana-demo-upload
           fetch-depth: 0
 
-      - name: Rebuild and validate uploaded MP4
+      - name: Ensure ffmpeg is available
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+
+      - name: Recover and validate the original Control demo
         shell: python
         run: |
-          import base64, glob, os, struct
-          compact = sorted(glob.glob('.tmp/demo-video-compact/part-*.b64'))
-          legacy = sorted(glob.glob('.tmp/demo-video/part-*.b64'))
-          parts = compact if compact else legacy
+          import base64
+          import glob
+          import re
+          import subprocess
+          from pathlib import Path
+
+          subprocess.run(['git', 'fetch', 'origin', 'main'], check=True)
+          source = subprocess.check_output(
+              ['git', 'show', 'origin/main:components/admin/demo-video-data/part-00.ts'],
+              text=True,
+          )
+          match = re.fullmatch(r"export default '([^']*)';\s*", source, re.S)
+          if not match:
+              raise SystemExit('Could not read the first demo-video chunk from main')
+
+          first = match.group(1)
+          parts = sorted(glob.glob('.tmp/demo-video/part-*.b64'))
           if not parts:
-              raise SystemExit('No demo video chunks found')
-          encoded = ''.join(open(p, encoding='utf-8').read() for p in parts)
-          encoded = ''.join(encoded.split())
-          data = base64.b64decode(encoded, validate=True)
-          if len(data) < 100_000 or data[4:8] != b'ftyp':
-              raise SystemExit(f'Invalid/small MP4 ({len(data)} bytes)')
-          pos = 0
-          atoms = []
-          while pos < len(data):
-              if pos + 8 > len(data):
-                  raise SystemExit(f'Truncated atom header at {pos}')
-              size = struct.unpack('>I', data[pos:pos+4])[0]
-              kind = data[pos+4:pos+8].decode('latin1')
-              header = 8
-              if size == 1:
-                  if pos + 16 > len(data):
-                      raise SystemExit('Truncated extended atom')
-                  size = struct.unpack('>Q', data[pos+8:pos+16])[0]
-                  header = 16
-              elif size == 0:
-                  size = len(data) - pos
-              if size < header or pos + size > len(data):
-                  raise SystemExit(f'Truncated/invalid {kind} atom: pos={pos}, size={size}, file={len(data)}')
-              atoms.append(kind)
-              pos += size
-          if pos != len(data) or 'moov' not in atoms or 'mdat' not in atoms:
-              raise SystemExit(f'Incomplete MP4: atoms={atoms}, pos={pos}, len={len(data)}')
-          with open('/tmp/demo-la-bocana.mp4','wb') as f:
-              f.write(data)
-          print(f'Video validated: {len(data)} bytes, atoms={atoms}')
+              raise SystemExit('No continuation chunks found on upload branch')
+
+          tail = ''.join(Path(path).read_text(encoding='utf-8') for path in parts)
+          encoded = ''.join((first + tail).split())
+          print(f'Collected {len(encoded)} base64 characters from {1 + len(parts)} chunks')
+
+          alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+          selected = None
+          diagnostics = []
+
+          for char in alphabet:
+              candidate = encoded + char
+              candidate += '=' * ((4 - len(candidate) % 4) % 4)
+              try:
+                  data = base64.b64decode(candidate, validate=True)
+              except Exception:
+                  continue
+
+              if not data.startswith(bytes.fromhex('1a45dfa3')):
+                  continue
+
+              path = Path(f'/tmp/demo-candidate-{ord(char)}.webm')
+              path.write_bytes(data)
+              probe = subprocess.run(
+                  [
+                      'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                      '-of', 'default=noprint_wrappers=1:nokey=1', str(path)
+                  ],
+                  capture_output=True,
+                  text=True,
+              )
+              try:
+                  duration = float(probe.stdout.strip())
+              except Exception:
+                  duration = 0.0
+
+              decode = subprocess.run(
+                  ['ffmpeg', '-v', 'error', '-i', str(path), '-map', '0:v:0', '-f', 'null', '-'],
+                  capture_output=True,
+                  text=True,
+              )
+              diagnostics.append((char, duration, decode.returncode, decode.stderr[-500:]))
+
+              if 90 <= duration <= 100 and decode.returncode == 0:
+                  selected = path
+                  print(f'Recovered playable WebM with duration {duration:.3f}s')
+                  break
+
+          if selected is None:
+              print('Recovery diagnostics:')
+              for item in diagnostics[:12]:
+                  print(item)
+              raise SystemExit('Could not recover a fully decodable Control demo from staged chunks')
+
+          output = Path('/tmp/demo-la-bocana.mp4')
+          subprocess.run(
+              [
+                  'ffmpeg', '-y', '-v', 'error', '-i', str(selected),
+                  '-map', '0:v:0', '-map', '0:a?',
+                  '-c:v', 'libx264', '-preset', 'medium', '-crf', '24',
+                  '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k',
+                  '-movflags', '+faststart', str(output)
+              ],
+              check=True,
+          )
+
+          size = output.stat().st_size
+          duration = float(subprocess.check_output(
+              [
+                  'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                  '-of', 'default=noprint_wrappers=1:nokey=1', str(output)
+              ],
+              text=True,
+          ).strip())
+          if size < 50_000 or not (90 <= duration <= 100):
+              raise SystemExit(f'Unexpected recovered MP4: size={size}, duration={duration}')
+          print(f'Native MP4 ready: {size} bytes, {duration:.3f}s')
 
       - name: Switch to current main
         run: |
           git fetch origin main
           git checkout -B main origin/main
           git clean -fdx
-          mkdir -p public components/admin
-          cp /tmp/demo-la-bocana.mp4 public/demo-la-bocana.mp4
+          mkdir -p public/videos components/admin
+          cp /tmp/demo-la-bocana.mp4 public/videos/demo-la-bocana.mp4
 
-      - name: Add premium video experience
+      - name: Add native inline player
         shell: bash
         run: |
-          cat > components/admin/demo-video.tsx <<'TSX'
-          'use client'
-
-          import { useEffect, useId, useState } from 'react'
-          import styles from './demo-video.module.css'
-
-          type DemoVideoTriggerProps = {
-            variant?: 'login' | 'control'
-          }
-
-          export function DemoVideoTrigger({ variant = 'login' }: DemoVideoTriggerProps) {
-            const [open, setOpen] = useState(false)
-            const titleId = useId()
-
-            useEffect(() => {
-              if (!open) return
-              const previousOverflow = document.body.style.overflow
-              const onKeyDown = (event: KeyboardEvent) => {
-                if (event.key === 'Escape') setOpen(false)
-              }
-              document.body.style.overflow = 'hidden'
-              window.addEventListener('keydown', onKeyDown)
-              return () => {
-                document.body.style.overflow = previousOverflow
-                window.removeEventListener('keydown', onKeyDown)
-              }
-            }, [open])
-
+          cat > components/admin/control-demo-video.tsx <<'TSX'
+          export function ControlDemoVideo() {
             return (
-              <>
-                <button
-                  type="button"
-                  className={`${styles.trigger} ${variant === 'control' ? styles.triggerControl : styles.triggerLogin}`}
-                  onClick={() => setOpen(true)}
-                  aria-haspopup="dialog"
-                >
-                  <span className={styles.playIcon} aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M9 7.8v8.4c0 .72.79 1.16 1.4.78l6.65-4.2a.92.92 0 0 0 0-1.56L10.4 7.02A.92.92 0 0 0 9 7.8Z" fill="currentColor" />
-                    </svg>
-                  </span>
-                  <span className={styles.triggerCopy}>
-                    <strong>{variant === 'control' ? 'Tour de Control' : 'Ver demostración'}</strong>
-                    <small>1:33 min</small>
-                  </span>
-                </button>
-
-                {open ? (
-                  <div className={styles.overlay} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
-                    <section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-                      <header className={styles.header}>
-                        <div>
-                          <span className={styles.eyebrow}>LA BOCANA · DEMOSTRACIÓN</span>
-                          <h2 id={titleId}>Web &amp; Control, en 93 segundos</h2>
-                        </div>
-                        <button type="button" className={styles.close} onClick={() => setOpen(false)} aria-label="Cerrar vídeo">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      </header>
-
-                      <div className={styles.videoFrame}>
-                        <video
-                          className={styles.video}
-                          src="/demo-la-bocana.mp4"
-                          controls
-                          playsInline
-                          preload="metadata"
-                        >
-                          Tu navegador no puede reproducir este vídeo.
-                        </video>
-                      </div>
-
-                      <footer className={styles.footer}>
-                        <p>Un recorrido rápido por la experiencia del cliente y la operativa de La Bocana Control.</p>
-                      </footer>
-                    </section>
+              <div className="control-demo-access control-demo-video-card" aria-label="Vídeo de demostración de Control">
+                <div className="control-demo-access-head">
+                  <div>
+                    <span>Vídeo de demostración</span>
+                    <strong>Mira cómo funciona Control antes de entrar</strong>
                   </div>
-                ) : null}
-              </>
-            )
+                  <span className="control-demo-badge">1:34</span>
+                </div>
+                <p className="control-demo-video-copy">Un recorrido breve por reservas, sala, clientes y la operativa diaria de La Bocana.</p>
+                <div className="control-native-video-frame">
+                  <video
+                    className="control-native-video"
+                    src="/videos/demo-la-bocana.mp4"
+                    controls
+                    playsInline
+                    preload="metadata"
+                  >
+                    Tu navegador no puede reproducir este vídeo.
+                  </video>
+                </div>
+                <p className="control-native-video-note">Reproducción directa en La Bocana · sin salir de la web</p>
+              </div>
+            );
           }
           TSX
 
-          cat > components/admin/demo-video.module.css <<'CSS'
-          .trigger {
-            border: 1px solid rgba(14, 37, 55, .16);
-            background: rgba(255, 255, 255, .92);
-            color: #102b3d;
-            box-shadow: 0 14px 40px rgba(9, 31, 47, .14);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 52px;
-            padding: 7px 16px 7px 8px;
-            cursor: pointer;
-            font: inherit;
-            z-index: 245;
-            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-          }
-
-          .trigger:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(9, 31, 47, .19); border-color: rgba(14, 37, 55, .28); }
-          .trigger:focus-visible, .close:focus-visible { outline: 2px solid #b9a06a; outline-offset: 3px; }
-          .triggerLogin { position: fixed; right: 24px; bottom: 24px; }
-          .triggerControl { position: fixed; right: 22px; bottom: 22px; }
-
-          .playIcon {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: #102b3d;
-            color: #fff;
-            flex: 0 0 auto;
-          }
-          .playIcon svg { width: 19px; height: 19px; }
-          .triggerCopy { display: grid; text-align: left; line-height: 1.05; gap: 3px; }
-          .triggerCopy strong { font-size: 12px; font-weight: 650; letter-spacing: .025em; white-space: nowrap; }
-          .triggerCopy small { font-size: 10px; color: #687a85; letter-spacing: .04em; }
-
-          .overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            display: grid;
-            place-items: center;
-            padding: 24px;
-            background: rgba(5, 18, 27, .78);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-          }
-
-          .dialog {
-            width: min(980px, 100%);
-            max-height: calc(100dvh - 48px);
-            overflow: auto;
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,.16);
-            background: #f7f4ed;
-            box-shadow: 0 38px 100px rgba(0,0,0,.42);
-          }
-
-          .header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; padding: 22px 24px 18px; }
-          .eyebrow { display: block; color: #927b4d; font-size: 10px; font-weight: 700; letter-spacing: .16em; margin-bottom: 7px; }
-          .header h2 { margin: 0; color: #102b3d; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(22px, 3vw, 34px); font-weight: 500; letter-spacing: -.025em; }
-          .close { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(14,37,55,.14); background: rgba(255,255,255,.72); color: #102b3d; display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
-          .close svg { width: 20px; height: 20px; }
-
-          .videoFrame { margin: 0 24px; overflow: hidden; border-radius: 16px; background: #07151e; box-shadow: 0 18px 48px rgba(7,21,30,.2); aspect-ratio: 16 / 9; }
-          .video { display: block; width: 100%; height: 100%; object-fit: contain; background: #07151e; }
-          .footer { padding: 16px 24px 22px; }
-          .footer p { margin: 0; color: #667984; font-size: 12px; line-height: 1.55; }
-
-          @media (max-width: 900px) {
-            .triggerControl { right: 12px; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
-            .triggerLogin { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
-            .overlay { padding: 12px; align-items: center; }
-            .dialog { border-radius: 20px; max-height: calc(100dvh - 24px); }
-            .header { padding: 18px 16px 14px; }
-            .header h2 { font-size: 22px; }
-            .videoFrame { margin: 0 10px; border-radius: 12px; }
-            .footer { padding: 14px 16px 18px; }
-          }
-
-          @media (max-width: 480px) {
-            .trigger { min-height: 48px; padding-right: 13px; }
-            .playIcon { width: 34px; height: 34px; }
-            .triggerCopy strong { font-size: 11px; }
-            .triggerControl { right: 10px; }
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            .trigger { transition: none; }
-          }
-          CSS
-
-      - name: Wire video into Access equipo and Control
+      - name: Replace Canva link with native player
         shell: python
         run: |
           from pathlib import Path
-          import re
 
-          def add_import(text: str, statement: str) -> str:
-              if statement in text:
-                  return text
-              lines = text.splitlines()
-              insert_at = 0
-              if lines and lines[0].strip() in {"'use client'", '"use client"', "'use client';", '"use client";'}:
-                  insert_at = 1
-                  while insert_at < len(lines) and not lines[insert_at].strip():
-                      insert_at += 1
-              lines.insert(insert_at, statement)
-              return '\n'.join(lines) + ('\n' if text.endswith('\n') else '')
+          login = Path('app/admin-login/login-form.tsx')
+          text = login.read_text(encoding='utf-8')
+          text = text.replace("const DEMO_VIDEO_URL = 'https://www.canva.com/d/oaEej4P36GJOBoT';\n", '')
 
-          login = Path('app/admin-login/page.tsx')
-          if not login.exists():
-              raise SystemExit('Missing app/admin-login/page.tsx')
-          text = login.read_text()
-          imp = "import { DemoVideoTrigger } from '@/components/admin/demo-video'"
-          text = add_import(text, imp)
-          if 'variant="login"' not in text:
-              match = re.search(r'<LoginForm\b[^>]*/>', text)
-              if not match:
-                  raise SystemExit('Could not locate <LoginForm /> in admin-login page')
-              replacement = match.group(0) + '\n      <DemoVideoTrigger variant="login" />'
-              text = text[:match.start()] + replacement + text[match.end():]
-          login.write_text(text)
+          import_line = "import { ControlDemoVideo } from '@/components/admin/control-demo-video';\n"
+          anchor = "import { loginStaff, type LoginState } from './actions';\n"
+          if import_line not in text:
+              if anchor not in text:
+                  raise SystemExit('Could not locate login-form import anchor')
+              text = text.replace(anchor, anchor + import_line)
 
-          layout = Path('app/admin/layout.tsx')
-          if not layout.exists():
-              raise SystemExit('Missing app/admin/layout.tsx')
-          text = layout.read_text()
-          text = add_import(text, imp)
-          if 'variant="control"' not in text:
-              matches = list(re.finditer(r'\{children\}', text))
-              if not matches:
-                  raise SystemExit('Could not locate {children} in admin layout')
-              m = matches[-1]
-              replacement = '{children}\n      <DemoVideoTrigger variant="control" />'
-              text = text[:m.start()] + replacement + text[m.end():]
-          layout.write_text(text)
+          old = '''      <div className="control-demo-access control-demo-video-card" aria-label="Vídeo de demostración de Control">
+        <div className="control-demo-access-head">
+          <div>
+            <span>Vídeo de demostración</span>
+            <strong>Mira cómo funciona Control antes de entrar</strong>
+          </div>
+          <span className="control-demo-badge">1:34</span>
+        </div>
+        <p className="control-demo-video-copy">Un recorrido breve por reservas, sala, clientes y la operativa diaria de La Bocana.</p>
+        <a className="control-demo-use" href={DEMO_VIDEO_URL} target="_blank" rel="noreferrer">
+          Ver demostración
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>'''
+          new = '      <ControlDemoVideo />'
+          if old not in text:
+              raise SystemExit('Could not locate the Canva video card in login-form.tsx')
+          text = text.replace(old, new)
+          login.write_text(text, encoding='utf-8')
 
-      - name: Verify project
+          css = Path('app/admin-login/demo-access.css')
+          styles = css.read_text(encoding='utf-8')
+          marker = '/* Native Control demo video */'
+          if marker not in styles:
+              styles += r'''
+
+/* Native Control demo video */
+.control-native-video-frame {
+  width: 100%;
+  margin-top: 14px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #07151e;
+  border: 1px solid rgba(16, 43, 61, 0.12);
+  box-shadow: 0 14px 34px rgba(7, 21, 30, 0.14);
+}
+
+.control-native-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #07151e;
+}
+
+.control-native-video-note {
+  margin: 10px 0 0;
+  color: rgba(16, 43, 61, 0.58);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: 0.015em;
+}
+
+@media (max-width: 640px) {
+  .control-native-video-frame {
+    margin-top: 12px;
+    border-radius: 11px;
+  }
+
+  .control-native-video-note {
+    font-size: 10px;
+  }
+}
+'''
+              css.write_text(styles, encoding='utf-8')
+
+      - name: Verify native integration
         run: |
+          if grep -R "canva.com/d/oaEej4P36GJOBoT" app components; then
+            echo "Canva demo URL is still referenced"
+            exit 1
+          fi
+          test -s public/videos/demo-la-bocana.mp4
           npm ci
           npm run build
 
@@ -305,6 +263,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/demo-la-bocana.mp4 components/admin/demo-video.tsx components/admin/demo-video.module.css app/admin-login/page.tsx app/admin/layout.tsx
-          git commit -m "add embedded La Bocana demo video"
+          git add public/videos/demo-la-bocana.mp4 components/admin/control-demo-video.tsx app/admin-login/login-form.tsx app/admin-login/demo-access.css
+          git commit -m "embed La Bocana Control demo video natively"
           git push origin main
