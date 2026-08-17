@@ -1,0 +1,84 @@
+name: Finalize La Bocana demo video
+
+on:
+  push:
+    branches:
+      - agent/la-bocana-demo-upload
+    paths:
+      - .tmp/demo-video-finalize.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/la-bocana-demo-upload
+          fetch-depth: 0
+
+      - name: Rebuild and validate MP4
+        shell: python
+        run: |
+          import base64
+          import glob
+          import os
+          import struct
+
+          compact = sorted(glob.glob('.tmp/demo-video-compact/part-*.b64'))
+          legacy = sorted(glob.glob('.tmp/demo-video/part-*.b64'))
+          parts = compact if compact else legacy
+          if not parts:
+              raise SystemExit('No demo video chunks found')
+
+          encoded = ''.join(open(p, encoding='utf-8').read() for p in parts)
+          encoded = ''.join(encoded.split())
+          data = base64.b64decode(encoded, validate=True)
+          if len(data) < 100_000:
+              raise SystemExit(f'Video is suspiciously small: {len(data)} bytes')
+          if data[4:8] != b'ftyp':
+              raise SystemExit('Not an MP4: missing ftyp atom')
+
+          # Validate that every top-level MP4 atom fits exactly inside the file.
+          pos = 0
+          atoms = []
+          while pos < len(data):
+              if pos + 8 > len(data):
+                  raise SystemExit(f'Truncated MP4 atom header at {pos}')
+              size = struct.unpack('>I', data[pos:pos+4])[0]
+              kind = data[pos+4:pos+8].decode('latin1')
+              header = 8
+              if size == 1:
+                  if pos + 16 > len(data):
+                      raise SystemExit(f'Truncated extended atom header at {pos}')
+                  size = struct.unpack('>Q', data[pos+8:pos+16])[0]
+                  header = 16
+              elif size == 0:
+                  size = len(data) - pos
+              if size < header or pos + size > len(data):
+                  raise SystemExit(f'Truncated/invalid atom {kind} at {pos}: {size}')
+              atoms.append((kind, size))
+              pos += size
+          if pos != len(data):
+              raise SystemExit(f'MP4 atom parse ended at {pos}, file is {len(data)}')
+          if not any(k == 'mdat' for k, _ in atoms) or not any(k == 'moov' for k, _ in atoms):
+              raise SystemExit(f'Missing required MP4 atoms: {atoms}')
+
+          os.makedirs('public', exist_ok=True)
+          with open('public/demo-la-bocana.mp4', 'wb') as f:
+              f.write(data)
+          print(f'Validated MP4: {len(data)} bytes; atoms={atoms}')
+
+      - name: Commit validated video to staging branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/demo-la-bocana.mp4
+          if git diff --cached --quiet; then
+            echo "Video already present"
+          else
+            git commit -m "stage validated La Bocana demo video"
+            git push origin HEAD:agent/la-bocana-demo-upload
+          fi
