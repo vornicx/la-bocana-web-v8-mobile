@@ -1,4 +1,4 @@
-name: Recover La Bocana demo natively
+name: Embed La Bocana demo natively
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  recover:
+  embed:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,18 +19,48 @@ jobs:
           ref: agent/la-bocana-demo-upload
           fetch-depth: 0
 
-      - name: Install ffmpeg
+      - name: Install media tooling
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
+          python -m pip install --quiet gdown
 
-      - name: Recover video
+      - name: Download and validate the real demo from Drive
+        run: |
+          gdown --id 1LUoNF926uCtsJ6PMYQhcAYcI8Jx9Miho -O /tmp/demo-la-bocana.mp4
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          path = Path('/tmp/demo-la-bocana.mp4')
+          if not path.exists():
+              raise SystemExit('Drive download did not create the demo file')
+          if path.stat().st_size < 20_000_000:
+              raise SystemExit(f'Demo file is unexpectedly small: {path.stat().st_size} bytes')
+
+          probe = subprocess.run([
+              'ffprobe', '-v', 'error', '-show_entries', 'format=duration,size',
+              '-of', 'json', str(path)
+          ], capture_output=True, text=True, check=True)
+          payload = json.loads(probe.stdout)
+          duration = float(payload['format']['duration'])
+          size = int(payload['format']['size'])
+          print(f'Drive demo validated: {duration:.3f}s / {size} bytes')
+          if not (93 <= duration <= 95):
+              raise SystemExit(f'Unexpected demo duration: {duration}')
+
+          decode = subprocess.run([
+              'ffmpeg', '-v', 'error', '-xerror', '-i', str(path), '-f', 'null', '-'
+          ], capture_output=True, text=True)
+          if decode.returncode != 0:
+              print(decode.stderr)
+              raise SystemExit('Demo MP4 failed full decode validation')
+          PY
+
+      - name: Prepare current main with native player
         run: |
           git fetch origin main
-          python .github/scripts/recover_demo.py
-
-      - name: Prepare current main
-        run: |
           git worktree add /tmp/la-bocana-main origin/main
           mkdir -p /tmp/la-bocana-main/public/videos
           cp /tmp/demo-la-bocana.mp4 /tmp/la-bocana-main/public/videos/demo-la-bocana.mp4
