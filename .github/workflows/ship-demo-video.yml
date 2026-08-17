@@ -65,17 +65,13 @@ jobs:
                   data = base64.b64decode(candidate, validate=True)
               except Exception:
                   continue
-
               if not data.startswith(bytes.fromhex('1a45dfa3')):
                   continue
 
               path = Path(f'/tmp/demo-candidate-{ord(char)}.webm')
               path.write_bytes(data)
               probe = subprocess.run(
-                  [
-                      'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-                      '-of', 'default=noprint_wrappers=1:nokey=1', str(path)
-                  ],
+                  ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', str(path)],
                   capture_output=True,
                   text=True,
               )
@@ -89,8 +85,7 @@ jobs:
                   capture_output=True,
                   text=True,
               )
-              diagnostics.append((char, duration, decode.returncode, decode.stderr[-500:]))
-
+              diagnostics.append((char, duration, decode.returncode, decode.stderr[-300:]))
               if 90 <= duration <= 100 and decode.returncode == 0:
                   selected = path
                   print(f'Recovered playable WebM with duration {duration:.3f}s')
@@ -104,22 +99,12 @@ jobs:
 
           output = Path('/tmp/demo-la-bocana.mp4')
           subprocess.run(
-              [
-                  'ffmpeg', '-y', '-v', 'error', '-i', str(selected),
-                  '-map', '0:v:0', '-map', '0:a?',
-                  '-c:v', 'libx264', '-preset', 'medium', '-crf', '24',
-                  '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k',
-                  '-movflags', '+faststart', str(output)
-              ],
+              ['ffmpeg', '-y', '-v', 'error', '-i', str(selected), '-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'medium', '-crf', '24', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', str(output)],
               check=True,
           )
-
           size = output.stat().st_size
           duration = float(subprocess.check_output(
-              [
-                  'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-                  '-of', 'default=noprint_wrappers=1:nokey=1', str(output)
-              ],
+              ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', str(output)],
               text=True,
           ).strip())
           if size < 50_000 or not (90 <= duration <= 100):
@@ -135,7 +120,6 @@ jobs:
           cp /tmp/demo-la-bocana.mp4 public/videos/demo-la-bocana.mp4
 
       - name: Add native inline player
-        shell: bash
         run: |
           cat > components/admin/control-demo-video.tsx <<'TSX'
           export function ControlDemoVideo() {
@@ -150,13 +134,7 @@ jobs:
                 </div>
                 <p className="control-demo-video-copy">Un recorrido breve por reservas, sala, clientes y la operativa diaria de La Bocana.</p>
                 <div className="control-native-video-frame">
-                  <video
-                    className="control-native-video"
-                    src="/videos/demo-la-bocana.mp4"
-                    controls
-                    playsInline
-                    preload="metadata"
-                  >
+                  <video className="control-native-video" src="/videos/demo-la-bocana.mp4" controls playsInline preload="metadata">
                     Tu navegador no puede reproducir este vídeo.
                   </video>
                 </div>
@@ -165,6 +143,50 @@ jobs:
             );
           }
           TSX
+
+          if ! grep -q "Native Control demo video" app/admin-login/demo-access.css; then
+            cat >> app/admin-login/demo-access.css <<'CSS'
+
+          /* Native Control demo video */
+          .control-native-video-frame {
+            width: 100%;
+            margin-top: 14px;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            border-radius: 14px;
+            background: #07151e;
+            border: 1px solid rgba(16, 43, 61, 0.12);
+            box-shadow: 0 14px 34px rgba(7, 21, 30, 0.14);
+          }
+
+          .control-native-video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #07151e;
+          }
+
+          .control-native-video-note {
+            margin: 10px 0 0;
+            color: rgba(16, 43, 61, 0.58);
+            font-size: 11px;
+            line-height: 1.45;
+            letter-spacing: 0.015em;
+          }
+
+          @media (max-width: 640px) {
+            .control-native-video-frame {
+              margin-top: 12px;
+              border-radius: 11px;
+            }
+
+            .control-native-video-note {
+              font-size: 10px;
+            }
+          }
+          CSS
+          fi
 
       - name: Replace Canva link with native player
         shell: python
@@ -183,71 +205,25 @@ jobs:
               text = text.replace(anchor, anchor + import_line)
 
           old = '''      <div className="control-demo-access control-demo-video-card" aria-label="Vídeo de demostración de Control">
-        <div className="control-demo-access-head">
-          <div>
-            <span>Vídeo de demostración</span>
-            <strong>Mira cómo funciona Control antes de entrar</strong>
-          </div>
-          <span className="control-demo-badge">1:34</span>
-        </div>
-        <p className="control-demo-video-copy">Un recorrido breve por reservas, sala, clientes y la operativa diaria de La Bocana.</p>
-        <a className="control-demo-use" href={DEMO_VIDEO_URL} target="_blank" rel="noreferrer">
-          Ver demostración
-          <span aria-hidden="true">→</span>
-        </a>
-      </div>'''
-          new = '      <ControlDemoVideo />'
+                  <div className="control-demo-access-head">
+                    <div>
+                      <span>Vídeo de demostración</span>
+                      <strong>Mira cómo funciona Control antes de entrar</strong>
+                    </div>
+                    <span className="control-demo-badge">1:34</span>
+                  </div>
+                  <p className="control-demo-video-copy">Un recorrido breve por reservas, sala, clientes y la operativa diaria de La Bocana.</p>
+                  <a className="control-demo-use" href={DEMO_VIDEO_URL} target="_blank" rel="noreferrer">
+                    Ver demostración
+                    <span aria-hidden="true">→</span>
+                  </a>
+                </div>'''
+          if old not in text:
+              old = old.replace('                  ', '        ')
           if old not in text:
               raise SystemExit('Could not locate the Canva video card in login-form.tsx')
-          text = text.replace(old, new)
+          text = text.replace(old, '      <ControlDemoVideo />')
           login.write_text(text, encoding='utf-8')
-
-          css = Path('app/admin-login/demo-access.css')
-          styles = css.read_text(encoding='utf-8')
-          marker = '/* Native Control demo video */'
-          if marker not in styles:
-              styles += r'''
-
-/* Native Control demo video */
-.control-native-video-frame {
-  width: 100%;
-  margin-top: 14px;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: 14px;
-  background: #07151e;
-  border: 1px solid rgba(16, 43, 61, 0.12);
-  box-shadow: 0 14px 34px rgba(7, 21, 30, 0.14);
-}
-
-.control-native-video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #07151e;
-}
-
-.control-native-video-note {
-  margin: 10px 0 0;
-  color: rgba(16, 43, 61, 0.58);
-  font-size: 11px;
-  line-height: 1.45;
-  letter-spacing: 0.015em;
-}
-
-@media (max-width: 640px) {
-  .control-native-video-frame {
-    margin-top: 12px;
-    border-radius: 11px;
-  }
-
-  .control-native-video-note {
-    font-size: 10px;
-  }
-}
-'''
-              css.write_text(styles, encoding='utf-8')
 
       - name: Verify native integration
         run: |
