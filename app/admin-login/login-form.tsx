@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useActionState, useRef, useState } from 'react';
 import { loginStaff, type LoginState } from './actions';
+import { ControlDemoVideo } from '@/components/admin/control-demo-video';
 
 const DEMO_EMAIL = 'demo@labocana-control.es';
 const DEMO_PASSWORD = 'LaBocanaDemo2026!';
-const DEMO_VIDEO_URL = 'https://www.canva.com/d/oaEej4P36GJOBoT';
 
 export function LoginForm({ initialMessage = null }: { initialMessage?: string | null }) {
   const initialState: LoginState = { status: initialMessage ? 'error' : 'idle', message: initialMessage, email: '' };
@@ -55,20 +55,7 @@ export function LoginForm({ initialMessage = null }: { initialMessage?: string |
         </button>
       </div>
 
-      <div className="control-demo-access control-demo-video-card" aria-label="Vídeo de demostración de Control">
-        <div className="control-demo-access-head">
-          <div>
-            <span>Vídeo de demostración</span>
-            <strong>Mira cómo funciona Control antes de entrar</strong>
-          </div>
-          <span className="control-demo-badge">1:34</span>
-        </div>
-        <p className="control-demo-video-copy">Un recorrido breve por reservas, sala, clientes y la operativa diaria de La Bocana.</p>
-        <a className="control-demo-use" href={DEMO_VIDEO_URL} target="_blank" rel="noreferrer">
-          Ver demostración
-          <span aria-hidden="true">→</span>
-        </a>
-      </div>
+      <ControlDemoVideo />
 
       <label>
         <span>Email</span>
