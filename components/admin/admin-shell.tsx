@@ -20,6 +20,7 @@ import {
   UsersIcon,
   WaitlistIcon,
 } from './admin-icons';
+import { ControlDemoVideo } from './control-demo-video';
 
 const serviceNav = [
   { href: '/control', label: 'Resumen', description: 'Pulso del servicio', Icon: HomeIcon },
@@ -178,6 +179,8 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
         <small>Puedes recorrer todo Control sin alterar datos operativos.</small>
       </div>}
 
+      <ControlDemoVideo variant="sidebar" />
+
       <div className="control-nav-scroll">
         <NavGroup label="Servicio" items={serviceNav} />
         <NavGroup label="Gestión" items={managementNav} />
@@ -244,6 +247,8 @@ export function AdminShell({ children, staff }: { children: ReactNode; staff: St
         <button type="button" className="control-mobile-more-search" onClick={openSearch}><SearchIcon /><span>Buscar sección o acción</span></button>
 
         {readOnly && <div className="control-mobile-more-demo" role="status"><strong>Demo protegida.</strong> Puedes recorrer Control y consultar datos sin modificar la operación.</div>}
+
+        <ControlDemoVideo variant="sheet" onOpen={() => setMobileMenuOpen(false)} />
 
         <nav className="control-mobile-more-grid" aria-label="Secciones adicionales">
           {mobileMoreNav.map(({ href, label, description, Icon }) => <Link key={href} href={href} prefetch={false} className={isActive(pathname, href) ? 'active' : ''} onNavigate={() => setNavigating(true)}>
