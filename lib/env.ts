@@ -1,9 +1,13 @@
+const FALLBACK_SUPABASE_URL = 'https://rjaeqcrtxzonxqhzfxtq.supabase.co';
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Ea6D9IkoYuDP7VZdooplag_rpLcpQWG';
+
 export function publicEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !publicKey) {
-    throw new Error('Supabase público no está configurado. Define NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY (o PUBLISHABLE_KEY).');
-  }
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? FALLBACK_SUPABASE_URL;
+  const publicKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    FALLBACK_SUPABASE_PUBLISHABLE_KEY;
+
   return { supabaseUrl: url, supabasePublicKey: publicKey };
 }
 
