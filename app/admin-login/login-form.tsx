@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useActionState, useRef, useState } from 'react';
+import { ControlDemoVideo } from '@/components/admin/control-demo-video';
 import { loginStaff, type LoginState } from './actions';
 
 const DEMO_EMAIL = 'demo@labocana-control.es';
@@ -53,6 +54,8 @@ export function LoginForm({ initialMessage = null }: { initialMessage?: string |
           <span aria-hidden="true">→</span>
         </button>
       </div>
+
+      <ControlDemoVideo variant="card" />
 
       <label>
         <span>Email</span>
