@@ -7,12 +7,13 @@ import styles from './control-demo-video.module.css';
 
 type ControlDemoVideoProps = {
   variant?: 'card' | 'sidebar' | 'sheet';
+  onOpen?: () => void;
 };
 
 const VIDEO_SRC = '/videos/demo-la-bocana.mp4';
 const POSTER_SRC = '/images/gallery-official/mesa-atardecer.webp';
 
-export function ControlDemoVideo({ variant = 'card' }: ControlDemoVideoProps) {
+export function ControlDemoVideo({ variant = 'card', onOpen }: ControlDemoVideoProps) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -40,13 +41,18 @@ export function ControlDemoVideo({ variant = 'card' }: ControlDemoVideoProps) {
     };
   }, [open]);
 
+  function openVideo() {
+    onOpen?.();
+    setOpen(true);
+  }
+
   function closeVideo() {
     setOpen(false);
     window.setTimeout(() => triggerRef.current?.focus(), 0);
   }
 
   const trigger = variant === 'card'
-    ? <button ref={triggerRef} type="button" className={`${styles.trigger} ${styles.card}`} onClick={() => setOpen(true)}>
+    ? <button ref={triggerRef} type="button" className={`${styles.trigger} ${styles.card}`} onClick={openVideo}>
         <span className={styles.poster} aria-hidden="true">
           <Image src={POSTER_SRC} alt="" fill sizes="(max-width: 760px) 112px, 128px" />
           <span className={styles.posterShade} />
@@ -60,12 +66,12 @@ export function ControlDemoVideo({ variant = 'card' }: ControlDemoVideoProps) {
         <span className={styles.arrow} aria-hidden="true">→</span>
       </button>
     : variant === 'sidebar'
-      ? <button ref={triggerRef} type="button" className={`${styles.trigger} ${styles.sidebar}`} onClick={() => setOpen(true)}>
+      ? <button ref={triggerRef} type="button" className={`${styles.trigger} ${styles.sidebar}`} onClick={openVideo}>
           <span className={styles.playSmall} aria-hidden="true" />
           <span className={styles.compactCopy}><strong>Tour de Control</strong><small>Vídeo · 1:34</small></span>
           <span className={styles.arrow} aria-hidden="true">→</span>
         </button>
-      : <button ref={triggerRef} type="button" className={`${styles.trigger} ${styles.sheet}`} onClick={() => setOpen(true)}>
+      : <button ref={triggerRef} type="button" className={`${styles.trigger} ${styles.sheet}`} onClick={openVideo}>
           <span className={styles.playSmall} aria-hidden="true" />
           <span className={styles.compactCopy}><strong>Ver demostración</strong><small>Recorrido guiado · 1:34</small></span>
           <span className={styles.arrow} aria-hidden="true">→</span>
