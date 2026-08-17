@@ -1,0 +1,47 @@
+name: Recover La Bocana demo natively
+
+on:
+  push:
+    branches:
+      - agent/la-bocana-demo-upload
+    paths:
+      - .tmp/recover-demo.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/la-bocana-demo-upload
+          fetch-depth: 0
+
+      - name: Recover video
+        run: |
+          git fetch origin main
+          python .github/scripts/recover_demo.py
+
+      - name: Prepare current main
+        run: |
+          git worktree add /tmp/la-bocana-main origin/main
+          mkdir -p /tmp/la-bocana-main/public/videos
+          cp /tmp/demo-la-bocana.mp4 /tmp/la-bocana-main/public/videos/demo-la-bocana.mp4
+          python .github/scripts/patch_demo.py /tmp/la-bocana-main
+
+      - name: Build
+        working-directory: /tmp/la-bocana-main
+        run: |
+          npm ci
+          npm run build
+
+      - name: Push main
+        working-directory: /tmp/la-bocana-main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/videos/demo-la-bocana.mp4 components/admin/control-demo-video.tsx app/admin-login/login-form.tsx app/admin-login/demo-access.css
+          git commit -m "embed La Bocana Control demo video natively"
+          git push origin HEAD:main
