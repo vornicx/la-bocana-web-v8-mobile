@@ -106,32 +106,51 @@ for boundary in selected_boundaries:
 if not candidates:
     raise SystemExit('No 90-100 second recovery candidate survived probing')
 
+# The source upload can carry a harmless Matroska/WebM container warning at EOF.
+# What matters here is that the complete video stream decodes successfully. We then
+# transcode it and require the resulting MP4 itself to pass strict validation.
 candidates.sort(reverse=True, key=lambda item: item[0])
-selected = None
-for item in candidates[:20]:
-    _, boundary, char, info, candidate = item
+decoded = []
+for item in candidates:
+    candidate_score, boundary, char, info, candidate = item
     decode = run(['ffmpeg', '-v', 'error', '-xerror', '-i', str(candidate), '-map', '0:v:0', '-f', 'null', '-'])
-    print(f'Full decode boundary={boundary} char={char!r} probe={info} rc={decode.returncode}')
-    if decode.returncode == 0 and not decode.stderr.strip():
-        selected = candidate
-        print(f'Exact recovery selected boundary={boundary}, char={char!r}')
-        break
+    warning = decode.stderr.strip()
+    print(
+        f'Full decode boundary={boundary} char={char!r} probe={info} '
+        f'rc={decode.returncode} warning_bytes={len(warning)}'
+    )
+    if decode.returncode == 0:
+        decoded.append((len(warning), -candidate_score, boundary, char, candidate, warning))
 
-if selected is None:
-    raise SystemExit('Recovered container metadata, but no candidate decoded cleanly end-to-end')
+if not decoded:
+    raise SystemExit('Recovered container metadata, but no candidate decoded end-to-end')
+
+decoded.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
+warning_len, _, boundary, char, selected, warning = decoded[0]
+print(f'Recovery selected boundary={boundary}, char={char!r}, source_warning_bytes={warning_len}')
+if warning:
+    print('Source warning:', warning[:500])
 
 output = Path('/tmp/demo-la-bocana.mp4')
-transcode = subprocess.run([
+transcode = run([
     'ffmpeg', '-y', '-v', 'error', '-i', str(selected),
     '-map', '0:v:0', '-map', '0:a?',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '24', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', str(output)
 ])
 if transcode.returncode:
+    print(transcode.stderr[-1000:])
     raise SystemExit('ffmpeg could not transcode the recovered demo')
 
 final_probe = probe(output)
 size = output.stat().st_size
-print(f'Final MP4: {size} bytes / probe={final_probe}')
+final_decode = run(['ffmpeg', '-v', 'error', '-xerror', '-i', str(output), '-map', '0:v:0', '-f', 'null', '-'])
+print(
+    f'Final MP4: {size} bytes / probe={final_probe} / '
+    f'decode_rc={final_decode.returncode} / warning_bytes={len(final_decode.stderr.strip())}'
+)
 if size < 50_000 or not (90 <= final_probe[0] <= 100):
-    raise SystemExit('Recovered MP4 failed final validation')
+    raise SystemExit('Recovered MP4 failed duration/size validation')
+if final_decode.returncode != 0 or final_decode.stderr.strip():
+    print(final_decode.stderr[-1000:])
+    raise SystemExit('Recovered MP4 did not decode cleanly')
